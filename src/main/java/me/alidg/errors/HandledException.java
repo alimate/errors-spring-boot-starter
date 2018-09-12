@@ -37,7 +37,27 @@ public class HandledException {
     private final HttpStatus statusCode;
 
     /**
-     * Collection of to-be-exposed arguments grouped be the error code.
+     * Collection of to-be-exposed arguments grouped by the error code. This is a mapping
+     * between the error code and all its to-be-exposed arguments. For example, suppose
+     * we have a bean like:
+     * <pre>
+     *     public class User {
+     *
+     *         &#64;Size(min=1, max=7, message="interests.range_limit")
+     *         private List&lt;String&gt; interests;
+     *         // omitted for the sake of brevity
+     *     }
+     * </pre>
+     * If the given interest list wasn't valid, then this map would contain an entry with the
+     * {@code interests.range_limit} as the key and {@code List(1, 7)} as the values. Later on
+     * we can use those exposed values in our message, for example, the following error template:
+     * <pre>
+     *     You should define between {0} and {1} interests.
+     * </pre>
+     * Would be translated to:
+     * <pre>
+     *     You should define between 1 and 7 interests.
+     * </pre>
      */
     private final Map<String, List<Object>> arguments;
 
@@ -56,7 +76,6 @@ public class HandledException {
                             @NonNull HttpStatus statusCode,
                             @Nullable Map<String, List<Object>> arguments) {
         enforcePreconditions(errorCodes, statusCode);
-
         this.errorCodes = errorCodes;
         this.statusCode = statusCode;
         this.arguments = arguments == null ? Collections.emptyMap() : arguments;
