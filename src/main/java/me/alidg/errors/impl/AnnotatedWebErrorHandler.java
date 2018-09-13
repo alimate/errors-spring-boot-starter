@@ -5,7 +5,6 @@ import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -28,7 +27,6 @@ import static java.util.stream.Collectors.toList;
  * @see ExposeAsArg
  * @see ExceptionMapping
  */
-@Component
 public class AnnotatedWebErrorHandler implements WebErrorHandler {
 
     /**

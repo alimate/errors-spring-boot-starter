@@ -3,7 +3,6 @@ package me.alidg.errors.impl;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -27,7 +26,6 @@ import static java.util.stream.Collectors.toMap;
  *
  * @author Ali Dehghani
  */
-@Component
 public class SpringValidationWebErrorHandler implements WebErrorHandler {
 
     /**
