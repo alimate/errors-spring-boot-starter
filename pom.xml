@@ -7,7 +7,36 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>me.alidg</groupId>
     <artifactId>errors-spring-boot-starter</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>
+        A Spring Boot starter which provides a few primitives to handle exceptions
+        more elegantly.
+    </description>
+    <url>https://github.com/alimate/errors-spring-boot-starter</url>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Ali Dehghani</name>
+            <email>ali.dehghani.g@gmail.com</email>
+            <organization>alimate</organization>
+            <organizationUrl>https://alidg.me</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/alimate/errors-spring-boot-starter.git</connection>
+        <developerConnection>scm:git:ssh://github.com/alimate/errors-spring-boot-starter.git</developerConnection>
+        <url>https://github.com/alimate/errors-spring-boot-starter</url>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
