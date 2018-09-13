@@ -56,6 +56,14 @@ public class HttpError {
         return httpStatus;
     }
 
+    @Override
+    public String toString() {
+        return "HttpError{" +
+                "errors=" + errors +
+                ", httpStatus=" + httpStatus +
+                '}';
+    }
+
     /**
      * Represents an error code paired with its appropriate error message.
      */
@@ -112,6 +120,14 @@ public class HttpError {
         @Override
         public int hashCode() {
             return Objects.hash(getCode(), getMessage());
+        }
+
+        @Override
+        public String toString() {
+            return "CodedMessage{" +
+                    "code='" + code + '\'' +
+                    ", message='" + message + '\'' +
+                    '}';
         }
     }
 }
