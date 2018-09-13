@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(JUnitParamsRunner.class)
 public class WebErrorHandlersIT {
 
-    private static final Locale IRAN_LOCALE = new Locale("fa", "ir");
+    private static final Locale IRAN_LOCALE = new Locale("fa", "IR");
     private final WebApplicationContextRunner contextRunner = new WebApplicationContextRunner()
             .withPropertyValues("spring.messages.basename=test_messages")
             .withConfiguration(AutoConfigurations.of(
