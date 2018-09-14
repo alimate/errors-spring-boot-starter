@@ -4,9 +4,11 @@ import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.impl.AnnotatedWebErrorHandler;
 import me.alidg.errors.impl.SpringValidationWebErrorHandler;
+import me.alidg.errors.mvc.ErrorsControllerAdvice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
@@ -92,12 +94,26 @@ public class ErrorsAutoConfiguration {
     }
 
     /**
+     * Registers a {@link org.springframework.web.bind.annotation.RestControllerAdvice} to catch all
+     * exceptions thrown by the web layer. If there was no {@link WebErrorHandlers} in the application
+     * context, then the advice would not be registered.
+     *
+     * @param webErrorHandlers The exception handler.
+     * @return The registered controller advice.
+     */
+    @Bean
+    @ConditionalOnBean(WebErrorHandlers.class)
+    public ErrorsControllerAdvice errorsControllerAdvice(WebErrorHandlers webErrorHandlers) {
+        return new ErrorsControllerAdvice(webErrorHandlers) {};
+    }
+
+    /**
      * Registers a new validator that does not interpolate messages.
      *
      * @return The custom validator.
      */
-    @Bean
-    public Validator defaultValidator() {
+    @Bean({"mvcValidator", "defaultValidator"})
+    public Validator validator() {
         LocalValidatorFactoryBean factoryBean = new LocalValidatorFactoryBean();
         factoryBean.setMessageInterpolator(new NoOpMessageInterpolator());
 
