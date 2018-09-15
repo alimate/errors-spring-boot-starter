@@ -3,6 +3,7 @@ package me.alidg.errors.conf;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.impl.AnnotatedWebErrorHandler;
+import me.alidg.errors.impl.SpringMvcWebErrorHandler;
 import me.alidg.errors.impl.SpringValidationWebErrorHandler;
 import me.alidg.errors.mvc.ErrorsControllerAdvice;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +63,8 @@ public class ErrorsAutoConfiguration {
      */
     private static final List<WebErrorHandler> BUILT_IN_HANDLERS = Arrays.asList(
             new SpringValidationWebErrorHandler(),
-            new AnnotatedWebErrorHandler()
+            new AnnotatedWebErrorHandler(),
+            new SpringMvcWebErrorHandler()
     );
 
     /**
@@ -113,6 +115,7 @@ public class ErrorsAutoConfiguration {
      * @return The custom validator.
      */
     @Bean({"mvcValidator", "defaultValidator"})
+    @ConditionalOnBean(WebErrorHandlers.class)
     public Validator validator() {
         LocalValidatorFactoryBean factoryBean = new LocalValidatorFactoryBean();
         factoryBean.setMessageInterpolator(new NoOpMessageInterpolator());

@@ -59,7 +59,7 @@ public class HandledException {
      *     You should define between 1 and 7 interests.
      * </pre>
      */
-    private final Map<String, List<Object>> arguments;
+    private final Map<String, List<?>> arguments;
 
     /**
      * Initialize a handled exception with a set of error codes, a HTTP status code and an
@@ -74,7 +74,7 @@ public class HandledException {
      */
     public HandledException(@NonNull Set<String> errorCodes,
                             @NonNull HttpStatus statusCode,
-                            @Nullable Map<String, List<Object>> arguments) {
+                            @Nullable Map<String, List<?>> arguments) {
         enforcePreconditions(errorCodes, statusCode);
         this.errorCodes = errorCodes;
         this.statusCode = statusCode;
@@ -94,7 +94,7 @@ public class HandledException {
      */
     public HandledException(@NonNull String errorCode,
                             @NonNull HttpStatus statusCode,
-                            @Nullable Map<String, List<Object>> arguments) {
+                            @Nullable Map<String, List<?>> arguments) {
         this(singleton(errorCode), statusCode, arguments);
     }
 
@@ -121,7 +121,7 @@ public class HandledException {
      * @see #arguments
      */
     @NonNull
-    public Map<String, List<Object>> getArguments() {
+    public Map<String, List<?>> getArguments() {
         return arguments;
     }
 

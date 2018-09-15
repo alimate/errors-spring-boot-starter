@@ -34,6 +34,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import javax.validation.constraints.Min;
@@ -45,6 +46,7 @@ import java.util.Locale;
 import java.util.stream.Stream;
 
 import static me.alidg.Params.p;
+import static me.alidg.errors.impl.SpringMvcWebErrorHandler.*;
 import static me.alidg.errors.mvc.ErrorsControllerAdviceIT.Dto.dto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -126,6 +128,71 @@ public class ErrorsControllerAdviceIT {
 
     }
 
+    @Test
+    public void controllerAdvice_ShouldHandleHandlerNotFoundSituations() throws Exception {
+        mvc.perform(get("/should_not_be_found"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void controllerAdvice_ShouldHandleMissingBodiesProperly() throws Exception {
+        mvc.perform(post("/test").contentType("application/json"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("errors[0].code").value(INVALID_OR_MISSING_BODY));
+    }
+
+    @Test
+    public void controllerAdvice_ShouldHandleInvalidBodiesProperly() throws Exception {
+        mvc.perform(post("/test").contentType("application/json").content("gibberish"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("errors[0].code").value(INVALID_OR_MISSING_BODY));
+    }
+
+    @Test
+    public void controllerAdvice_ShouldHandleMissingContentTypesProperly() throws Exception {
+        mvc.perform(post("/test").content("gibberish"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("errors[0].code").value(NOT_SUPPORTED));
+    }
+
+    @Test
+    public void controllerAdvice_ShouldHandleInvalidContentTypesProperly() throws Exception {
+        mvc.perform(post("/test").contentType("text/gibberish").content("gibberish"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("errors[0].code").value(NOT_SUPPORTED))
+                .andExpect(jsonPath("errors[0].message").value("text/gibberish is not supported"));
+    }
+
+    @Test
+    public void controllerAdvice_ShouldHandleInvalidAcceptHeadersProperly() throws Exception {
+        mvc.perform(get("/test/param?name=ali").accept("image/jpeg"))
+                .andExpect(status().isNotAcceptable());
+    }
+
+    @Test
+    public void controllerAdvice_ShouldHandleInvalidMethodsProperly() throws Exception {
+        mvc.perform(put("/test"))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(jsonPath("errors[0].code").value(METHOD_NOT_ALLOWED))
+                .andExpect(jsonPath("errors[0].message").value("PUT method is not supported"));
+    }
+
+    @Test
+    public void controllerAdvice_ShouldHandleMissingParametersProperly() throws Exception {
+        mvc.perform(get("/test/param"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("errors[0].code").value(MISSING_PARAMETER))
+                .andExpect(jsonPath("errors[0].message").value("Parameter name of type String is required"));
+    }
+
+    @Test
+    public void controllerAdvice_ShouldHandleMissingPartsProperly() throws Exception {
+        mvc.perform(multipart("/test/part"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("errors[0].code").value(MISSING_PART))
+                .andExpect(jsonPath("errors[0].message").value("file part is required"));
+    }
+
     private Object[] provideInvalidBody() {
         return p(
                 p(dto("", 10, "code"), null, cm("text.required", "The text is required")),
@@ -174,12 +241,22 @@ public class ErrorsControllerAdviceIT {
 
         @PostMapping
         public void post(@RequestBody @Validated Dto dto) {
-            System.out.println("DTO received");
+            System.out.println("DTO received: " + dto);
         }
 
         @DeleteMapping
         public void delete() {
             throw new IllegalArgumentException();
+        }
+
+        @GetMapping("/param")
+        public Dto getParam(@RequestParam String name) {
+            return new Dto(name, 12, "");
+        }
+
+        @PostMapping("/part")
+        public MultipartFile postParam(@RequestPart MultipartFile file) {
+            return file;
         }
     }
 
@@ -194,8 +271,7 @@ public class ErrorsControllerAdviceIT {
         @Size(min = 1, max = 2, message = "range.limit")
         private List<String> range;
 
-        Dto() {
-        }
+        Dto() {}
 
         Dto(String text, int number, String... range) {
             this.text = text;
