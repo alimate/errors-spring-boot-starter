@@ -50,7 +50,7 @@ public class HandledExceptionTest {
 
     @Test
     @Parameters(method = "provideMaps")
-    public void constructors_ShouldSetNullArgumentsAsEmptyMaps(Map<String, List<Object>> provided,
+    public void constructors_ShouldSetNullArgumentsAsEmptyMaps(Map<String, List<?>> provided,
                                                                Map<?, ?> expected) {
         assertThat(new HandledException(singleton("error"), BAD_REQUEST, provided).getArguments())
                 .isEqualTo(expected);

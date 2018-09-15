@@ -103,7 +103,7 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
      * @param input The error code to arguments map.
      * @return The filtered map.
      */
-    private Map<String, List<Object>> dropEmptyValues(Map<String, List<Object>> input) {
+    private Map<String, List<?>> dropEmptyValues(Map<String, List<Object>> input) {
         return input.entrySet().stream()
                 .filter(e -> e.getValue() != null && !e.getValue().isEmpty())
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
