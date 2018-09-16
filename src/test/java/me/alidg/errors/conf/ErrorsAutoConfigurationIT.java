@@ -3,10 +3,7 @@ package me.alidg.errors.conf;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
-import me.alidg.errors.impl.AnnotatedWebErrorHandler;
-import me.alidg.errors.impl.LastResortWebErrorHandler;
-import me.alidg.errors.impl.SpringMvcWebErrorHandler;
-import me.alidg.errors.impl.SpringValidationWebErrorHandler;
+import me.alidg.errors.impl.*;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -58,8 +55,9 @@ public class ErrorsAutoConfigurationIT {
 
             // Web Error Handlers
             List<WebErrorHandler> implementations = getImplementations(errorHandlers);
-            assertImplementations(implementations, 3,
-                    SpringValidationWebErrorHandler.class, AnnotatedWebErrorHandler.class, SpringMvcWebErrorHandler.class
+            assertImplementations(implementations, 4,
+                    SpringValidationWebErrorHandler.class, AnnotatedWebErrorHandler.class,
+                    SpringMvcWebErrorHandler.class, SpringSecurityWebErrorHandler.class
             );
 
             // Default Error Handler
@@ -77,9 +75,9 @@ public class ErrorsAutoConfigurationIT {
 
             // Web Error Handlers
             List<WebErrorHandler> implementations = getImplementations(errorHandlers);
-            assertImplementations(implementations, 5,
+            assertImplementations(implementations, 6,
                     SpringValidationWebErrorHandler.class, AnnotatedWebErrorHandler.class, SpringMvcWebErrorHandler.class,
-                    Sec.class, First.class);
+                    Sec.class, First.class, SpringSecurityWebErrorHandler.class);
 
             // Default Error Handler
             WebErrorHandler defaultHandler = getDefaultHandler(errorHandlers);
@@ -96,8 +94,9 @@ public class ErrorsAutoConfigurationIT {
 
             // Web Error Handlers
             List<WebErrorHandler> implementations = getImplementations(errorHandlers);
-            assertImplementations(implementations, 3,
-                    SpringValidationWebErrorHandler.class, AnnotatedWebErrorHandler.class, SpringMvcWebErrorHandler.class
+            assertImplementations(implementations, 4,
+                    SpringValidationWebErrorHandler.class, AnnotatedWebErrorHandler.class,
+                    SpringMvcWebErrorHandler.class, SpringSecurityWebErrorHandler.class
             );
 
             // Default Error Handler
@@ -115,9 +114,9 @@ public class ErrorsAutoConfigurationIT {
 
             // Web Error Handlers
             List<WebErrorHandler> implementations = getImplementations(errorHandlers);
-            assertImplementations(implementations, 5,
+            assertImplementations(implementations, 6,
                     SpringValidationWebErrorHandler.class, AnnotatedWebErrorHandler.class, SpringMvcWebErrorHandler.class,
-                    Sec.class, First.class);
+                    Sec.class, First.class, SpringSecurityWebErrorHandler.class);
 
             // Default Error Handler
             WebErrorHandler defaultHandler = getDefaultHandler(errorHandlers);

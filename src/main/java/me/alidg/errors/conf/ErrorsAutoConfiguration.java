@@ -4,12 +4,14 @@ import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.impl.AnnotatedWebErrorHandler;
 import me.alidg.errors.impl.SpringMvcWebErrorHandler;
+import me.alidg.errors.impl.SpringSecurityWebErrorHandler;
 import me.alidg.errors.impl.SpringValidationWebErrorHandler;
 import me.alidg.errors.mvc.ErrorsControllerAdvice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
@@ -123,6 +125,24 @@ public class ErrorsAutoConfiguration {
         return factoryBean;
     }
 
+    /**
+     * Registers a {@link WebErrorHandler} bean to handle Spring Security specific exceptions when
+     * Spring Security's jar file is present on the classpath.
+     *
+     * @return A web error handler for Spring Security exceptions.
+     */
+    @Bean
+    @ConditionalOnBean(WebErrorHandlers.class)
+    @ConditionalOnClass(name = "org.springframework.security.access.AccessDeniedException")
+    public SpringSecurityWebErrorHandler springSecurityWebErrorHandler() {
+        return new SpringSecurityWebErrorHandler();
+    }
+
+    /**
+     * A No Op {@link MessageInterpolator} which does not interpolate the {@code ${...}} codes
+     * to messages. We're switching off the Bean Validation message interpolator in favor of
+     * Spring's {@link MessageSource}.
+     */
     private static class NoOpMessageInterpolator implements MessageInterpolator {
 
         @Override
