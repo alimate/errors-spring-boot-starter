@@ -2,10 +2,10 @@ package me.alidg.errors.conf;
 
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
-import me.alidg.errors.impl.AnnotatedWebErrorHandler;
-import me.alidg.errors.impl.SpringMvcWebErrorHandler;
-import me.alidg.errors.impl.SpringSecurityWebErrorHandler;
-import me.alidg.errors.impl.SpringValidationWebErrorHandler;
+import me.alidg.errors.handlers.AnnotatedWebErrorHandler;
+import me.alidg.errors.handlers.SpringMvcWebErrorHandler;
+import me.alidg.errors.handlers.SpringSecurityWebErrorHandler;
+import me.alidg.errors.handlers.SpringValidationWebErrorHandler;
 import me.alidg.errors.mvc.ErrorsControllerAdvice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -46,14 +46,14 @@ import java.util.*;
  * While handling a particular exception, each registered {@link WebErrorHandler} in {@link WebErrorHandlers}
  * would be consulted one after another (Depending on their priority). If all of the registered handlers
  * refuse to handle the exception, then a default fallback {@link WebErrorHandler} should handle the exception.
- * By default, {@link WebErrorHandlers} use the {@link me.alidg.errors.impl.LastResortWebErrorHandler} as the
+ * By default, {@link WebErrorHandlers} use the {@link me.alidg.errors.handlers.LastResortWebErrorHandler} as the
  * default handler. You can replace this handler by providing a {@link WebErrorHandler} and register it with
  * a bean named {@code defaultWebErrorHandler}.
  *
  * @author Ali Dehghani
  * @see WebErrorHandler
  * @see WebErrorHandlers
- * @see me.alidg.errors.impl.LastResortWebErrorHandler
+ * @see me.alidg.errors.handlers.LastResortWebErrorHandler
  */
 @ConditionalOnWebApplication
 @AutoConfigureAfter({MessageSourceAutoConfiguration.class, WebMvcAutoConfiguration.class})

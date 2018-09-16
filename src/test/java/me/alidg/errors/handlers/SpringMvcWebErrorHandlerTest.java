@@ -1,4 +1,4 @@
-package me.alidg.errors.impl;
+package me.alidg.errors.handlers;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
@@ -22,7 +22,7 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static me.alidg.Params.p;
-import static me.alidg.errors.impl.SpringMvcWebErrorHandler.*;
+import static me.alidg.errors.handlers.SpringMvcWebErrorHandler.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;

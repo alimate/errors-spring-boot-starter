@@ -1,4 +1,4 @@
-package me.alidg.errors.impl;
+package me.alidg.errors.handlers;
 
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;

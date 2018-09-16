@@ -1,4 +1,4 @@
-package me.alidg.errors.impl;
+package me.alidg.errors.handlers;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.rememberme.CookieTheftException;
 
 import static me.alidg.Params.p;
-import static me.alidg.errors.impl.SpringSecurityWebErrorHandler.*;
+import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.*;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.springframework.http.HttpStatus.*;
 
