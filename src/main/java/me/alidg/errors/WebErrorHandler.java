@@ -1,5 +1,6 @@
 package me.alidg.errors;
 
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 /**
@@ -30,5 +31,6 @@ public interface WebErrorHandler {
      * @param exception The exception to handle.
      * @return A set of error codes.
      */
+    @NonNull
     HandledException handle(@Nullable Throwable exception);
 }

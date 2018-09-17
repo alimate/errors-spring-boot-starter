@@ -3,6 +3,8 @@ package me.alidg.errors.conf;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
+import me.alidg.errors.adapter.DefaultHttpErrorAttributesAdapter;
+import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
 import me.alidg.errors.handlers.*;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -124,6 +126,24 @@ public class ErrorsAutoConfigurationIT {
         });
     }
 
+    @Test
+    public void withoutCustomAdapter_TheDefaultHttpErrorAdapterShouldBeRegistered() {
+        contextRunner.run(ctx -> {
+            HttpErrorAttributesAdapter adapter = ctx.getBean(HttpErrorAttributesAdapter.class);
+
+            assertThat(adapter).isInstanceOf(DefaultHttpErrorAttributesAdapter.class);
+        });
+    }
+
+    @Test
+    public void withCustomAdapter_TheDefaultHttpErrorAdapterShouldBeDiscardedInFavorOfTheCustomOne() {
+        contextRunner.withUserConfiguration(CustomAdapter.class).run(ctx -> {
+            HttpErrorAttributesAdapter adapter = ctx.getBean(HttpErrorAttributesAdapter.class);
+
+            assertThat(adapter).isNotInstanceOf(DefaultHttpErrorAttributesAdapter.class);
+        });
+    }
+
     private void assertDefaultHandler(WebErrorHandler actualHandler,
                                       Class<? extends WebErrorHandler> expectedType) {
         assertThat(actualHandler).isNotNull();
@@ -132,8 +152,8 @@ public class ErrorsAutoConfigurationIT {
 
     @SafeVarargs
     private final void assertImplementations(List<WebErrorHandler> actualHandlers,
-                                       int expectedSize,
-                                       Class<? extends WebErrorHandler>... expectedTypes) {
+                                             int expectedSize,
+                                             Class<? extends WebErrorHandler>... expectedTypes) {
         assertThat(actualHandlers).hasSize(expectedSize);
         for (int i = 0; i < expectedTypes.length; i++) {
             assertThat(actualHandlers.get(i)).isInstanceOf(expectedTypes[i]);
@@ -163,7 +183,7 @@ public class ErrorsAutoConfigurationIT {
     }
 
     @TestConfiguration
-    public static class CustomWebErrorHandlers {
+    protected static class CustomWebErrorHandlers {
 
         @Bean
         public WebErrorHandlers webErrorHandlers(MessageSource messageSource) {
@@ -172,7 +192,7 @@ public class ErrorsAutoConfigurationIT {
     }
 
     @TestConfiguration
-    public static class CustomHandlers {
+    protected static class CustomHandlers {
 
         @Bean
         @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -188,11 +208,20 @@ public class ErrorsAutoConfigurationIT {
     }
 
     @TestConfiguration
-    public static class DefaultHandler {
+    protected static class DefaultHandler {
 
         @Bean
         public WebErrorHandler defaultWebErrorHandler() {
             return new Default();
+        }
+    }
+
+    @TestConfiguration
+    protected static class CustomAdapter {
+
+        @Bean
+        public HttpErrorAttributesAdapter customAdapter() {
+            return httpError -> null;
         }
     }
 

@@ -2,6 +2,9 @@ package me.alidg.errors.conf;
 
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
+import me.alidg.errors.adapter.DefaultHttpErrorAttributesAdapter;
+import me.alidg.errors.adapter.HttpErrorAttributes;
+import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
 import me.alidg.errors.handlers.AnnotatedWebErrorHandler;
 import me.alidg.errors.handlers.SpringMvcWebErrorHandler;
 import me.alidg.errors.handlers.SpringSecurityWebErrorHandler;
@@ -16,6 +19,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
+import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
@@ -74,8 +78,8 @@ public class ErrorsAutoConfiguration {
      * built-in {@link WebErrorHandler}s, a set of custom {@link WebErrorHandler}s and a default fallback
      * {@link WebErrorHandler}.
      *
-     * @param messageSource Will be used for error code to error message translation.
-     * @param customHandlers Optional custom {@link WebErrorHandler}s.
+     * @param messageSource          Will be used for error code to error message translation.
+     * @param customHandlers         Optional custom {@link WebErrorHandler}s.
      * @param defaultWebErrorHandler A default {@link WebErrorHandler} to be used as the fallback error handler.
      * @return The expected {@link WebErrorHandlers}.
      */
@@ -102,13 +106,15 @@ public class ErrorsAutoConfiguration {
      * exceptions thrown by the web layer. If there was no {@link WebErrorHandlers} in the application
      * context, then the advice would not be registered.
      *
-     * @param webErrorHandlers The exception handler.
+     * @param webErrorHandlers           The exception handler.
+     * @param httpErrorAttributesAdapter To adapt our and Spring Boot's error representations.
      * @return The registered controller advice.
      */
     @Bean
     @ConditionalOnBean(WebErrorHandlers.class)
-    public ErrorsControllerAdvice errorsControllerAdvice(WebErrorHandlers webErrorHandlers) {
-        return new ErrorsControllerAdvice(webErrorHandlers) {};
+    public ErrorsControllerAdvice errorsControllerAdvice(WebErrorHandlers webErrorHandlers,
+                                                         HttpErrorAttributesAdapter httpErrorAttributesAdapter) {
+        return new ErrorsControllerAdvice(webErrorHandlers, httpErrorAttributesAdapter) {};
     }
 
     /**
@@ -123,6 +129,37 @@ public class ErrorsAutoConfiguration {
         factoryBean.setMessageInterpolator(new NoOpMessageInterpolator());
 
         return factoryBean;
+    }
+
+    /**
+     * In the absence of a bean of type {@link HttpErrorAttributesAdapter}, registers the default
+     * implementation of {@link HttpErrorAttributesAdapter} as a bean, to adapt our
+     * {@link me.alidg.errors.HttpError} to Spring's {@link ErrorAttributes} abstraction.
+     *
+     * @return The to-be-registered {@link HttpErrorAttributesAdapter}.
+     */
+    @Bean
+    @ConditionalOnBean(WebErrorHandlers.class)
+    @ConditionalOnMissingBean(HttpErrorAttributesAdapter.class)
+    public HttpErrorAttributesAdapter httpErrorAttributesAdapter() {
+        return new DefaultHttpErrorAttributesAdapter();
+    }
+
+    /**
+     * Registers a {@link ErrorAttributes} implementation which would replace the default one provided
+     * by the Spring Boot. This {@link ErrorAttributes} would be used to adapt Spring Boot's error model
+     * to our customized model.
+     *
+     * @param webErrorHandlers           To handle exceptions.
+     * @param httpErrorAttributesAdapter Adapter between {@link me.alidg.errors.HttpError} and
+     *                                   {@link ErrorAttributes}.
+     * @return The to-be-registered {@link HttpErrorAttributes}.
+     */
+    @Bean
+    @ConditionalOnBean(WebErrorHandlers.class)
+    public ErrorAttributes errorAttributes(WebErrorHandlers webErrorHandlers,
+                                           HttpErrorAttributesAdapter httpErrorAttributesAdapter) {
+        return new HttpErrorAttributes(webErrorHandlers, httpErrorAttributesAdapter);
     }
 
     /**

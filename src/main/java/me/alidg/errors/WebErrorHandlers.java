@@ -93,6 +93,7 @@ public class WebErrorHandlers {
      * @return An {@link HttpError} instance containing both error and message combinations and also,
      * the intended HTTP Status Code.
      */
+    @NonNull
     public HttpError handle(@Nullable Throwable exception, @Nullable Locale locale) {
         if (locale == null) locale = Locale.ROOT;
 
