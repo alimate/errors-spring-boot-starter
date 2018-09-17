@@ -11,7 +11,7 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * Default implementation of {@link HttpErrorAttributesAdapter} which converts the given
- * {@link HttpError} to a {@link Map} like following (Pretty print for {@link Map#toString()}):
+ * {@link HttpError} to a {@link Map} like following:
  * <pre>
  *     {
  *         "errors": [
