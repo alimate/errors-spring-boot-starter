@@ -7,7 +7,7 @@ import me.alidg.errors.HttpError.CodedMessage;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
 import me.alidg.errors.conf.ErrorsAutoConfiguration;
-import me.alidg.errors.impl.LastResortWebErrorHandler;
+import me.alidg.errors.handlers.LastResortWebErrorHandler;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
@@ -19,16 +19,26 @@ import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfigura
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.boot.test.util.ApplicationContextTestUtils;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.annotation.Validated;
@@ -41,12 +51,15 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
 
 import static me.alidg.Params.p;
-import static me.alidg.errors.impl.SpringMvcWebErrorHandler.*;
+import static me.alidg.errors.handlers.SpringMvcWebErrorHandler.*;
+import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.ACCESS_DENIED;
+import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.AUTH_REQUIRED;
 import static me.alidg.errors.mvc.ErrorsControllerAdviceIT.Dto.dto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -73,6 +86,7 @@ public class ErrorsControllerAdviceIT {
         String messages = "--spring.messages.basename=test_messages";
         context = (ConfigurableWebApplicationContext) new SpringApplication(WebConfig.class).run(port, messages);
         mvc = MockMvcBuilders.webAppContextSetup(context).build();
+        SecurityContextHolder.clearContext();
     }
 
     @After
@@ -193,6 +207,24 @@ public class ErrorsControllerAdviceIT {
                 .andExpect(jsonPath("errors[0].message").value("file part is required"));
     }
 
+    @Test
+    public void errorController_ShouldHandleHandleUnauthorizedErrorsProperly() throws Exception {
+        mvc.perform(get("/test/protected"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("errors[0].code").value(AUTH_REQUIRED));
+    }
+
+    @Test
+    public void errorController_ShouldHandleHandleAccessDeniedErrorsProperly() throws Exception {
+        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_FAKE"));
+        TestingAuthenticationToken authentication = new TestingAuthenticationToken("me", "pass", authorities);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        mvc.perform(post("/test/protected"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("errors[0].code").value(ACCESS_DENIED));
+    }
+
     private Object[] provideInvalidBody() {
         return p(
                 p(dto("", 10, "code"), null, cm("text.required", "The text is required")),
@@ -214,11 +246,14 @@ public class ErrorsControllerAdviceIT {
     }
 
     @EnableWebMvc
+    @EnableWebSecurity
     @TestConfiguration
     @Import({
             ErrorsAutoConfiguration.class,
             WebMvcAutoConfiguration.class,
             JacksonAutoConfiguration.class,
+            SecurityAutoConfiguration.class,
+            ErrorMvcAutoConfiguration.class,
             ValidationAutoConfiguration.class,
             MessageSourceAutoConfiguration.class,
             DispatcherServletAutoConfiguration.class,
@@ -226,9 +261,9 @@ public class ErrorsControllerAdviceIT {
             HttpMessageConvertersAutoConfiguration.class,
             ServletWebServerFactoryAutoConfiguration.class
     })
+    @EnableGlobalMethodSecurity(prePostEnabled = true)
     @ComponentScan(basePackageClasses = ErrorsControllerAdvice.class)
-    protected static class WebConfig {
-    }
+    protected static class WebConfig extends WebSecurityConfigurerAdapter {}
 
     @RestController
     @RequestMapping("/test")
@@ -258,6 +293,14 @@ public class ErrorsControllerAdviceIT {
         public MultipartFile postParam(@RequestPart MultipartFile file) {
             return file;
         }
+
+        @GetMapping("/protected")
+        @PreAuthorize("isAuthenticated()")
+        public void needsAuthentication() {}
+
+        @PostMapping("/protected")
+        @PreAuthorize("hasRole('ADMIN')")
+        public void needsPermission() {}
     }
 
     protected static class Dto {

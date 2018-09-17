@@ -11,7 +11,7 @@ import java.lang.annotation.*;
  *
  * @author Ali Dehghani
  * @see ExposeAsArg
- * @see me.alidg.errors.impl.AnnotatedWebErrorHandler
+ * @see me.alidg.errors.handlers.AnnotatedWebErrorHandler
  */
 @Inherited
 @Documented

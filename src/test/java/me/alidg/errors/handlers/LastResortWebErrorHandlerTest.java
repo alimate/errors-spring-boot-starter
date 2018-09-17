@@ -1,4 +1,4 @@
-package me.alidg.errors.impl;
+package me.alidg.errors.handlers;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
@@ -10,8 +10,8 @@ import org.springframework.http.HttpStatus;
 
 import static java.util.Collections.singleton;
 import static me.alidg.Params.p;
-import static me.alidg.errors.impl.LastResortWebErrorHandler.INSTANCE;
-import static me.alidg.errors.impl.LastResortWebErrorHandler.UNKNOWN_ERROR_CODE;
+import static me.alidg.errors.handlers.LastResortWebErrorHandler.INSTANCE;
+import static me.alidg.errors.handlers.LastResortWebErrorHandler.UNKNOWN_ERROR_CODE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**

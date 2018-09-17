@@ -1,13 +1,9 @@
 package me.alidg.errors;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Objects;
-
-import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 
 /**
  * Represents the error details that should be serialized inside a HTTP
@@ -15,7 +11,6 @@ import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
  *
  * @author Ali Dehghani
  */
-@JsonAutoDetect(fieldVisibility = ANY)
 public class HttpError {
 
     /**
@@ -51,7 +46,6 @@ public class HttpError {
      * @return The expected status code.
      * @see #httpStatus
      */
-    @JsonIgnore
     public HttpStatus getHttpStatus() {
         return httpStatus;
     }
@@ -67,7 +61,6 @@ public class HttpError {
     /**
      * Represents an error code paired with its appropriate error message.
      */
-    @JsonAutoDetect(fieldVisibility = ANY)
     public static class CodedMessage {
 
         /**

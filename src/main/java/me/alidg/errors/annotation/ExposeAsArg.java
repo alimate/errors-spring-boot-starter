@@ -15,7 +15,7 @@ import java.lang.annotation.*;
  *         // constructor and etc.
  *     }
  * </pre>
- * With this setting, when the exception happens, the {@link me.alidg.errors.impl.AnnotatedWebErrorHandler}
+ * With this setting, when the exception happens, the {@link me.alidg.errors.handlers.AnnotatedWebErrorHandler}
  * would pick the error code from the annotation and find an appropriate message for the error code.
  * By annotating the {@code username} property with the {@link ExposeAsArg} annotation, we can use the username
  * value to report it in the translated error message:
@@ -30,7 +30,7 @@ import java.lang.annotation.*;
  *
  * @author Ali Dehghani
  * @see ExceptionMapping
- * @see me.alidg.errors.impl.AnnotatedWebErrorHandler
+ * @see me.alidg.errors.handlers.AnnotatedWebErrorHandler
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
