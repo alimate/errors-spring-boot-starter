@@ -1,4 +1,4 @@
-# Spring Boot Errors [![Build Status](https://travis-ci.org/alimate/errors-spring-boot-starter.svg?branch=master)](https://travis-ci.org/alimate/errors-spring-boot-starter) [![codecov](https://codecov.io/gh/alimate/errors-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/alimate/errors-spring-boot-starter)
+# Spring Boot Errors [![Build Status](https://travis-ci.org/alimate/errors-spring-boot-starter.svg?branch=master)](https://travis-ci.org/alimate/errors-spring-boot-starter) [![codecov](https://codecov.io/gh/alimate/errors-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/alimate/errors-spring-boot-starter) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/me.alidg/errors-spring-boot-starter/badge.svg)](https://maven-badges.herokuapp.com/maven-central/me.alidg/errors-spring-boot-starter/badge.svg)
 A Bootiful, consistent and opinionated approach to handle all sorts of exceptions.
 
 ## Make error handling great again!
