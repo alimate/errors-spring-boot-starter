@@ -21,11 +21,15 @@ public @interface ExceptionMapping {
 
     /**
      * Corresponding HTTP status code for this particular exception.
+     *
+     * @return The error code.
      */
     String errorCode();
 
     /**
      * The mapping error code for this exception.
+     *
+     * @return The status code.
      */
     HttpStatus statusCode();
 }
