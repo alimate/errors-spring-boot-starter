@@ -4,9 +4,9 @@ os:
   - osx
 jdk:
   - oraclejdk8
+  - oraclejdk9
   - oraclejdk10
   - openjdk10
-  - openjdk11
 install: true
 script:
   - ./mvnw clean verify -B
