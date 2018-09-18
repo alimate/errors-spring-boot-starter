@@ -1,5 +1,12 @@
 language: java
-jdk: oraclejdk8
+os:
+  - linux
+  - osx
+jdk:
+  - oraclejdk8
+  - oraclejdk10
+  - openjdk10
+  - openjdk11
 install: true
 script:
   - ./mvnw clean verify -B
