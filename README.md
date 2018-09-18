@@ -30,6 +30,11 @@ or Gradle:
 compile "me.alidg:errors-spring-boot-starter:1.0.0"
 ```
 
+### Prerequisites
+The main dependency is JDK 8+. Tested with:
+ - JDK 8, JDK 9 and JDK 10 on both Linux and OSX
+ - Spring Boot `2.0.5.RELEASE`
+
 ### Overview
 The `WebErrorHandler` implementations are responsible for handling different kinds of exceptions. When an exception 
 happens, the `WebErrorHandlers` (A factory over all `WebErrorHandler` implementations) catches the exception and would 
@@ -43,7 +48,7 @@ following implementations to handle a particular exception:
 After delegating to the appropriate handler, the `WebErrorHandlers` turns the handled exception result into a `HttpError`,
 which encapsulates the HTTP status code and all error code/message combinations.
 
-#### Error Codes
+### Error Codes
 Although using appropriate HTTP status codes is a recommended approach in RESTful APIs, sometimes, we need more information 
 to find out what exactly went wrong. This is where *Error Codes* comes in. You can think of an error code as a *Machine Readable* 
 description of the error. Each exception can be mapped to **at least one** error code.
@@ -89,7 +94,7 @@ In `errors-spring-boot-starter`, one can map exceptions to error codes in differ
     }
     ```
 
-#### Error Message
+### Error Message
 Once the exception mapped to error code(s), we can add a companion and *Human Readable* error message. This can be done
 by registering a Spring `MessageSource` to perform the *code-to-message* translation. For example, if we add the following
 key-value pair in our message resource file:
@@ -111,7 +116,7 @@ with a body like:
 Since `MessageSource` supports Internationalization (i18n), our error messages can possibly have different values based
 on each *Locale*.
 
-#### Exposing Arguments
+### Exposing Arguments
 With *Bean Validation* you can pass parameters from the constraint validation, e.g. `@Size`, to its corresponding 
 interpolated message. For example, if we have:
 ```properties
@@ -152,7 +157,7 @@ Then the `username` property from the `UserAlreadyExistsException` would be avai
 return type.
 The `HandledException` class also accepts the *to-be-exposed* arguments in its constructor.
 
-#### Validation and Binding Errors
+### Validation and Binding Errors
 Validation errors can be processed as you might expect. For example, if a client passed an empty JSON to a controller method
 like:
 ```java
@@ -181,7 +186,7 @@ Then the following error would be returned:
 }
 ```
 
-#### Custom Exceptions
+### Custom Exceptions
 Custom exceptions can be mapped to status code and error code combination using the `@ExceptionMapping` annotation:
 ```java
 @ExceptionMapping(statusCode = BAD_REQUEST, errorCode = "user.already_exists")
@@ -213,7 +218,7 @@ method's return value. The `ExposeAsArg` annotation is applicable to:
  - Fields
  - No-arg methods with a return type
 
-#### Spring MVC
+### Spring MVC
 By default, a custom `WebErrorHandler` is registered to handle common exceptions thrown by Spring MVC:
 
 |                 Exception                 | Status Code |            Error Code         |               Exposed Args               |
@@ -227,7 +232,7 @@ By default, a custom `WebErrorHandler` is registered to handle common exceptions
 | `NoHandlerFoundException`                 |     404     | `web.no_handler`              | The request path                         |
 | `others`                                  |     500     | `unknown_error`               | -                                        |
 
-#### Spring Security
+### Spring Security
 When Spring Security is present on the classpath, a `WebErrorHandler` implementation would be responsible to handle
 common Spring Security exceptions:
 
@@ -244,7 +249,7 @@ common Spring Security exceptions:
 | `DisabledException`                          |     400     | `security.user_disabled`   |
 | `others`                                     |     500     | `unknown_error`            |
 
-#### Customizing the Error Representation
+### Customizing the Error Representation
 By default, errors would manifest themselves in the HTTP response bodies with the following JSON schema:
 ```json
 {
@@ -269,7 +274,7 @@ public class OopsDrivenHttpErrorAttributesAdapter implements HttpErrorAttributes
 }
 ```
 
-#### Registering Custom Handlers
+### Registering Custom Handlers
 In order to provide a custom handler for a specific exception, just implement the `WebErrorHandler` interface for that
 exception and register it as a *Spring Bean*:
 ```java

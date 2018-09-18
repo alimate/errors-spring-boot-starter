@@ -43,14 +43,14 @@ public class AnnotatedWebErrorHandlerTest {
     public void handle_ShouldProperlyHandleTheGivenException(Exception exception,
                                                              String code,
                                                              HttpStatus status,
-                                                             List<Object> args) {
+                                                             List<?> args) {
         HandledException handled = handler.handle(exception);
 
         assertThat(handled).isNotNull();
         assertThat(handled.getErrorCodes()).hasSize(1);
         assertThat(handled.getErrorCodes()).containsExactly(code);
         assertThat(handled.getStatusCode()).isEqualTo(status);
-        assertThat(handled.getArguments().get(code)).containsExactly(args.toArray());
+        assertThat((handled.getArguments().get(code))).isEqualTo(args);
     }
 
     private Object[] provideParamsForCanHandle() {
