@@ -87,7 +87,7 @@ public class WebErrorHandlersIT {
             assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42"));
 
             // With locale
-            error = errorHandlers.handle(exception, IRAN_LOCALE);
+            error = errorHandlers.handle(exception, Locale.CANADA);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
             assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42"));
         });
@@ -119,7 +119,6 @@ public class WebErrorHandlersIT {
                 // Invalid number: min
                 p(pojo("t", -1, "a"), null, cm("number.min", "The min is 0")),
                 p(pojo("t", -1, "a"), Locale.GERMANY, cm("number.min", "The min is 0")),
-                p(pojo("t", -1, "a"), IRAN_LOCALE, cm("number.min", "کم ترین مقدار قابل قبول 0 است")),
 
                 // Invalid number: max
                 p(pojo("t", 11, "a"), null, cm("number.max", null)),
@@ -129,7 +128,6 @@ public class WebErrorHandlersIT {
                 // Invalid range
                 p(pojo("t", 0), null, cm("range.limit", "Between 1 and 3")),
                 p(pojo("t", 0), Locale.GERMANY, cm("range.limit", "Between 1 and 3")),
-                p(pojo("t", 0), IRAN_LOCALE, cm("range.limit", "Between 1 and 3")),
 
                 // Mixed
                 p(
@@ -139,10 +137,6 @@ public class WebErrorHandlersIT {
                 p(
                         pojo("", 11), Locale.CANADA, cm("range.limit", "Between 1 and 3"),
                         cm("number.max", null), cm("text.required", "The text is required")
-                ),
-                p(
-                        pojo("", 11), IRAN_LOCALE, cm("range.limit", "Between 1 and 3"),
-                        cm("number.max", null), cm("text.required", "متن اجباری است")
                 )
         );
     }
