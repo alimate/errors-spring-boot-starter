@@ -1,6 +1,26 @@
 # Spring Boot Errors [![Build Status](https://travis-ci.org/alimate/errors-spring-boot-starter.svg?branch=master)](https://travis-ci.org/alimate/errors-spring-boot-starter) [![codecov](https://codecov.io/gh/alimate/errors-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/alimate/errors-spring-boot-starter) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/me.alidg/errors-spring-boot-starter/badge.svg)](https://maven-badges.herokuapp.com/maven-central/me.alidg/errors-spring-boot-starter/badge.svg)
 A Bootiful, consistent and opinionated approach to handle all sorts of exceptions.
 
+## Table of Contents
+
+  * [Make error handling great again!](#make-error-handling-great-again)
+  * [Getting Started](#getting-started)
+    + [Download](#download)
+    + [Prerequisites](#prerequisites)
+    + [Overview](#overview)
+    + [Error Codes](#error-codes)
+    + [Error Message](#error-message)
+    + [Exposing Arguments](#exposing-arguments)
+    + [Validation and Binding Errors](#validation-and-binding-errors)
+    + [Custom Exceptions](#custom-exceptions)
+    + [Spring MVC](#spring-mvc)
+    + [Spring Security](#spring-security)
+    + [Customizing the Error Representation](#customizing-the-error-representation)
+    + [Default Error Handler](#default-error-handler)
+    + [Refining Exceptions](#refining-exceptions)
+    + [Registering Custom Handlers](#registering-custom-handlers)
+  * [License](#license)
+
 ## Make error handling great again!
 Built on top of Spring Boot's great exception handling mechanism, the `errors-spring-boot-starter` offers:
  - A consistent approach to handle all exceptions. Doesn't matter if it's a validation/binding error or a 
