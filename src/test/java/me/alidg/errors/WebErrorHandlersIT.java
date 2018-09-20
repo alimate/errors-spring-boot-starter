@@ -12,7 +12,10 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindException;
@@ -31,6 +34,7 @@ import java.util.Locale;
 import static me.alidg.Params.p;
 import static me.alidg.errors.WebErrorHandlersIT.Pojo.pojo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  * Integration tests for {@link WebErrorHandlers}.
@@ -68,7 +72,7 @@ public class WebErrorHandlersIT {
             assertThat(error.getErrors()).containsOnly(codedMessages);
 
             // Assertions for MethodArgumentNotValidException
-            error = errorHandlers.handle(new MethodArgumentNotValidException(null, result), locale);
+            error = errorHandlers.handle(new MethodArgumentNotValidException(mock(MethodParameter.class), result), locale);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
             assertThat(error.getErrors()).containsOnly(codedMessages);
         });
@@ -105,6 +109,21 @@ public class WebErrorHandlersIT {
         });
     }
 
+    @Test
+    @Parameters(method = "provideParamsForRefined")
+    public void refiner_ShouldRefineExceptionsBeforeHandlingThem(Throwable exception,
+                                                                 HttpStatus expectedStatus,
+                                                                 CodedMessage... codedMessages) {
+        contextRunner.withUserConfiguration(RefinerConfig.class).run(ctx -> {
+            WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
+
+            HttpError httpError = errorHandlers.handle(exception, null);
+
+            assertThat(httpError.getHttpStatus()).isEqualTo(expectedStatus);
+            assertThat(httpError.getErrors()).containsOnly(codedMessages);
+        });
+    }
+
     private Object[] provideParamsForUnknownErrors() {
         return p(null, new IllegalArgumentException(), new OutOfMemoryError());
     }
@@ -137,6 +156,22 @@ public class WebErrorHandlersIT {
                 p(
                         pojo("", 11), Locale.CANADA, cm("range.limit", "Between 1 and 3"),
                         cm("number.max", null), cm("text.required", "The text is required")
+                )
+        );
+    }
+
+    private Object[] provideParamsForRefined() {
+        return p(
+                p(
+                        new SymptomException(new SomeException(10, 11)),
+                        HttpStatus.UNPROCESSABLE_ENTITY,
+                        cm("invalid_params", "Params are: 10, 11 and 42")
+                ),
+                p(
+                        new SymptomException(null), HttpStatus.INTERNAL_SERVER_ERROR, cm("unknown_error", null)
+                ),
+                p(
+                        new IllegalArgumentException(), HttpStatus.INTERNAL_SERVER_ERROR, cm("unknown_error", null)
                 )
         );
     }
@@ -211,6 +246,22 @@ public class WebErrorHandlersIT {
         @ExposeAsArg(2000)
         public String notUsed() {
             return "123";
+        }
+    }
+
+    private static class SymptomException extends RuntimeException {
+
+        SymptomException(Throwable cause) {
+            super(cause);
+        }
+    }
+
+    @TestConfiguration
+    protected static class RefinerConfig {
+
+        @Bean
+        public ExceptionRefiner exceptionRefiner() {
+            return exception -> exception instanceof SymptomException ? exception.getCause() : exception;
         }
     }
 }

@@ -2,6 +2,7 @@ package me.alidg.errors.handlers;
 
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
+import org.springframework.lang.NonNull;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.AuthenticationException;
@@ -69,6 +70,7 @@ public class SpringSecurityWebErrorHandler implements WebErrorHandler {
      * @param exception The exception to handle.
      * @return The handled exception details wrapped inside an instance of {@link HandledException}.
      */
+    @NonNull
     @Override
     public HandledException handle(Throwable exception) {
         if (exception instanceof AccessDeniedException)

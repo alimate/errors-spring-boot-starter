@@ -3,6 +3,7 @@ package me.alidg.errors.handlers;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -46,6 +47,7 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
      * @param exception The exception to handle.
      * @return A {@link HandledException} instance containing the required details about the validation errors.
      */
+    @NonNull
     @Override
     public HandledException handle(Throwable exception) {
         BindingResult bindingResult = getBindingResult(exception);
