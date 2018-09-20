@@ -47,7 +47,7 @@ import java.util.*;
  * not OK with that, you can always discard this auto-configuration by registering your own
  * {@link WebErrorHandlers} factory bean.</p>
  *
- * <h3>Default Fallback Web Error Handlers</h3>
+ * <h3>Default Fallback Web Error Handler</h3>
  * While handling a particular exception, each registered {@link WebErrorHandler} in {@link WebErrorHandlers}
  * would be consulted one after another (Depending on their priority). If all of the registered handlers
  * refuse to handle the exception, then a default fallback {@link WebErrorHandler} should handle the exception.

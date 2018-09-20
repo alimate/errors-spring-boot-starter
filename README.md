@@ -274,6 +274,35 @@ public class OopsDrivenHttpErrorAttributesAdapter implements HttpErrorAttributes
 }
 ```
 
+### Default Error Handler
+By default, when all registered `WebErrorHandler`s refuse to handle a particular exception, the `LastResortWebErrorHandler`
+would catch the exception and return a `500 Internal Server Error` with `unknown_error` as the error code.
+
+If you don't like this behavior, you can change it by registering a *Bean* of type `WebErrorHandler` with
+the `defaultWebErrorHandler` as the *Bean Name*:
+
+```java
+@Component("defaultWebErrorHandler")
+public class CustomDefaultWebErrorHandler implements WebErrorHandler {
+    // Omitted
+}
+```
+
+### Refining Exceptions
+Sometimes the given exception is not the actual problem and we need to dig deeper to handle the error, say the actual
+exception is hidden as a cause inside the top-level exception. In order to transform some exceptions before handling 
+them, we can register an `ExceptionRefiner` implementation as a *Spring Bean*:
+```java
+@Component
+public class CustomExceptionRefiner implements ExceptionRefiner {
+    
+    @Override
+    Throwable refine(Throwable exception) {
+        return exception instanceof ConversionFailedException ? exception.getCause() : exception;
+    }
+}
+```
+
 ### Registering Custom Handlers
 In order to provide a custom handler for a specific exception, just implement the `WebErrorHandler` interface for that
 exception and register it as a *Spring Bean*:
@@ -294,21 +323,21 @@ public class CustomWebErrorHandler implements WebErrorHandler {
 }
 
 ```
-If you're going to register multiple handlers, you change their priority using `@Order`. Please note that all your custom
+If you're going to register multiple handlers, you can change their priority using `@Order`. Please note that all your custom
 handlers would be registered after built-in exception handlers (Validation, `ExceptionMapping`, etc.). If you don't like
 this idea, provide a custom *Bean* of type `WebErrorHandlers` and the default one would be discarded.
  
 ## License
-    Copyright 2018 alimate
-    
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-    
-        http://www.apache.org/licenses/LICENSE-2.0
-    
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+Copyright 2018 alimate
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
