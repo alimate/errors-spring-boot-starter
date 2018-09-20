@@ -65,7 +65,7 @@ public class WebErrorHandlers {
     /**
      * To refine exceptions before handling the them.
      */
-    private ExceptionRefiner exceptionRefiner;
+    private final ExceptionRefiner exceptionRefiner;
 
     /**
      * To initialize the {@link WebErrorHandlers} instance with a code-to-message translator, a

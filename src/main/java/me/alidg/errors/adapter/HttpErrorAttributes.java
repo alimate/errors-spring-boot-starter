@@ -4,6 +4,7 @@ import me.alidg.errors.HttpError;
 import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.annotation.ExceptionMapping;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
@@ -84,7 +85,7 @@ public class HttpErrorAttributes extends DefaultErrorAttributes {
                     exception = new ForbiddenException();
                     break;
                 case 404:
-                    exception = new NoHandlerFoundException("", getPath(attributes), null);
+                    exception = new NoHandlerFoundException("", getPath(attributes), HttpHeaders.EMPTY);
                     break;
                 default:
                     exception = new IllegalStateException("The exception is null: " + attributes);

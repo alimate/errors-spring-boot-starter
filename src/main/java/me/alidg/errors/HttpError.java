@@ -16,12 +16,12 @@ public class HttpError {
     /**
      * Collection of error codes alongside with their corresponding messages.
      */
-    private List<CodedMessage> errors;
+    private final List<CodedMessage> errors;
 
     /**
      * The expected status code for the HTTP response.
      */
-    private HttpStatus httpStatus;
+    private final HttpStatus httpStatus;
 
     /**
      * Constructing a HTTP error instance.
@@ -66,12 +66,12 @@ public class HttpError {
         /**
          * The error code.
          */
-        private String code;
+        private final String code;
 
         /**
          * The error message.
          */
-        private String message;
+        private final String message;
 
         /**
          * @param code The error code.
