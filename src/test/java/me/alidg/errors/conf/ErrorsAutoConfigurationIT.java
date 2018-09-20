@@ -14,11 +14,14 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 
 import java.lang.reflect.Field;
 import java.util.List;
 
 import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -187,7 +190,7 @@ public class ErrorsAutoConfigurationIT {
 
         @Bean
         public WebErrorHandlers webErrorHandlers(MessageSource messageSource) {
-            return new WebErrorHandlers(messageSource, singletonList(new First()), new Sec());
+            return new WebErrorHandlers(messageSource, singletonList(new First()), new Sec(), null);
         }
     }
 
@@ -221,7 +224,7 @@ public class ErrorsAutoConfigurationIT {
 
         @Bean
         public HttpErrorAttributesAdapter customAdapter() {
-            return httpError -> null;
+            return httpError -> singletonMap("errors", httpError);
         }
     }
 
@@ -233,8 +236,9 @@ public class ErrorsAutoConfigurationIT {
         }
 
         @Override
+        @NonNull
         public HandledException handle(Throwable exception) {
-            return null;
+            return new HandledException("", HttpStatus.BAD_REQUEST, null);
         }
     }
 
@@ -246,8 +250,9 @@ public class ErrorsAutoConfigurationIT {
         }
 
         @Override
+        @NonNull
         public HandledException handle(Throwable exception) {
-            return null;
+            return new HandledException("", HttpStatus.BAD_REQUEST, null);
         }
     }
 
@@ -259,8 +264,9 @@ public class ErrorsAutoConfigurationIT {
         }
 
         @Override
+        @NonNull
         public HandledException handle(Throwable exception) {
-            return null;
+            return new HandledException("", HttpStatus.BAD_REQUEST, null);
         }
     }
 }

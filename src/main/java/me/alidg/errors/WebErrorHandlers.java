@@ -63,6 +63,11 @@ public class WebErrorHandlers {
     private WebErrorHandler defaultWebErrorHandler = LastResortWebErrorHandler.INSTANCE;
 
     /**
+     * To refine exceptions before handling the them.
+     */
+    private ExceptionRefiner exceptionRefiner;
+
+    /**
      * To initialize the {@link WebErrorHandlers} instance with a code-to-message translator, a
      * non-empty collection of {@link WebErrorHandler} implementations and an optional fallback
      * error handler.
@@ -70,16 +75,19 @@ public class WebErrorHandlers {
      * @param messageSource          The code to message translator.
      * @param implementations        Collection of {@link WebErrorHandler} implementations.
      * @param defaultWebErrorHandler Fallback web error handler.
+     * @param exceptionRefiner       Possibly can refine exceptions before handling them.
      * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException When the collection of implementations is empty.
      */
     public WebErrorHandlers(@NonNull MessageSource messageSource,
                             @NonNull List<WebErrorHandler> implementations,
-                            @Nullable WebErrorHandler defaultWebErrorHandler) {
+                            @Nullable WebErrorHandler defaultWebErrorHandler,
+                            @Nullable ExceptionRefiner exceptionRefiner) {
         enforcePreconditions(messageSource, implementations);
         this.messageSource = messageSource;
         this.implementations = implementations;
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
+        this.exceptionRefiner = exceptionRefiner;
     }
 
     /**
@@ -98,6 +106,14 @@ public class WebErrorHandlers {
         if (locale == null) locale = Locale.ROOT;
 
         log.debug("About to handle an exception", exception);
+        if (exceptionRefiner != null) {
+            Throwable refined = exceptionRefiner.refine(exception);
+            if (refined != null) {
+                exception = refined;
+                log.debug("The caught exception got refined", refined);
+            }
+        }
+
         WebErrorHandler handler = findHandler(exception);
         log.debug("The '{}' is going to handle the '{}' exception", className(handler), className(exception));
 

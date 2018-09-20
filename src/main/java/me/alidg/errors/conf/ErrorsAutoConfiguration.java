@@ -1,5 +1,6 @@
 package me.alidg.errors.conf;
 
+import me.alidg.errors.ExceptionRefiner;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.adapter.DefaultHttpErrorAttributesAdapter;
@@ -81,13 +82,15 @@ public class ErrorsAutoConfiguration {
      * @param messageSource          Will be used for error code to error message translation.
      * @param customHandlers         Optional custom {@link WebErrorHandler}s.
      * @param defaultWebErrorHandler A default {@link WebErrorHandler} to be used as the fallback error handler.
+     * @param exceptionRefiner       To refine exceptions before handling them.
      * @return The expected {@link WebErrorHandlers}.
      */
     @Bean
     @ConditionalOnMissingBean
     public WebErrorHandlers webErrorHandlers(MessageSource messageSource,
                                              @Autowired(required = false) List<WebErrorHandler> customHandlers,
-                                             @Qualifier("defaultWebErrorHandler") @Autowired(required = false) WebErrorHandler defaultWebErrorHandler) {
+                                             @Qualifier("defaultWebErrorHandler") @Autowired(required = false) WebErrorHandler defaultWebErrorHandler,
+                                             @Autowired(required = false) ExceptionRefiner exceptionRefiner) {
 
         List<WebErrorHandler> handlers = new ArrayList<>(BUILT_IN_HANDLERS);
         if (customHandlers != null && !customHandlers.isEmpty()) {
@@ -98,7 +101,7 @@ public class ErrorsAutoConfiguration {
             handlers.addAll(customHandlers);
         }
 
-        return new WebErrorHandlers(messageSource, handlers, defaultWebErrorHandler);
+        return new WebErrorHandlers(messageSource, handlers, defaultWebErrorHandler, exceptionRefiner);
     }
 
     /**
