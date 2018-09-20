@@ -5,6 +5,7 @@ import me.alidg.errors.WebErrorHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.lang.NonNull;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -82,6 +83,7 @@ public class SpringMvcWebErrorHandler implements WebErrorHandler {
      * @param exception The exception to handle.
      * @return The corresponding {@link HandledException} to the given {@code exception}.
      */
+    @NonNull
     @Override
     public HandledException handle(Throwable exception) {
         if (exception instanceof HttpMessageNotReadableException)

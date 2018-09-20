@@ -5,6 +5,7 @@ import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -59,6 +60,7 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
      * @return An {@link HandledException} instance encapsulating the error code, status code and
      * all to-be-exposed arguments.
      */
+    @NonNull
     @Override
     public HandledException handle(Throwable exception) {
         ExceptionMapping exceptionMapping = exception.getClass().getAnnotation(ExceptionMapping.class);
