@@ -19,6 +19,7 @@ A Bootiful, consistent and opinionated approach to handle all sorts of exception
     + [Default Error Handler](#default-error-handler)
     + [Refining Exceptions](#refining-exceptions)
     + [Registering Custom Handlers](#registering-custom-handlers)
+    + [Enabling Web MVC Test Support](#enabling-web-mvc-test-support)
   * [License](#license)
 
 ## Make error handling great again!
@@ -346,6 +347,26 @@ public class CustomWebErrorHandler implements WebErrorHandler {
 If you're going to register multiple handlers, you can change their priority using `@Order`. Please note that all your custom
 handlers would be registered after built-in exception handlers (Validation, `ExceptionMapping`, etc.). If you don't like
 this idea, provide a custom *Bean* of type `WebErrorHandlers` and the default one would be discarded.
+
+### Enabling Web MVC Test Support
+In order to enable our test support for `WebMvcTest`s, just add the `@AutoConfigureErrors` annotation to your test
+class. That's how a `WebMvcTest` would look like with errors support enabled:
+```java
+@AutoConfigureErrors
+@RunWith(SpringRunner.class)
+@WebMvcTest(UserController.class)
+public class UserControllerIT {
+    
+    @Autowired private MockMvc mvc;
+    
+    @Test
+    public void createUser_ShouldReturnBadRequestForInvalidBodies() throws Exception {
+        mvc.perform(post("/users").content("{}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errors[0].code").value("username.required"));    
+    }
+}
+```
  
 ## License
 Copyright 2018 alimate
