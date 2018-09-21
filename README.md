@@ -1,4 +1,4 @@
-# Spring Boot Errors [![Build Status](https://travis-ci.org/alimate/errors-spring-boot-starter.svg?branch=master)](https://travis-ci.org/alimate/errors-spring-boot-starter) [![codecov](https://codecov.io/gh/alimate/errors-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/alimate/errors-spring-boot-starter) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/me.alidg/errors-spring-boot-starter/badge.svg)](https://maven-badges.herokuapp.com/maven-central/me.alidg/errors-spring-boot-starter/badge.svg)
+# Spring Boot Errors [![Build Status](https://travis-ci.org/alimate/errors-spring-boot-starter.svg?branch=master)](https://travis-ci.org/alimate/errors-spring-boot-starter) [![codecov](https://codecov.io/gh/alimate/errors-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/alimate/errors-spring-boot-starter) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/me.alidg/errors-spring-boot-starter/badge.svg)](https://search.maven.org/search?q=g:me.alidg%20AND%20a:errors-spring-boot-starter)
 A Bootiful, consistent and opinionated approach to handle all sorts of exceptions.
 
 ## Table of Contents
@@ -36,19 +36,19 @@ Built on top of Spring Boot's great exception handling mechanism, the `errors-sp
 
 ### Download
 
-Download the [latest JAR](https://search.maven.org/remotecontent?filepath=me/alidg/errors-spring-boot-starter/1.0.0/errors-spring-boot-starter-1.0.0.jar) or grab via Maven:
+Download the [latest JAR](https://search.maven.org/remotecontent?filepath=me/alidg/errors-spring-boot-starter/1.1.0/errors-spring-boot-starter-1.1.0.jar) or grab via Maven:
 
 ```
 <dependency>
     <groupId>me.alidg</groupId>
     <artifactId>errors-spring-boot-starter</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
 or Gradle:
 ```
-compile "me.alidg:errors-spring-boot-starter:1.0.0"
+compile "me.alidg:errors-spring-boot-starter:1.1.0"
 ```
 
 ### Prerequisites
