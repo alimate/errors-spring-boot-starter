@@ -91,6 +91,11 @@ public class AnnotatedWebErrorHandlerTest {
         @ExposeAsArg(0)
         public void shouldBeDiscarded() {}
 
+        @ExposeAsArg(-100)
+        public String shouldBeIgnoredToo(String howToPassThis) {
+            return "";
+        }
+
         @ExposeAsArg(-11)
         public String staticExposure() {
             return "42";
