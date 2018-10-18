@@ -12,6 +12,7 @@ import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
@@ -71,7 +72,8 @@ public class SpringMvcWebErrorHandlerTest {
                 p(new HttpMediaTypeNotAcceptableException(""), true),
                 p(new HttpMediaTypeNotSupportedException(""), true),
                 p(new HttpRequestMethodNotSupportedException(""), true),
-                p(new MissingServletRequestPartException("file"), true)
+                p(new MissingServletRequestPartException("file"), true),
+                p(new ServletRequestBindingException(""), true)
         );
     }
 
@@ -106,6 +108,12 @@ public class SpringMvcWebErrorHandlerTest {
                         MISSING_PART,
                         BAD_REQUEST,
                         singletonMap(MISSING_PART, singletonList("file"))
+                ),
+                p(
+                        new ServletRequestBindingException("name"),
+                        MISSING_REQUEST_HEADER,
+                        BAD_REQUEST,
+                        singletonMap(MISSING_REQUEST_HEADER, singletonList("name"))
                 ),
                 p(
                         new NoHandlerFoundException("POST", "/test", null),

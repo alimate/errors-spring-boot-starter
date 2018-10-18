@@ -10,6 +10,7 @@ import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
@@ -57,6 +58,11 @@ public class SpringMvcWebErrorHandler implements WebErrorHandler {
      * When a required request part is missing.
      */
     public static final String MISSING_PART = "web.missing_part";
+
+    /**
+     * When a required header is missing.
+     */
+    public static final String MISSING_REQUEST_HEADER = "web.missing_header";
 
     /**
      * When we couldn't find any controller to handle the request.
@@ -133,6 +139,14 @@ public class SpringMvcWebErrorHandler implements WebErrorHandler {
             String url = ((NoHandlerFoundException) exception).getRequestURL();
 
             return new HandledException(NO_HANDLER, HttpStatus.NOT_FOUND, singletonMap(NO_HANDLER, singletonList(url)));
+        }
+
+        if (exception instanceof ServletRequestBindingException) {
+            ServletRequestBindingException actualException = (ServletRequestBindingException) exception;
+
+            return new HandledException(MISSING_REQUEST_HEADER, HttpStatus.BAD_REQUEST,
+                    singletonMap(MISSING_REQUEST_HEADER, singletonList(actualException.getLocalizedMessage()))
+            );
         }
 
         return new HandledException("unknown_error", HttpStatus.INTERNAL_SERVER_ERROR, null);

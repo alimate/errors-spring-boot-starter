@@ -200,6 +200,14 @@ public class ErrorsControllerAdviceIT {
     }
 
     @Test
+    public void controllerAdvice_ShouldHandleMissingHeadersProperly() throws Exception {
+        mvc.perform(get("/test/header"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("errors[0].code").value(MISSING_REQUEST_HEADER))
+                .andExpect(jsonPath("errors[0].message").value("Missing request header 'name' for method parameter of type String"));
+    }
+
+    @Test
     public void controllerAdvice_ShouldHandleMissingPartsProperly() throws Exception {
         mvc.perform(multipart("/test/part"))
                 .andExpect(status().isBadRequest())
@@ -288,6 +296,9 @@ public class ErrorsControllerAdviceIT {
         public Dto getParam(@RequestParam String name) {
             return new Dto(name, 12, "");
         }
+
+        @GetMapping("/header")
+        public Dto getHeader(@RequestHeader("name") String header) { return new Dto(header, 12, ""); }
 
         @PostMapping("/part")
         public MultipartFile postParam(@RequestPart MultipartFile file) {
