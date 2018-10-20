@@ -128,15 +128,26 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
     }
 
     /**
-     * All methods (with a return type) annotated with the {@link ExposeAsArg} annotation.
+     * All methods (with a return type and no parameters) annotated with the {@link ExposeAsArg} annotation.
      *
      * @param exception The exception reflect on.
      * @return List of all annotated methods.
      */
     private List<Method> getExposedMethods(Throwable exception) {
         return Stream.of(exception.getClass().getMethods())
-                .filter(m -> m.isAnnotationPresent(ExposeAsArg.class))
-                .filter(m -> m.getReturnType() != Void.TYPE)
+                .filter(m -> annotationIsPresent(m) && hasReturnType(m) && hasNoParameters(m))
                 .collect(toList());
+    }
+
+    private boolean hasNoParameters(Method m) {
+        return m.getParameterCount() == 0;
+    }
+
+    private boolean hasReturnType(Method m) {
+        return m.getReturnType() != Void.TYPE;
+    }
+
+    private boolean annotationIsPresent(Method m) {
+        return m.isAnnotationPresent(ExposeAsArg.class);
     }
 }
