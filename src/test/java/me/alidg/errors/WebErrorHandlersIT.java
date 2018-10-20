@@ -23,11 +23,13 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import javax.validation.ConstraintViolationException;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -124,6 +126,36 @@ public class WebErrorHandlersIT {
         });
     }
 
+    @Test
+    @Parameters(method = "provideEmptyViolations")
+    public void constraintViolation_WithNoViolation_ShouldBeHandledByTheDefaultHandler(Exception exception) {
+        contextRunner.run(ctx -> {
+            WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
+
+            HttpError httpError = errorHandlers.handle(exception, null);
+
+            assertThat(httpError.getHttpStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+            assertThat(httpError.getErrors()).containsOnly(cm("unknown_error", null));
+        });
+    }
+
+    @Test
+    @Parameters(method = "provideValidationParams")
+    public void constraintViolationException_ShouldBeHandledProperly(Object pojo, Locale locale, CodedMessage... codedMessages) {
+        contextRunner.run(ctx -> {
+            HttpError error;
+
+            WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
+            javax.validation.Validator validator = ctx.getBean(javax.validation.Validator.class);
+
+            ConstraintViolationException exception = new ConstraintViolationException(validator.validate(pojo));
+
+            error = errorHandlers.handle(exception, locale);
+            assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(error.getErrors()).containsOnly(codedMessages);
+        });
+    }
+
     private Object[] provideParamsForUnknownErrors() {
         return p(null, new IllegalArgumentException(), new OutOfMemoryError());
     }
@@ -173,6 +205,13 @@ public class WebErrorHandlersIT {
                 p(
                         new IllegalArgumentException(), HttpStatus.INTERNAL_SERVER_ERROR, cm("unknown_error", null)
                 )
+        );
+    }
+
+    private Object[] provideEmptyViolations() {
+        return p(
+                new ConstraintViolationException(null),
+                new ConstraintViolationException(Collections.emptySet())
         );
     }
 

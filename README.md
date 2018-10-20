@@ -206,6 +206,7 @@ Then the following error would be returned:
   ]
 }
 ```
+Bean Validation's `ConstraintViolationException`s will be handled in the same way, too.
 
 ### Custom Exceptions
 Custom exceptions can be mapped to status code and error code combination using the `@ExceptionMapping` annotation:

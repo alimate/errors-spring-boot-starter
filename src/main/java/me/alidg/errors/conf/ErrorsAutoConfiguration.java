@@ -6,10 +6,7 @@ import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.adapter.DefaultHttpErrorAttributesAdapter;
 import me.alidg.errors.adapter.HttpErrorAttributes;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
-import me.alidg.errors.handlers.AnnotatedWebErrorHandler;
-import me.alidg.errors.handlers.SpringMvcWebErrorHandler;
-import me.alidg.errors.handlers.SpringSecurityWebErrorHandler;
-import me.alidg.errors.handlers.SpringValidationWebErrorHandler;
+import me.alidg.errors.handlers.*;
 import me.alidg.errors.mvc.ErrorsControllerAdvice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -70,6 +67,7 @@ public class ErrorsAutoConfiguration {
      */
     private static final List<WebErrorHandler> BUILT_IN_HANDLERS = Arrays.asList(
             new SpringValidationWebErrorHandler(),
+            new ConstraintViolationWebErrorHandler(),
             new AnnotatedWebErrorHandler(),
             new SpringMvcWebErrorHandler()
     );
