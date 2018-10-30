@@ -57,6 +57,7 @@ import java.util.Locale;
 import java.util.stream.Stream;
 
 import static me.alidg.Params.p;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.*;
 import static me.alidg.errors.handlers.SpringMvcWebErrorHandler.*;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.ACCESS_DENIED;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.AUTH_REQUIRED;
@@ -225,6 +226,27 @@ public class ErrorsControllerAdviceIT {
                 .andExpect(jsonPath("errors[0].code").value(ACCESS_DENIED));
     }
 
+    @Test
+    public void controllerAdvice_ShouldHandleMissingHeadersProperly() throws Exception {
+        mvc.perform(get("/test/header"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("errors[0].code").value(MISSING_HEADER));
+    }
+
+    @Test
+    public void controllerAdvice_ShouldHandleMissingCookiesProperly() throws Exception {
+        mvc.perform(get("/test/cookie"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("errors[0].code").value(MISSING_COOKIE));
+    }
+
+    @Test
+    public void controllerAdvice_ShouldHandleMissingMatrixVarsProperly() throws Exception {
+        mvc.perform(get("/test/matrix"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("errors[0].code").value(MISSING_MATRIX_VARIABLE));
+    }
+
     private Object[] provideInvalidBody() {
         return p(
                 p(dto("", 10, "code"), null, cm("text.required", "The text is required")),
@@ -301,6 +323,15 @@ public class ErrorsControllerAdviceIT {
         @PostMapping("/protected")
         @PreAuthorize("hasRole('ADMIN')")
         public void needsPermission() {}
+
+        @GetMapping("/header")
+        public void headerIsRequired(@RequestHeader String name) {}
+
+        @GetMapping("/cookie")
+        public void cookieIsRequired(@CookieValue String name) {}
+
+        @GetMapping("/matrix")
+        public void matrixIsRequired(@MatrixVariable String name) {}
     }
 
     protected static class Dto {

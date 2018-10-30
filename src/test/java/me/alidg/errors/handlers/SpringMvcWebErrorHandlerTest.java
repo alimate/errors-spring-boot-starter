@@ -5,6 +5,7 @@ import junitparams.Parameters;
 import me.alidg.errors.HandledException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -24,6 +25,7 @@ import static java.util.Collections.*;
 import static me.alidg.Params.p;
 import static me.alidg.errors.handlers.SpringMvcWebErrorHandler.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PDF;
@@ -66,7 +68,7 @@ public class SpringMvcWebErrorHandlerTest {
                 p(null, false),
                 p(new RuntimeException(), false),
                 p(new NoHandlerFoundException(null, null, null), true),
-                p(new HttpMessageNotReadableException(""), true),
+                p(new HttpMessageNotReadableException("", mock(HttpInputMessage.class)), true),
                 p(new MissingServletRequestParameterException("name", "String"), true),
                 p(new HttpMediaTypeNotAcceptableException(""), true),
                 p(new HttpMediaTypeNotSupportedException(""), true),
@@ -77,7 +79,7 @@ public class SpringMvcWebErrorHandlerTest {
 
     private Object[] provideParamsForHandle() {
         return p(
-                p(new HttpMessageNotReadableException(""), INVALID_OR_MISSING_BODY ,BAD_REQUEST, emptyMap()),
+                p(new HttpMessageNotReadableException("", mock(HttpInputMessage.class)), INVALID_OR_MISSING_BODY ,BAD_REQUEST, emptyMap()),
                 p(
                         new HttpMediaTypeNotAcceptableException(asList(APPLICATION_JSON, MediaType.APPLICATION_PDF)),
                         SpringMvcWebErrorHandler.NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE,
