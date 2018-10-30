@@ -1,2 +1,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   me.alidg.errors.conf.ErrorsAutoConfiguration
+org.springframework.boot.env.EnvironmentPostProcessor=\
+  me.alidg.errors.conf.ErrorsEnvironmentPostProcessor
