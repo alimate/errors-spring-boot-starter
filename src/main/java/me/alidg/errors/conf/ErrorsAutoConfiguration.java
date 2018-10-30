@@ -177,6 +177,19 @@ public class ErrorsAutoConfiguration {
     }
 
     /**
+     * Registers a {@link WebErrorHandler} to handle new Servlet exceptions defined in Spring Framework 5.1.
+     * This handler would be registered iff we're using Spring Boot 2.1.0+.
+     *
+     * @return A web error handler to handle a few new servlet exceptions.
+     */
+    @Bean
+    @ConditionalOnBean(WebErrorHandlers.class)
+    @ConditionalOnClass(name = "org.springframework.web.bind.MissingRequestHeaderException")
+    public MissingRequestParametersWebErrorHandler missingRequestParametersWebErrorHandler() {
+        return new MissingRequestParametersWebErrorHandler();
+    }
+
+    /**
      * A No Op {@link MessageInterpolator} which does not interpolate the {@code ${...}} codes
      * to messages. We're switching off the Bean Validation message interpolator in favor of
      * Spring's {@link MessageSource}.
