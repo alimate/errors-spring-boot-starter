@@ -54,7 +54,7 @@ compile "me.alidg:errors-spring-boot-starter:1.1.0"
 ### Prerequisites
 The main dependency is JDK 8+. Tested with:
  - JDK 8, JDK 9, JDK 10 and JDK 11 on both Linux and OSX
- - Spring Boot `2.1.0.RELEASE`
+ - Spring Boot `2.1.0.RELEASE` (Also, should work with any `2.0.0+`)
 
 ### Overview
 The `WebErrorHandler` implementations are responsible for handling different kinds of exceptions. When an exception 
