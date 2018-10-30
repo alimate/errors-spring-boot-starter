@@ -61,7 +61,15 @@ public class SpringSecurityWebErrorHandler implements WebErrorHandler {
      */
     @Override
     public boolean canHandle(Throwable exception) {
-        return exception instanceof AccessDeniedException || exception instanceof AuthenticationException;
+        return exception instanceof AccessDeniedException ||
+                exception instanceof AccountExpiredException ||
+                exception instanceof AuthenticationCredentialsNotFoundException ||
+                exception instanceof AuthenticationServiceException ||
+                exception instanceof BadCredentialsException ||
+                exception instanceof UsernameNotFoundException ||
+                exception instanceof InsufficientAuthenticationException ||
+                exception instanceof LockedException ||
+                exception instanceof DisabledException;
     }
 
     /**

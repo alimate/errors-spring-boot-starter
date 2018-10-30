@@ -71,7 +71,13 @@ public class SpringMvcWebErrorHandler implements WebErrorHandler {
      */
     @Override
     public boolean canHandle(Throwable exception) {
-        return exception instanceof ServletException || exception instanceof HttpMessageNotReadableException;
+        return exception instanceof HttpMediaTypeNotAcceptableException ||
+                exception instanceof HttpMediaTypeNotSupportedException ||
+                exception instanceof HttpRequestMethodNotSupportedException ||
+                exception instanceof MissingServletRequestParameterException ||
+                exception instanceof MissingServletRequestPartException ||
+                exception instanceof NoHandlerFoundException ||
+                exception instanceof HttpMessageNotReadableException;
     }
 
     /**
