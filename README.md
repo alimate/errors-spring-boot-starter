@@ -36,19 +36,19 @@ Built on top of Spring Boot's great exception handling mechanism, the `errors-sp
 
 ### Download
 
-Download the [latest JAR](https://search.maven.org/remotecontent?filepath=me/alidg/errors-spring-boot-starter/1.1.0/errors-spring-boot-starter-1.1.0.jar) or grab via Maven:
+Download the [latest JAR](https://search.maven.org/remotecontent?filepath=me/alidg/errors-spring-boot-starter/1.2.0/errors-spring-boot-starter-1.2.0.jar) or grab via Maven:
 
 ```
 <dependency>
     <groupId>me.alidg</groupId>
     <artifactId>errors-spring-boot-starter</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
 or Gradle:
 ```
-compile "me.alidg:errors-spring-boot-starter:1.1.0"
+compile "me.alidg:errors-spring-boot-starter:1.2.0"
 ```
 
 ### Prerequisites
@@ -243,16 +243,19 @@ method's return value. The `ExposeAsArg` annotation is applicable to:
 ### Spring MVC
 By default, a custom `WebErrorHandler` is registered to handle common exceptions thrown by Spring MVC:
 
-|                 Exception                 | Status Code |            Error Code         |               Exposed Args               |
+|                 Exception                 | Status Code |           Error Code          |               Exposed Args               |
 |:-----------------------------------------:|:-----------:|:-----------------------------:|:----------------------------------------:|
-| `HttpMessageNotReadableException`         |     400     | `web.invalid_or_missing_body` | -                                        |
-| `HttpMediaTypeNotAcceptableException`     |     406     | `web.not_acceptable`          | List of acceptable MIME types            |
-| `HttpMediaTypeNotSupportedException`      |     415     | `web.unsupported_media_type`  | The unsupported content type             |
-| `HttpRequestMethodNotSupportedException`  |     405     | `web.method_not_allowed`      | The invalid HTTP method                  |
-| `MissingServletRequestParameterException` |     400     | `web.missing_parameter`       | Name and type of the missing query Param |
-| `MissingServletRequestPartException`      |     400     | `web.missing_part`            | Missing request part name                |
-| `NoHandlerFoundException`                 |     404     | `web.no_handler`              | The request path                         |
-| `others`                                  |     500     | `unknown_error`               | -                                        |
+|     `HttpMessageNotReadableException`     |     400     | `web.invalid_or_missing_body` |                     -                    |
+|   `HttpMediaTypeNotAcceptableException`   |     406     |      `web.not_acceptable`     |       List of acceptable MIME types      |
+|    `HttpMediaTypeNotSupportedException`   |     415     |  `web.unsupported_media_type` |       The unsupported content type       |
+|  `HttpRequestMethodNotSupportedException` |     405     |    `web.method_not_allowed`   |          The invalid HTTP method         |
+| `MissingServletRequestParameterException` |     400     |    `web.missing_parameter`    | Name and type of the missing query Param |
+|    `MissingServletRequestPartException`   |     400     |       `web.missing_part`      |         Missing request part name        |
+|         `NoHandlerFoundException`         |     404     |        `web.no_handler`       |             The request path             |
+|      `MissingRequestHeaderException`      |     400     |      `web.missing_header`     |          The missing header name         |
+|      `MissingRequestCookieException`      |     400     |      `web.missing_cookie`     |          The missing cookie name         |
+|      `MissingMatrixVariableException`     |     400     | `web.missing_matrix_variable` |     The missing matrix variable name     |
+|                  `others`                 |     500     |        `unknown_error`        |                     -                    |
 
 ### Spring Security
 When Spring Security is present on the classpath, a `WebErrorHandler` implementation would be responsible to handle
