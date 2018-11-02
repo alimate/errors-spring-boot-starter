@@ -95,7 +95,7 @@ public class HttpErrorAttributes extends DefaultErrorAttributes {
         HttpError httpError = webErrorHandlers.handle(exception, webRequest.getLocale());
         saveStatusCodeInRequest(webRequest, httpError);
 
-        return httpErrorAttributesAdapter.adapt(httpError);
+        return httpErrorAttributesAdapter.adapt(httpError, webRequest);
     }
 
     /**

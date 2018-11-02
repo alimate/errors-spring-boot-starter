@@ -230,7 +230,7 @@ public class ErrorsAutoConfigurationIT {
 
         @Bean
         public HttpErrorAttributesAdapter customAdapter() {
-            return httpError -> singletonMap("errors", httpError);
+            return (httpError, webRequest) -> singletonMap("errors", httpError);
         }
     }
 
