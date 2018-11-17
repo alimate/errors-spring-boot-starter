@@ -69,12 +69,12 @@ public class WebErrorHandlersIT {
             validator.validate(pojo, result);
 
             // Assertions for BindException
-            error = errorHandlers.handle(new BindException(result), locale);
+            error = errorHandlers.handle(new BindException(result), locale, null);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
             assertThat(error.getErrors()).containsOnly(codedMessages);
 
             // Assertions for MethodArgumentNotValidException
-            error = errorHandlers.handle(new MethodArgumentNotValidException(mock(MethodParameter.class), result), locale);
+            error = errorHandlers.handle(new MethodArgumentNotValidException(mock(MethodParameter.class), result), locale, null);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
             assertThat(error.getErrors()).containsOnly(codedMessages);
         });
@@ -88,12 +88,12 @@ public class WebErrorHandlersIT {
             SomeException exception = new SomeException(10, 12);
 
             // Without locale
-            HttpError error = errorHandlers.handle(exception, null);
+            HttpError error = errorHandlers.handle(exception, null, null);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
             assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42"));
 
             // With locale
-            error = errorHandlers.handle(exception, Locale.CANADA);
+            error = errorHandlers.handle(exception, Locale.CANADA, null);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
             assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42"));
         });
@@ -105,7 +105,7 @@ public class WebErrorHandlersIT {
         contextRunner.run(ctx -> {
             WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
 
-            HttpError error = errorHandlers.handle(exception, null);
+            HttpError error = errorHandlers.handle(exception, null, null);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
             assertThat(error.getErrors()).containsOnly(cm(LastResortWebErrorHandler.UNKNOWN_ERROR_CODE, null));
         });
@@ -119,7 +119,7 @@ public class WebErrorHandlersIT {
         contextRunner.withUserConfiguration(RefinerConfig.class).run(ctx -> {
             WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
 
-            HttpError httpError = errorHandlers.handle(exception, null);
+            HttpError httpError = errorHandlers.handle(exception, null, null);
 
             assertThat(httpError.getHttpStatus()).isEqualTo(expectedStatus);
             assertThat(httpError.getErrors()).containsOnly(codedMessages);
@@ -132,7 +132,7 @@ public class WebErrorHandlersIT {
         contextRunner.run(ctx -> {
             WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
 
-            HttpError httpError = errorHandlers.handle(exception, null);
+            HttpError httpError = errorHandlers.handle(exception, null, null);
 
             assertThat(httpError.getHttpStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
             assertThat(httpError.getErrors()).containsOnly(cm("unknown_error", null));
@@ -150,7 +150,7 @@ public class WebErrorHandlersIT {
 
             ConstraintViolationException exception = new ConstraintViolationException(validator.validate(pojo));
 
-            error = errorHandlers.handle(exception, locale);
+            error = errorHandlers.handle(exception, locale, null);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
             assertThat(error.getErrors()).containsOnly(codedMessages);
         });

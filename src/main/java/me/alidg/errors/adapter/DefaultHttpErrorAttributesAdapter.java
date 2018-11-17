@@ -2,7 +2,6 @@ package me.alidg.errors.adapter;
 
 import me.alidg.errors.HttpError;
 import org.springframework.lang.NonNull;
-import org.springframework.web.context.request.WebRequest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +36,7 @@ public class DefaultHttpErrorAttributesAdapter implements HttpErrorAttributesAda
      */
     @Override
     @NonNull
-    public Map<String, Object> adapt(@NonNull HttpError httpError, @NonNull WebRequest webRequest) {
+    public Map<String, Object> adapt(@NonNull HttpError httpError) {
         return httpError.getErrors().stream()
                 .map(this::toMap)
                 .collect(collectingAndThen(

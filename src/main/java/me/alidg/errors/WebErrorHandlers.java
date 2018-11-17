@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+import org.springframework.web.context.request.WebRequest;
 
 import java.util.List;
 import java.util.Locale;
@@ -102,7 +103,7 @@ public class WebErrorHandlers {
      * the intended HTTP Status Code.
      */
     @NonNull
-    public HttpError handle(@Nullable Throwable exception, @Nullable Locale locale) {
+    public HttpError handle(@Nullable Throwable exception, @Nullable Locale locale, @Nullable WebRequest webRequest) {
         if (locale == null) locale = Locale.ROOT;
 
         log.debug("About to handle an exception", exception);
@@ -120,7 +121,7 @@ public class WebErrorHandlers {
         HandledException handled = handler.handle(exception);
         List<CodedMessage> codeWithMessages = translateErrors(handled, locale);
 
-        return new HttpError(codeWithMessages, handled.getStatusCode());
+        return new HttpError(codeWithMessages, handled.getStatusCode(), webRequest);
     }
 
     private List<CodedMessage> translateErrors(HandledException handled, Locale locale) {

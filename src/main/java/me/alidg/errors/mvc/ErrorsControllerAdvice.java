@@ -57,8 +57,8 @@ public abstract class ErrorsControllerAdvice {
      */
     @ExceptionHandler
     public ResponseEntity<?> handleException(Throwable exception, Locale locale, WebRequest webRequest) {
-        HttpError httpError = errorHandlers.handle(exception, locale);
+        HttpError httpError = errorHandlers.handle(exception, locale, webRequest);
 
-        return ResponseEntity.status(httpError.getHttpStatus()).body(httpErrorAttributesAdapter.adapt(httpError, webRequest));
+        return ResponseEntity.status(httpError.getHttpStatus()).body(httpErrorAttributesAdapter.adapt(httpError));
     }
 }

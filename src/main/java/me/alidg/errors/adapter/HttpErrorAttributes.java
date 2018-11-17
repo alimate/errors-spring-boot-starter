@@ -92,10 +92,10 @@ public class HttpErrorAttributes extends DefaultErrorAttributes {
             }
         }
 
-        HttpError httpError = webErrorHandlers.handle(exception, webRequest.getLocale());
+        HttpError httpError = webErrorHandlers.handle(exception, webRequest.getLocale(), webRequest);
         saveStatusCodeInRequest(webRequest, httpError);
 
-        return httpErrorAttributesAdapter.adapt(httpError, webRequest);
+        return httpErrorAttributesAdapter.adapt(httpError);
     }
 
     /**

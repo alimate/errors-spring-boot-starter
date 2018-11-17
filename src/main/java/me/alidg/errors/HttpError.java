@@ -1,6 +1,7 @@
 package me.alidg.errors;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.context.request.WebRequest;
 
 import java.util.List;
 import java.util.Objects;
@@ -24,14 +25,21 @@ public class HttpError {
     private final HttpStatus httpStatus;
 
     /**
+     * The current HTTP request.
+     */
+    private final WebRequest webRequest;
+
+    /**
      * Constructing a HTTP error instance.
      *
      * @param errors Collection of codes/messages combinations.
      * @param httpStatus The expected status code.
+     * @param webRequest The current HTTP request.
      */
-    public HttpError(List<CodedMessage> errors, HttpStatus httpStatus) {
+    public HttpError(List<CodedMessage> errors, HttpStatus httpStatus, WebRequest webRequest) {
         this.errors = errors;
         this.httpStatus = httpStatus;
+        this.webRequest = webRequest;
     }
 
     /**
@@ -48,6 +56,14 @@ public class HttpError {
      */
     public HttpStatus getHttpStatus() {
         return httpStatus;
+    }
+
+    /**
+     * @return The current HTTP request.
+     * @see #webRequest
+     */
+    public WebRequest getWebRequest() {
+        return webRequest;
     }
 
     @Override

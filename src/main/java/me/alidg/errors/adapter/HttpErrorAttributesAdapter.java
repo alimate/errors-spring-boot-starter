@@ -2,7 +2,6 @@ package me.alidg.errors.adapter;
 
 import me.alidg.errors.HttpError;
 import org.springframework.lang.NonNull;
-import org.springframework.web.context.request.WebRequest;
 
 import java.util.Map;
 
@@ -20,10 +19,8 @@ public interface HttpErrorAttributesAdapter {
     /**
      * Converts the given {@link HttpError} instance to a {@link Map}.
      *
-     * @param httpError  The {@link HttpError} to convert.
-     * @param webRequest The current HTTP request.
+     * @param httpError The {@link HttpError} to convert.
      * @return The converted {@link Map}.
      */
-    @NonNull
-    Map<String, Object> adapt(@NonNull HttpError httpError, @NonNull WebRequest webRequest);
+    @NonNull Map<String, Object> adapt(@NonNull HttpError httpError);
 }
