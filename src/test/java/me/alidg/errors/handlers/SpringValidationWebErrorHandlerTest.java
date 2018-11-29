@@ -13,6 +13,7 @@ import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import javax.validation.Valid;
 import javax.validation.Validation;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -24,6 +25,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static me.alidg.Params.p;
 import static me.alidg.errors.handlers.SpringValidationWebErrorHandlerTest.TBV.tbv;
+import static me.alidg.errors.handlers.SpringValidationWebErrorHandlerTest.TBVchild.tbvChild;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -98,8 +100,8 @@ public class SpringValidationWebErrorHandlerTest {
                 p(
                         tbv("", 200), e("name.required", "age.max", "interests.limit"),
                         m("age.max", singletonList(100L), "interests.limit", asList(6, 1))
-                )
-
+                ),
+                p(tbv("ali", 29, asList("coding"), asList(tbvChild(""), tbvChild(""), tbvChild(""))), e("stringField.required"), emptyMap())
         );
     }
 
@@ -130,10 +132,20 @@ public class SpringValidationWebErrorHandlerTest {
         @Size(min = 1, max = 6, message = "interests.limit")
         private List<String> interests;
 
+        @Valid
+        private List<TBVchild> tbvChildren;
+
         TBV(String name, int age, List<String> interests) {
             this.name = name;
             this.age = age;
             this.interests = interests;
+        }
+
+        TBV(String name, int age, List<String> interests, List<TBVchild> tbvChildren) {
+            this.name = name;
+            this.age = age;
+            this.interests = interests;
+            this.tbvChildren = tbvChildren;
         }
 
         public String getName() {
@@ -160,8 +172,40 @@ public class SpringValidationWebErrorHandlerTest {
             this.interests = interests;
         }
 
+        public List<TBVchild> getTbvChildren() {
+            return tbvChildren;
+        }
+
+        public void setTbvChildren(List<TBVchild> tbvChildren) {
+            this.tbvChildren = tbvChildren;
+        }
+
         static TBV tbv(String name, int age, String... interests) {
             return new TBV(name, age, asList(interests));
+        }
+        static TBV tbv(String name, int age, List<String> interests, List<TBVchild> tbvChildren) {
+            return new TBV(name, age, interests, tbvChildren);
+        }
+    }
+
+    static class TBVchild {
+        @NotBlank(message = "stringField.required")
+        private String stringField;
+
+        TBVchild(String stringField) {
+            this.stringField = stringField;
+        }
+
+        public String getStringField() {
+            return stringField;
+        }
+
+        public void setStringField(String stringField) {
+            this.stringField = stringField;
+        }
+
+        public static TBVchild tbvChild(String stringField) {
+            return new TBVchild(stringField);
         }
     }
 }
