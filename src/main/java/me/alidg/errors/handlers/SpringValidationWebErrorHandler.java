@@ -54,7 +54,7 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
         return bindingResult.getAllErrors()
                 .stream()
                 .collect(collectingAndThen(
-                        toMap(this::errorCode, this::arguments),
+                        toMap(this::errorCode, this::arguments, (value1, value2) -> value1),
                         m -> new HandledException(m.keySet(), HttpStatus.BAD_REQUEST, dropEmptyValues(m))
                 ));
     }
