@@ -3,8 +3,8 @@ os:
   - linux
   - osx
 jdk:
-  - oraclejdk8
-  - oraclejdk9
+  - openjdk8
+  - openjdk9
   - openjdk10
   - openjdk11
 install: true
