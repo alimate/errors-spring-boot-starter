@@ -32,6 +32,7 @@ public class DefaultHttpErrorAttributesAdapterTest {
 
         Map<String, Object> adapted = adapter.adapt(httpError);
 
+        assertThat(adapted.get("status")).isEqualTo(400);
         List<Map<String, String>> errors = (List<Map<String, String>>) adapted.get("errors");
         assertThat(errors).isNotNull();
         assertThat(errors.get(0)).containsOnlyKeys("code", "message");
