@@ -26,7 +26,7 @@ import static java.util.Collections.singletonMap;
  *
  * @author Ali Dehghani
  */
-public class SpringMvcWebErrorHandler implements WebErrorHandler {
+public class ServletWebErrorHandler implements WebErrorHandler {
 
     /**
      * When we couldn't process the request body.

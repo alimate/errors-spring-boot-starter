@@ -1,8 +1,9 @@
-package me.alidg.errors.adapter;
+package me.alidg.errors.adapter.attributes;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import me.alidg.errors.WebErrorHandlers;
+import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -11,12 +12,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 /**
- * Unit tests for {@link HttpErrorAttributes}.
+ * Unit tests for {@link ServletErrorAttributes}.
  *
  * @author Ali Dehghani
  */
 @RunWith(JUnitParamsRunner.class)
-public class HttpErrorAttributesTest {
+public class ServletErrorAttributesTest {
 
     @Test
     @Parameters(method = "provideInvalidParamsToConstructor")
@@ -24,7 +25,7 @@ public class HttpErrorAttributesTest {
                                                           HttpErrorAttributesAdapter adapter,
                                                           Class<? extends Throwable> expectedException,
                                                           String expectedMessage) {
-        assertThatThrownBy(() -> new HttpErrorAttributes(handlers, adapter))
+        assertThatThrownBy(() -> new ServletErrorAttributes(handlers, adapter))
                 .isInstanceOf(expectedException)
                 .hasMessage(expectedMessage);
     }

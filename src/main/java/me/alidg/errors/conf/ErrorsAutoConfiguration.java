@@ -4,10 +4,8 @@ import me.alidg.errors.ExceptionRefiner;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.adapter.DefaultHttpErrorAttributesAdapter;
-import me.alidg.errors.adapter.HttpErrorAttributes;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
 import me.alidg.errors.handlers.*;
-import me.alidg.errors.mvc.ErrorsControllerAdvice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -18,14 +16,18 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.web.context.WebApplicationContext;
 
 import javax.validation.MessageInterpolator;
 import javax.validation.Validator;
 import java.util.*;
+
+import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET;
 
 /**
  * Auto-configuration responsible for registering a {@link WebErrorHandlers} filled with
@@ -68,8 +70,7 @@ public class ErrorsAutoConfiguration {
     private static final List<WebErrorHandler> BUILT_IN_HANDLERS = Arrays.asList(
             new SpringValidationWebErrorHandler(),
             new ConstraintViolationWebErrorHandler(),
-            new AnnotatedWebErrorHandler(),
-            new SpringMvcWebErrorHandler()
+            new AnnotatedWebErrorHandler()
     );
 
     /**
@@ -88,9 +89,12 @@ public class ErrorsAutoConfiguration {
     public WebErrorHandlers webErrorHandlers(MessageSource messageSource,
                                              @Autowired(required = false) List<WebErrorHandler> customHandlers,
                                              @Qualifier("defaultWebErrorHandler") @Autowired(required = false) WebErrorHandler defaultWebErrorHandler,
-                                             @Autowired(required = false) ExceptionRefiner exceptionRefiner) {
+                                             @Autowired(required = false) ExceptionRefiner exceptionRefiner,
+                                             ApplicationContext context) {
 
         List<WebErrorHandler> handlers = new ArrayList<>(BUILT_IN_HANDLERS);
+        if (isServletApplication(context)) handlers.add(new ServletWebErrorHandler());
+
         if (customHandlers != null && !customHandlers.isEmpty()) {
             customHandlers.remove(defaultWebErrorHandler);
             customHandlers.removeIf(Objects::isNull);
@@ -100,22 +104,6 @@ public class ErrorsAutoConfiguration {
         }
 
         return new WebErrorHandlers(messageSource, handlers, defaultWebErrorHandler, exceptionRefiner);
-    }
-
-    /**
-     * Registers a {@link org.springframework.web.bind.annotation.RestControllerAdvice} to catch all
-     * exceptions thrown by the web layer. If there was no {@link WebErrorHandlers} in the application
-     * context, then the advice would not be registered.
-     *
-     * @param webErrorHandlers           The exception handler.
-     * @param httpErrorAttributesAdapter To adapt our and Spring Boot's error representations.
-     * @return The registered controller advice.
-     */
-    @Bean
-    @ConditionalOnBean(WebErrorHandlers.class)
-    public ErrorsControllerAdvice errorsControllerAdvice(WebErrorHandlers webErrorHandlers,
-                                                         HttpErrorAttributesAdapter httpErrorAttributesAdapter) {
-        return new ErrorsControllerAdvice(webErrorHandlers, httpErrorAttributesAdapter) {};
     }
 
     /**
@@ -147,23 +135,6 @@ public class ErrorsAutoConfiguration {
     }
 
     /**
-     * Registers a {@link ErrorAttributes} implementation which would replace the default one provided
-     * by the Spring Boot. This {@link ErrorAttributes} would be used to adapt Spring Boot's error model
-     * to our customized model.
-     *
-     * @param webErrorHandlers           To handle exceptions.
-     * @param httpErrorAttributesAdapter Adapter between {@link me.alidg.errors.HttpError} and
-     *                                   {@link ErrorAttributes}.
-     * @return The to-be-registered {@link HttpErrorAttributes}.
-     */
-    @Bean
-    @ConditionalOnBean(WebErrorHandlers.class)
-    public ErrorAttributes errorAttributes(WebErrorHandlers webErrorHandlers,
-                                           HttpErrorAttributesAdapter httpErrorAttributesAdapter) {
-        return new HttpErrorAttributes(webErrorHandlers, httpErrorAttributesAdapter);
-    }
-
-    /**
      * Registers a {@link WebErrorHandler} bean to handle Spring Security specific exceptions when
      * Spring Security's jar file is present on the classpath.
      *
@@ -184,9 +155,31 @@ public class ErrorsAutoConfiguration {
      */
     @Bean
     @ConditionalOnBean(WebErrorHandlers.class)
+    @ConditionalOnWebApplication(type = SERVLET)
     @ConditionalOnClass(name = "org.springframework.web.bind.MissingRequestHeaderException")
     public MissingRequestParametersWebErrorHandler missingRequestParametersWebErrorHandler() {
         return new MissingRequestParametersWebErrorHandler();
+    }
+
+    /**
+     * Registers a handler expert at handling all possible
+     * {@link org.springframework.web.server.ResponseStatusException}s.
+     *
+     * @return A web error handler to handle a set of brand new exceptions defined in Spring 5.x.
+     */
+    @Bean
+    @ConditionalOnBean(WebErrorHandlers.class)
+    @ConditionalOnClass(name = "org.springframework.web.server.ResponseStatusException")
+    public ResponseStatusWebErrorHandler responseStatusWebErrorHandler() {
+        return new ResponseStatusWebErrorHandler();
+    }
+
+    /**
+     * @param context The application context.
+     * @return {@code true} if this a traditional web application, not a reactive one.
+     */
+    private boolean isServletApplication(ApplicationContext context) {
+        return context instanceof WebApplicationContext;
     }
 
     /**

@@ -7,6 +7,7 @@ import me.alidg.errors.HttpError.CodedMessage;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
 import me.alidg.errors.conf.ErrorsAutoConfiguration;
+import me.alidg.errors.conf.ServletErrorsAutoConfiguration;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -58,7 +59,7 @@ import java.util.stream.Stream;
 
 import static me.alidg.Params.p;
 import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.*;
-import static me.alidg.errors.handlers.SpringMvcWebErrorHandler.*;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.*;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.ACCESS_DENIED;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.AUTH_REQUIRED;
 import static me.alidg.errors.mvc.ErrorsControllerAdviceIT.Dto.dto;
@@ -277,6 +278,7 @@ public class ErrorsControllerAdviceIT {
             SecurityAutoConfiguration.class,
             ErrorMvcAutoConfiguration.class,
             ValidationAutoConfiguration.class,
+            ServletErrorsAutoConfiguration.class,
             MessageSourceAutoConfiguration.class,
             DispatcherServletAutoConfiguration.class,
             PropertyPlaceholderAutoConfiguration.class,
