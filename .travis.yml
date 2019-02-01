@@ -2,14 +2,17 @@ language: java
 os:
   - linux
   - osx
-jdk:
-  - oraclejdk8
-  - oraclejdk9
-  - openjdk10
-  - openjdk11
+matrix:
+  include:
+    - jdk: oraclejdk8
+      env: JAVA_VERSION=1.8
+    - jdk: oraclejdk9
+      env: JAVA_VERSION=9
+    - jdk: openjdk10
+      env: JAVA_VERSION=10
+    - jdk: openjdk11
+      env: JAVA_VERSION=11
 install: true
 script:
-  - echo $TRAVIS_JDK_VERSION
-  - export JAVA_VERSION=TRAVIS_JDK_VERSION
   - ./mvnw clean verify -B
   - bash <(curl -s https://codecov.io/bash)
