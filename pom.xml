@@ -257,7 +257,7 @@
 
     <profiles>
 
-        <!-- CI would be enabled wherever the JAVA_VERSION env var is set -->
+        <!-- CI profile would be enabled wherever the JAVA_VERSION environment variable is set -->
         <profile>
             <id>CI</id>
             <activation>
@@ -270,7 +270,7 @@
             </properties>
         </profile>
 
-        <!-- The profile to release -->
+        <!-- The release profile -->
         <profile>
             <id>release</id>
             <build>
