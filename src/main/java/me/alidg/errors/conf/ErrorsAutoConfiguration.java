@@ -82,6 +82,7 @@ public class ErrorsAutoConfiguration {
      * @param customHandlers         Optional custom {@link WebErrorHandler}s.
      * @param defaultWebErrorHandler A default {@link WebErrorHandler} to be used as the fallback error handler.
      * @param exceptionRefiner       To refine exceptions before handling them.
+     * @param context                To tell Servlet or Reactive stacks apart.
      * @return The expected {@link WebErrorHandlers}.
      */
     @Bean
