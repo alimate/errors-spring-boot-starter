@@ -9,5 +9,7 @@ jdk:
   - openjdk11
 install: true
 script:
+  - echo $TRAVIS_JDK_VERSION
+  - export JAVA_VERSION=TRAVIS_JDK_VERSION
   - ./mvnw clean verify -B
   - bash <(curl -s https://codecov.io/bash)
