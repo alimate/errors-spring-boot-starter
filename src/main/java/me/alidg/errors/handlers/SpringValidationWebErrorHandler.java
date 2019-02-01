@@ -9,6 +9,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import javax.validation.ConstraintViolation;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -66,8 +67,8 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
      * @return The extracted {@link BindingResult}.
      */
     private BindingResult getBindingResult(Throwable exception) {
-        return exception instanceof BindException ?
-                ((BindException) exception).getBindingResult() :
+        return exception instanceof BindingResult ?
+                ((BindingResult) exception) :
                 ((MethodArgumentNotValidException) exception).getBindingResult();
     }
 
@@ -80,8 +81,14 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
      * @return The error code.
      */
     private String errorCode(ObjectError error) {
-        String message = error.getDefaultMessage() == null ? "" : error.getDefaultMessage();
-        return message.replace("{", "").replace("}", "");
+        String code = null;
+        try {
+            ConstraintViolation violation = error.unwrap(ConstraintViolation.class);
+            code = violation.getMessageTemplate();
+        } catch (Exception ignored) {}
+
+        if (code == null) code = error.getDefaultMessage() == null ? "" : error.getDefaultMessage();
+        return code.replace("{", "").replace("}", "");
     }
 
     /**

@@ -24,7 +24,7 @@ public class ReactiveErrorsAutoConfiguration {
      * A custom web error attributes responsible for converting the exceptions to a map of
      * attributes.
      *
-     * @param webErrorHandlers Performing the actual exception handling.
+     * @param webErrorHandlers           Performing the actual exception handling.
      * @param httpErrorAttributesAdapter Adapter for error representation.
      * @return The to-be-registered web error attributes.
      */
