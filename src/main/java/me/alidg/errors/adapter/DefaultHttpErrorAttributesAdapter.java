@@ -47,7 +47,6 @@ public class DefaultHttpErrorAttributesAdapter implements HttpErrorAttributesAda
     private Map<String, Object> errorDetails(Object errors, int status) {
         Map<String, Object> map = new HashMap<>();
         map.put("errors", errors);
-        map.put("status", status);
 
         return map;
     }
