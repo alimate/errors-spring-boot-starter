@@ -13,6 +13,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for {@link Exceptions} class.
+ *
+ * @author Ali Dehghani
  */
 @RunWith(JUnitParamsRunner.class)
 public class ExceptionsTest {
