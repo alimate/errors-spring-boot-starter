@@ -8,11 +8,11 @@ import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
 import me.alidg.errors.conf.ErrorsAutoConfiguration;
 import me.alidg.errors.conf.ReactiveErrorsAutoConfiguration;
+import me.alidg.errors.conf.ReactiveSecurityErrorsAutoConfiguration;
 import me.alidg.errors.handlers.ServletWebErrorHandler;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.SpringApplication;
@@ -32,14 +32,18 @@ import org.springframework.boot.web.reactive.context.ConfigurableReactiveWebAppl
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
+import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -59,6 +63,8 @@ import static me.alidg.Params.p;
 import static me.alidg.errors.handlers.LastResortWebErrorHandler.UNKNOWN_ERROR_CODE;
 import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.*;
 import static me.alidg.errors.handlers.ServletWebErrorHandler.*;
+import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.ACCESS_DENIED;
+import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.AUTH_REQUIRED;
 import static me.alidg.errors.reactive.ReactiveIT.Dto.dto;
 import static org.springframework.http.HttpHeaders.ACCEPT_LANGUAGE;
 import static org.springframework.http.HttpMethod.GET;
@@ -67,7 +73,7 @@ import static org.springframework.http.HttpStatus.METHOD_NOT_ALLOWED;
 import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.*;
-import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.*;
 
 /**
  * Integration tests for our reactive stack support.
@@ -92,6 +98,7 @@ public class ReactiveIT {
         client = WebTestClient
                 .bindToApplicationContext(context)
                 .apply(springSecurity())
+                .configureClient()
                 .build();
     }
 
@@ -102,7 +109,7 @@ public class ReactiveIT {
 
     @Test
     public void errorAttributes_ShouldBeAbleToHandleUnknownErrors() {
-        client.delete().uri("/test").exchange()
+        client.mutateWith(csrf()).delete().uri("/test").exchange()
                 .expectStatus().is5xxServerError()
                 .expectBody()
                     .jsonPath("$.errors[0].code").isEqualTo(UNKNOWN_ERROR_CODE);
@@ -128,11 +135,12 @@ public class ReactiveIT {
         Object[] codes = Stream.of(expectedErrors).map(CodedMessage::getCode).toArray();
         Object[] messages = Stream.of(expectedErrors).map(CodedMessage::getMessage).toArray();
 
-        WebTestClient.RequestHeadersSpec<?> request = client
+        WebTestClient.RequestHeadersSpec<?> request = client.mutateWith(csrf())
                 .post().uri("/test").contentType(APPLICATION_JSON_UTF8).syncBody(data);
         if (locale != null) request = request.header(ACCEPT_LANGUAGE, locale.toString());
 
-        request.exchange()
+        request
+                .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()
                     .jsonPath("errors[*].code").value(Matchers.containsInAnyOrder(codes))
@@ -148,28 +156,28 @@ public class ReactiveIT {
 
     @Test
     public void errorAttributes_ShouldHandleMissingBodiesProperly() {
-        client.post().uri("/test").contentType(APPLICATION_JSON_UTF8).exchange()
+        client.mutateWith(csrf()).post().uri("/test").contentType(APPLICATION_JSON_UTF8).exchange()
                 .expectStatus().isBadRequest()
                 .expectBody().jsonPath("errors[0].code").isEqualTo(INVALID_OR_MISSING_BODY);
     }
 
     @Test
     public void errorAttributes_ShouldHandleInvalidBodiesProperly() {
-        client.post().uri("/test").contentType(APPLICATION_JSON_UTF8).syncBody("gibberish").exchange()
+        client.mutateWith(csrf()).post().uri("/test").contentType(APPLICATION_JSON_UTF8).syncBody("gibberish").exchange()
                 .expectStatus().isBadRequest()
                 .expectBody().jsonPath("errors[0].code").isEqualTo(INVALID_OR_MISSING_BODY);
     }
 
     @Test
     public void errorAttributes_ShouldHandleMissingContentTypesProperly() {
-        client.post().uri("/test").syncBody("gibberish").exchange()
+        client.mutateWith(csrf()).post().uri("/test").syncBody("gibberish").exchange()
                 .expectStatus().isEqualTo(UNSUPPORTED_MEDIA_TYPE)
                 .expectBody().jsonPath("errors[0].code").isEqualTo(NOT_SUPPORTED);
     }
 
     @Test
     public void errorAttributes_ShouldHandleInvalidContentTypesProperly() {
-        client.post().uri("/test").contentType(new MediaType("text", "gibberish")).syncBody("gibberish").exchange()
+        client.mutateWith(csrf()).post().uri("/test").contentType(new MediaType("text", "gibberish")).syncBody("gibberish").exchange()
                 .expectStatus().isEqualTo(UNSUPPORTED_MEDIA_TYPE)
                 .expectBody().jsonPath("errors[0].code").isEqualTo(NOT_SUPPORTED);
     }
@@ -182,7 +190,7 @@ public class ReactiveIT {
 
     @Test
     public void errorAttributes_ShouldHandleInvalidMethodsProperly() {
-        client.put().uri("/test").exchange()
+        client.mutateWith(csrf()).put().uri("/test").exchange()
                 .expectStatus().isEqualTo(METHOD_NOT_ALLOWED)
                 .expectBody()
                     .jsonPath("errors[0].code").isEqualTo(ServletWebErrorHandler.METHOD_NOT_ALLOWED)
@@ -199,11 +207,9 @@ public class ReactiveIT {
     }
 
     @Test
-    @Ignore
     public void errorAttributes_ShouldHandleMissingPartsProperly() {
-        MultipartFile file = new MockMultipartFile("name", null, MULTIPART_FORM_DATA_VALUE, "".getBytes());
-
-        client.post().uri("/test/part").contentType(MULTIPART_FORM_DATA).syncBody(file).exchange()
+        client.mutateWith(csrf()).post().uri("/test/part")
+                .contentType(MULTIPART_FORM_DATA).syncBody(generateBody()).exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()
                     .jsonPath("errors[0].code").isEqualTo(MISSING_PART)
@@ -213,15 +219,17 @@ public class ReactiveIT {
     @Test
     public void errorAttributes_ShouldHandleHandleUnauthorizedErrorsProperly() {
         client.get().uri("/test/protected").exchange()
-                .expectStatus().isUnauthorized();
+                .expectStatus().isUnauthorized()
+                .expectBody().jsonPath("errors[0].code").isEqualTo(AUTH_REQUIRED);
     }
 
     @Test
-    @Ignore
-    @WithMockUser
     public void errorAttributes_ShouldHandleHandleAccessDeniedErrorsProperly() {
-        client.post().uri("/test/protected").exchange()
-                .expectStatus().isForbidden();
+        client
+                .mutateWith(mockUser())
+                .post().uri("/test/protected").exchange()
+                .expectStatus().isForbidden()
+                .expectBody().jsonPath("errors[0].code").isEqualTo(ACCESS_DENIED);
     }
 
     @Test
@@ -269,8 +277,8 @@ public class ReactiveIT {
             return Mono.just(new ReactiveIT.Dto(name, 12, ""));
         }
 
-        @PostMapping("/part")
-        public Mono<MultipartFile> postParam(@RequestPart Mono<MultipartFile> file) {
+        @PostMapping(value = "/part", consumes = MULTIPART_FORM_DATA_VALUE)
+        public MultipartFile postParam(@RequestPart MultipartFile file) {
             return file;
         }
 
@@ -348,6 +356,13 @@ public class ReactiveIT {
         }
     }
 
+    private MultiValueMap<String, HttpEntity<?>> generateBody() {
+        MultipartBodyBuilder builder = new MultipartBodyBuilder();
+        builder.part("fieldPart", "fieldValue");
+        builder.part("fileParts", new ByteArrayResource("data".getBytes()));
+        return builder.build();
+    }
+
     @EnableWebFlux
     @TestConfiguration
     @EnableWebFluxSecurity
@@ -361,6 +376,7 @@ public class ReactiveIT {
             MessageSourceAutoConfiguration.class,
             ReactiveErrorsAutoConfiguration.class,
             ReactiveSecurityAutoConfiguration.class,
+            ReactiveSecurityErrorsAutoConfiguration.class,
             PropertyPlaceholderAutoConfiguration.class,
             ReactiveWebServerFactoryAutoConfiguration.class,
     })
@@ -369,10 +385,17 @@ public class ReactiveIT {
     static class WebFluxConfig extends WebFluxConfigurationSupport {
 
         @Bean
-        public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+        public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http,
+                                                             ServerAccessDeniedHandler accessDeniedHandler,
+                                                             ServerAuthenticationEntryPoint authenticationEntryPoint) {
             return http
                     .csrf()
-                        .disable()
+                        .accessDeniedHandler(accessDeniedHandler)
+                    .and()
+                    .exceptionHandling()
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler)
+                    .and()
                     .authorizeExchange()
                         .pathMatchers(GET, "/test/protected").authenticated()
                         .pathMatchers(POST, "/test/protected").hasRole("ADMIN")
