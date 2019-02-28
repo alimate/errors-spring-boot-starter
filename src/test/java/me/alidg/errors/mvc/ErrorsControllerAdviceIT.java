@@ -8,6 +8,7 @@ import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
 import me.alidg.errors.conf.ErrorsAutoConfiguration;
 import me.alidg.errors.conf.ServletErrorsAutoConfiguration;
+import me.alidg.errors.conf.ServletSecurityErrorsAutoConfiguration;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -35,11 +36,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.annotation.Validated;
@@ -52,11 +55,11 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
 
+import static java.util.Collections.singletonList;
 import static me.alidg.Params.p;
 import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.*;
 import static me.alidg.errors.handlers.ServletWebErrorHandler.*;
@@ -65,6 +68,8 @@ import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.AUTH_REQUIR
 import static me.alidg.errors.mvc.ErrorsControllerAdviceIT.Dto.dto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -87,8 +92,7 @@ public class ErrorsControllerAdviceIT {
         String port = "--server.port=0";
         String messages = "--spring.messages.basename=test_messages";
         context = (ConfigurableWebApplicationContext) new SpringApplication(WebConfig.class).run(port, messages);
-        mvc = MockMvcBuilders.webAppContextSetup(context).build();
-        SecurityContextHolder.clearContext();
+        mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
     }
 
     @After
@@ -218,11 +222,10 @@ public class ErrorsControllerAdviceIT {
 
     @Test
     public void errorController_ShouldHandleHandleAccessDeniedErrorsProperly() throws Exception {
-        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_FAKE"));
+        List<GrantedAuthority> authorities = singletonList(new SimpleGrantedAuthority("ROLE_FAKE"));
         TestingAuthenticationToken authentication = new TestingAuthenticationToken("me", "pass", authorities);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        mvc.perform(post("/test/protected"))
+        mvc.perform(post("/test/protected").with(authentication(authentication)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("errors[0].code").value(ACCESS_DENIED));
     }
@@ -282,12 +285,33 @@ public class ErrorsControllerAdviceIT {
             MessageSourceAutoConfiguration.class,
             DispatcherServletAutoConfiguration.class,
             PropertyPlaceholderAutoConfiguration.class,
+            ServletSecurityErrorsAutoConfiguration.class,
             HttpMessageConvertersAutoConfiguration.class,
             ServletWebServerFactoryAutoConfiguration.class
     })
     @EnableGlobalMethodSecurity(prePostEnabled = true)
     @ComponentScan(basePackageClasses = ErrorsControllerAdvice.class)
-    protected static class WebConfig extends WebSecurityConfigurerAdapter {}
+    protected static class WebConfig extends WebSecurityConfigurerAdapter {
+
+        private final AccessDeniedHandler accessDeniedHandler;
+        private final AuthenticationEntryPoint authenticationEntryPoint;
+
+        public WebConfig(AccessDeniedHandler accessDeniedHandler,
+                         AuthenticationEntryPoint authenticationEntryPoint) {
+            this.accessDeniedHandler = accessDeniedHandler;
+            this.authenticationEntryPoint = authenticationEntryPoint;
+        }
+
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            http
+                    .anonymous().disable()
+                    .csrf().disable()
+                    .exceptionHandling()
+                        .accessDeniedHandler(accessDeniedHandler)
+                        .authenticationEntryPoint(authenticationEntryPoint);
+        }
+    }
 
     @RestController
     @RequestMapping("/test")

@@ -3,6 +3,7 @@ package me.alidg.errors.annotation;
 import me.alidg.errors.conf.ErrorsAutoConfiguration;
 import me.alidg.errors.conf.ReactiveErrorsAutoConfiguration;
 import me.alidg.errors.conf.ServletErrorsAutoConfiguration;
+import me.alidg.errors.conf.ServletSecurityErrorsAutoConfiguration;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration;
 
@@ -32,8 +33,10 @@ import java.lang.annotation.*;
 @ImportAutoConfiguration({
         ErrorsAutoConfiguration.class,
         ServletErrorsAutoConfiguration.class,
+        ServletErrorsAutoConfiguration.class,
         ReactiveErrorsAutoConfiguration.class,
-        ReactiveSecurityAutoConfiguration.class
+        ReactiveSecurityAutoConfiguration.class,
+        ServletSecurityErrorsAutoConfiguration.class
 })
 public @interface AutoConfigureErrors {
 }
