@@ -33,7 +33,7 @@ Built on top of Spring Boot's great exception handling mechanism, the `errors-sp
  - Simple error message interpolation using `MessageSource`.
  - Customizable HTTP error representation.
  - Exposing arguments from exceptions to error messages.
- - Support both traditional and reactive stacks.
+ - Supporting both traditional and reactive stacks.
 
 ## Getting Started
 
@@ -260,8 +260,8 @@ By default, a custom `WebErrorHandler` is registered to handle common exceptions
 |      `MissingMatrixVariableException`     |     400     | `web.missing_matrix_variable` |     The missing matrix variable name     |
 |                  `others`                 |     500     |        `unknown_error`        |                     -                    |
 
-Also, almost all exceptions from the `ResponseStatusException` (Added in Spring Framework 5) hierarchy are handled compatible
-with Spring MVC traditional exceptions.
+Also, almost all exceptions from the `ResponseStatusException` hierarchy, added in Spring Framework 5+ , are handled compatible
+with the Spring MVC traditional exceptions.
 
 ### Spring Security
 When Spring Security is present on the classpath, a `WebErrorHandler` implementation would be responsible to handle
