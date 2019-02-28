@@ -68,6 +68,11 @@ public class WebErrorHandlers {
     private final ExceptionRefiner exceptionRefiner;
 
     /**
+     * To log the to-be-handled exceptions.
+     */
+    private final ExceptionLogger exceptionLogger;
+
+    /**
      * To initialize the {@link WebErrorHandlers} instance with a code-to-message translator, a
      * non-empty collection of {@link WebErrorHandler} implementations and an optional fallback
      * error handler.
@@ -76,18 +81,21 @@ public class WebErrorHandlers {
      * @param implementations        Collection of {@link WebErrorHandler} implementations.
      * @param defaultWebErrorHandler Fallback web error handler.
      * @param exceptionRefiner       Possibly can refine exceptions before handling them.
+     * @param exceptionLogger        Logs exceptions.
      * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException When the collection of implementations is empty.
      */
     public WebErrorHandlers(@NonNull MessageSource messageSource,
                             @NonNull List<WebErrorHandler> implementations,
                             @Nullable WebErrorHandler defaultWebErrorHandler,
-                            @Nullable ExceptionRefiner exceptionRefiner) {
+                            @Nullable ExceptionRefiner exceptionRefiner,
+                            @Nullable ExceptionLogger exceptionLogger) {
         enforcePreconditions(messageSource, implementations);
         this.messageSource = messageSource;
         this.implementations = implementations;
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
         this.exceptionRefiner = exceptionRefiner;
+        this.exceptionLogger = exceptionLogger;
     }
 
     /**
@@ -104,6 +112,8 @@ public class WebErrorHandlers {
     @NonNull
     public HttpError handle(@Nullable Throwable exception, @Nullable Locale locale) {
         if (locale == null) locale = Locale.ROOT;
+
+        if (exceptionLogger != null) exceptionLogger.log(exception);
 
         log.debug("About to handle an exception", exception);
         if (exceptionRefiner != null) {

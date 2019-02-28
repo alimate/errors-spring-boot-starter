@@ -201,7 +201,7 @@ public class ErrorsAutoConfigurationIT {
 
         @Bean
         public WebErrorHandlers webErrorHandlers(MessageSource messageSource) {
-            return new WebErrorHandlers(messageSource, singletonList(new First()), new Sec(), null);
+            return new WebErrorHandlers(messageSource, singletonList(new First()), new Sec(), null, null);
         }
     }
 

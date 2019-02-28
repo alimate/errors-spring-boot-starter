@@ -27,7 +27,7 @@ public class WebErrorHandlersTest {
                                                           List<WebErrorHandler> handlers,
                                                           Class<? extends Throwable> expectedException,
                                                           String expectedMessage) {
-        assertThatThrownBy(() -> new WebErrorHandlers(messageSource, handlers, null, null))
+        assertThatThrownBy(() -> new WebErrorHandlers(messageSource, handlers, null, null, null))
                 .isInstanceOf(expectedException)
                 .hasMessage(expectedMessage);
     }
