@@ -20,6 +20,7 @@ A Bootiful, consistent and opinionated approach to handle all sorts of exception
     + [Customizing the Error Representation](#customizing-the-error-representation)
     + [Default Error Handler](#default-error-handler)
     + [Refining Exceptions](#refining-exceptions)
+    + [Logging Exceptions](#logging-exceptions)
     + [Registering Custom Handlers](#registering-custom-handlers)
     + [Enabling Web MVC Test Support](#enabling-web-mvc-test-support)
   * [License](#license)
@@ -34,6 +35,7 @@ Built on top of Spring Boot's great exception handling mechanism, the `errors-sp
  - Customizable HTTP error representation.
  - Exposing arguments from exceptions to error messages.
  - Supporting both traditional and reactive stacks.
+ - Customizable exception logging.
 
 ## Getting Started
 
@@ -390,6 +392,22 @@ public class CustomExceptionRefiner implements ExceptionRefiner {
     }
 }
 ```
+
+### Logging Exceptions
+By default, the starter issues a few `debug` logs under the `me.alidg.errors.WebErrorHandlers` logger name.
+In order to customize the way we log exceptions, we just need to implement the `ExceptionLogger` interface and register it
+as a *Spring Bean*:
+```java
+@Component
+public class StdErrExceptionLogger implements ExceptionLogger {
+    
+    @Override
+    public void log(Throwable exception) {
+        if (exception != null)
+            System.err.println("Failed to process the request: " + exception);
+    }
+}
+``` 
 
 ### Registering Custom Handlers
 In order to provide a custom handler for a specific exception, just implement the `WebErrorHandler` interface for that
