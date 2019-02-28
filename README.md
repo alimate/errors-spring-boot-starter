@@ -20,6 +20,7 @@ A Bootiful, consistent and opinionated approach to handle all sorts of exception
     + [Customizing the Error Representation](#customizing-the-error-representation)
     + [Default Error Handler](#default-error-handler)
     + [Refining Exceptions](#refining-exceptions)
+    + [Logging Exceptions](#logging-exceptions)
     + [Registering Custom Handlers](#registering-custom-handlers)
     + [Enabling Web MVC Test Support](#enabling-web-mvc-test-support)
   * [License](#license)
@@ -34,6 +35,7 @@ Built on top of Spring Boot's great exception handling mechanism, the `errors-sp
  - Customizable HTTP error representation.
  - Exposing arguments from exceptions to error messages.
  - Supporting both traditional and reactive stacks.
+ - Customizable exception logging.
 
 ## Getting Started
 
@@ -57,7 +59,7 @@ compile "me.alidg:errors-spring-boot-starter:1.2.0"
 ### Prerequisites
 The main dependency is JDK 8+. Tested with:
  - JDK 8, JDK 9, JDK 10 and JDK 11 on Linux.
- - Spring Boot `2.1.2.RELEASE` (Also, should work with any `2.0.0+`)
+ - Spring Boot `2.1.3.RELEASE` (Also, should work with any `2.0.0+`)
 
 ### Overview
 The `WebErrorHandler` implementations are responsible for handling different kinds of exceptions. When an exception 
@@ -390,6 +392,22 @@ public class CustomExceptionRefiner implements ExceptionRefiner {
     }
 }
 ```
+
+### Logging Exceptions
+By default, the starter issues a few `debug` logs under the `me.alidg.errors.WebErrorHandlers` logger name.
+In order to customize the way we log exceptions, we just need to implement the `ExceptionLogger` interface and register it
+as a *Spring Bean*:
+```java
+@Component
+public class StdErrExceptionLogger implements ExceptionLogger {
+    
+    @Override
+    public void log(Throwable exception) {
+        if (exception != null)
+            System.err.println("Failed to process the request: " + exception);
+    }
+}
+``` 
 
 ### Registering Custom Handlers
 In order to provide a custom handler for a specific exception, just implement the `WebErrorHandler` interface for that

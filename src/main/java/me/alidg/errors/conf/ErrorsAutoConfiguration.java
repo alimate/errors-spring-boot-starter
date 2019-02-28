@@ -1,5 +1,6 @@
 package me.alidg.errors.conf;
 
+import me.alidg.errors.ExceptionLogger;
 import me.alidg.errors.ExceptionRefiner;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
@@ -82,6 +83,7 @@ public class ErrorsAutoConfiguration {
      * @param customHandlers         Optional custom {@link WebErrorHandler}s.
      * @param defaultWebErrorHandler A default {@link WebErrorHandler} to be used as the fallback error handler.
      * @param exceptionRefiner       To refine exceptions before handling them.
+     * @param exceptionLogger        To log exceptions.
      * @param context                To tell Servlet or Reactive stacks apart.
      * @return The expected {@link WebErrorHandlers}.
      */
@@ -91,6 +93,7 @@ public class ErrorsAutoConfiguration {
                                              @Autowired(required = false) List<WebErrorHandler> customHandlers,
                                              @Qualifier("defaultWebErrorHandler") @Autowired(required = false) WebErrorHandler defaultWebErrorHandler,
                                              @Autowired(required = false) ExceptionRefiner exceptionRefiner,
+                                             @Autowired(required = false) ExceptionLogger exceptionLogger,
                                              ApplicationContext context) {
 
         List<WebErrorHandler> handlers = new ArrayList<>(BUILT_IN_HANDLERS);
@@ -104,7 +107,7 @@ public class ErrorsAutoConfiguration {
             handlers.addAll(customHandlers);
         }
 
-        return new WebErrorHandlers(messageSource, handlers, defaultWebErrorHandler, exceptionRefiner);
+        return new WebErrorHandlers(messageSource, handlers, defaultWebErrorHandler, exceptionRefiner, exceptionLogger);
     }
 
     /**

@@ -3,6 +3,7 @@ package me.alidg.errors.reactive;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import me.alidg.errors.ExceptionLogger;
 import me.alidg.errors.HttpError.CodedMessage;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
@@ -66,6 +67,9 @@ import static me.alidg.errors.handlers.ServletWebErrorHandler.*;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.ACCESS_DENIED;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.AUTH_REQUIRED;
 import static me.alidg.errors.reactive.ReactiveIT.Dto.dto;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.springframework.http.HttpHeaders.ACCEPT_LANGUAGE;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
@@ -113,6 +117,8 @@ public class ReactiveIT {
                 .expectStatus().is5xxServerError()
                 .expectBody()
                     .jsonPath("$.errors[0].code").isEqualTo(UNKNOWN_ERROR_CODE);
+
+        verify(logger()).log(any());
     }
 
     @Test
@@ -122,6 +128,8 @@ public class ReactiveIT {
                 .expectBody()
                     .jsonPath("$.errors[0].code").isEqualTo("invalid_params")
                     .jsonPath("$.errors[0].message").isEqualTo("Params are: a, c and 10");
+
+        verify(logger()).log(any(ReactiveIT.InvalidParamsException.class));
     }
 
     @Test
@@ -146,12 +154,15 @@ public class ReactiveIT {
                     .jsonPath("errors[*].code").value(Matchers.containsInAnyOrder(codes))
                     .jsonPath("errors[*].message").value(Matchers.containsInAnyOrder(messages));
 
+        verify(logger()).log(any());
     }
 
     @Test
     public void errorAttributes_ShouldHandleHandlerNotFoundSituations() {
         client.get().uri("/should_not_be_found").exchange()
                 .expectStatus().isNotFound();
+
+        verify(logger()).log(any());
     }
 
     @Test
@@ -159,6 +170,8 @@ public class ReactiveIT {
         client.mutateWith(csrf()).post().uri("/test").contentType(APPLICATION_JSON_UTF8).exchange()
                 .expectStatus().isBadRequest()
                 .expectBody().jsonPath("errors[0].code").isEqualTo(INVALID_OR_MISSING_BODY);
+
+        verify(logger()).log(any());
     }
 
     @Test
@@ -166,6 +179,8 @@ public class ReactiveIT {
         client.mutateWith(csrf()).post().uri("/test").contentType(APPLICATION_JSON_UTF8).syncBody("gibberish").exchange()
                 .expectStatus().isBadRequest()
                 .expectBody().jsonPath("errors[0].code").isEqualTo(INVALID_OR_MISSING_BODY);
+
+        verify(logger()).log(any());
     }
 
     @Test
@@ -173,6 +188,8 @@ public class ReactiveIT {
         client.mutateWith(csrf()).post().uri("/test").syncBody("gibberish").exchange()
                 .expectStatus().isEqualTo(UNSUPPORTED_MEDIA_TYPE)
                 .expectBody().jsonPath("errors[0].code").isEqualTo(NOT_SUPPORTED);
+
+        verify(logger()).log(any());
     }
 
     @Test
@@ -180,12 +197,16 @@ public class ReactiveIT {
         client.mutateWith(csrf()).post().uri("/test").contentType(new MediaType("text", "gibberish")).syncBody("gibberish").exchange()
                 .expectStatus().isEqualTo(UNSUPPORTED_MEDIA_TYPE)
                 .expectBody().jsonPath("errors[0].code").isEqualTo(NOT_SUPPORTED);
+
+        verify(logger()).log(any());
     }
 
     @Test
     public void errorAttributes_ShouldHandleInvalidAcceptHeadersProperly(){
         client.get().uri("/test/param?name=ali").accept(IMAGE_JPEG).exchange()
                 .expectStatus().isEqualTo(NOT_ACCEPTABLE);
+
+        verify(logger()).log(any());
     }
 
     @Test
@@ -195,6 +216,8 @@ public class ReactiveIT {
                 .expectBody()
                     .jsonPath("errors[0].code").isEqualTo(ServletWebErrorHandler.METHOD_NOT_ALLOWED)
                     .jsonPath("errors[0].message").isEqualTo("PUT method is not supported");
+
+        verify(logger()).log(any());
     }
 
     @Test
@@ -204,6 +227,8 @@ public class ReactiveIT {
                 .expectBody()
                     .jsonPath("errors[0].code").isEqualTo(MISSING_PARAMETER)
                     .jsonPath("errors[0].message").isEqualTo("Parameter name of type String is required");
+
+        verify(logger()).log(any());
     }
 
     @Test
@@ -214,6 +239,8 @@ public class ReactiveIT {
                 .expectBody()
                     .jsonPath("errors[0].code").isEqualTo(MISSING_PART)
                     .jsonPath("errors[0].message").isEqualTo("file part is required");
+
+        verify(logger()).log(any());
     }
 
     @Test
@@ -221,6 +248,8 @@ public class ReactiveIT {
         client.get().uri("/test/protected").exchange()
                 .expectStatus().isUnauthorized()
                 .expectBody().jsonPath("errors[0].code").isEqualTo(AUTH_REQUIRED);
+
+        verify(logger()).log(any());
     }
 
     @Test
@@ -230,6 +259,8 @@ public class ReactiveIT {
                 .post().uri("/test/protected").exchange()
                 .expectStatus().isForbidden()
                 .expectBody().jsonPath("errors[0].code").isEqualTo(ACCESS_DENIED);
+
+        verify(logger()).log(any());
     }
 
     @Test
@@ -237,6 +268,8 @@ public class ReactiveIT {
         client.get().uri("/test/header").exchange()
                 .expectStatus().isBadRequest()
                 .expectBody().jsonPath("errors[0].code").isEqualTo(MISSING_HEADER);
+
+        verify(logger()).log(any());
     }
 
     @Test
@@ -244,6 +277,8 @@ public class ReactiveIT {
         client.get().uri("/test/cookie").exchange()
                 .expectStatus().isBadRequest()
                 .expectBody().jsonPath("errors[0].code").isEqualTo(MISSING_COOKIE);
+
+        verify(logger()).log(any());
     }
 
     @Test
@@ -251,6 +286,8 @@ public class ReactiveIT {
         client.get().uri("/test/matrix").exchange()
                 .expectStatus().isBadRequest()
                 .expectBody().jsonPath("errors[0].code").isEqualTo(MISSING_MATRIX_VARIABLE);
+
+        verify(logger()).log(any());
     }
 
     @RestController
@@ -363,6 +400,10 @@ public class ReactiveIT {
         return builder.build();
     }
 
+    private ExceptionLogger logger() {
+        return context.getBean(ExceptionLogger.class);
+    }
+
     @EnableWebFlux
     @TestConfiguration
     @EnableWebFluxSecurity
@@ -401,6 +442,11 @@ public class ReactiveIT {
                         .pathMatchers(POST, "/test/protected").hasRole("ADMIN")
                         .anyExchange().permitAll()
                     .and().build();
+        }
+
+        @Bean
+        public ExceptionLogger exceptionLogger() {
+            return mock(ExceptionLogger.class);
         }
     }
 
