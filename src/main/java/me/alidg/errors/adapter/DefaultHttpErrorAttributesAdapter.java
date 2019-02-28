@@ -6,7 +6,6 @@ import org.springframework.lang.NonNull;
 import java.util.HashMap;
 import java.util.Map;
 
-import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 
@@ -34,15 +33,22 @@ public class DefaultHttpErrorAttributesAdapter implements HttpErrorAttributesAda
      * @param httpError The {@link HttpError} to convert.
      * @return The adapted {@link Map}.
      */
-    @Override
     @NonNull
+    @Override
     public Map<String, Object> adapt(@NonNull HttpError httpError) {
         return httpError.getErrors().stream()
                 .map(this::toMap)
                 .collect(collectingAndThen(
                         toList(),
-                        errors -> singletonMap("errors", errors)
+                        errors -> errorDetails(errors, httpError.getHttpStatus().value())
                 ));
+    }
+
+    private Map<String, Object> errorDetails(Object errors, int status) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("errors", errors);
+
+        return map;
     }
 
     private Map<String, String> toMap(HttpError.CodedMessage codedMessage) {

@@ -15,6 +15,8 @@ A Bootiful, consistent and opinionated approach to handle all sorts of exception
     + [Custom Exceptions](#custom-exceptions)
     + [Spring MVC](#spring-mvc)
     + [Spring Security](#spring-security)
+      + [Reactive](#reactive-security)
+      + [Servlet](#servlet-security)
     + [Customizing the Error Representation](#customizing-the-error-representation)
     + [Default Error Handler](#default-error-handler)
     + [Refining Exceptions](#refining-exceptions)
@@ -31,6 +33,7 @@ Built on top of Spring Boot's great exception handling mechanism, the `errors-sp
  - Simple error message interpolation using `MessageSource`.
  - Customizable HTTP error representation.
  - Exposing arguments from exceptions to error messages.
+ - Supporting both traditional and reactive stacks.
 
 ## Getting Started
 
@@ -53,8 +56,8 @@ compile "me.alidg:errors-spring-boot-starter:1.2.0"
 
 ### Prerequisites
 The main dependency is JDK 8+. Tested with:
- - JDK 8, JDK 9, JDK 10 and JDK 11 on both Linux and OSX
- - Spring Boot `2.1.0.RELEASE` (Also, should work with any `2.0.0+`)
+ - JDK 8, JDK 9, JDK 10 and JDK 11 on Linux.
+ - Spring Boot `2.1.2.RELEASE` (Also, should work with any `2.0.0+`)
 
 ### Overview
 The `WebErrorHandler` implementations are responsible for handling different kinds of exceptions. When an exception 
@@ -257,6 +260,9 @@ By default, a custom `WebErrorHandler` is registered to handle common exceptions
 |      `MissingMatrixVariableException`     |     400     | `web.missing_matrix_variable` |     The missing matrix variable name     |
 |                  `others`                 |     500     |        `unknown_error`        |                     -                    |
 
+Also, almost all exceptions from the `ResponseStatusException` hierarchy, added in Spring Framework 5+ , are handled compatible
+with the Spring MVC traditional exceptions.
+
 ### Spring Security
 When Spring Security is present on the classpath, a `WebErrorHandler` implementation would be responsible to handle
 common Spring Security exceptions:
@@ -273,6 +279,63 @@ common Spring Security exceptions:
 | `LockedException`                            |     400     | `security.user_locked`     |
 | `DisabledException`                          |     400     | `security.user_disabled`   |
 | `others`                                     |     500     | `unknown_error`            |
+
+#### Reactive Security
+When the Spring Security is detected along with the Reactive stack, the starter registers two extra handlers to handle
+all security related exceptions. In contrast with other handlers which register themselves automatically, in order to use these
+two handlers, you should register them in your security configuration manually as follows:
+```java
+@EnableWebFluxSecurity
+public class WebFluxSecurityConfig {
+
+    // other configurations
+
+    @Bean
+    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http,
+                                                            ServerAccessDeniedHandler accessDeniedHandler,
+                                                            ServerAuthenticationEntryPoint authenticationEntryPoint) {
+        http
+                .csrf().accessDeniedHandler(accessDeniedHandler)
+                .and()
+                .exceptionHandling()
+                    .accessDeniedHandler(accessDeniedHandler)
+                    .authenticationEntryPoint(authenticationEntryPoint)
+                // other configurations
+
+        return http.build();
+    }
+}
+```
+The registered `ServerAccessDeniedHandler` and `ServerAuthenticationEntryPoint` are responsible for handling `AccessDeniedException`
+and `AuthenticationException` exceptions, respectively.
+
+#### Servlet Security
+When the Spring Security is detected along with the traditional servlet stack, the starter registers two extra handlers to handle
+all security related exceptions. In contrast with other handlers which register themselves automatically, in order to use these
+two handlers, you should register them in your security configuration manually as follows:
+```java
+@EnableWebSecurity
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private final AccessDeniedHandler accessDeniedHandler;
+    private final AuthenticationEntryPoint authenticationEntryPoint;
+
+    public SecurityConfig(AccessDeniedHandler accessDeniedHandler, AuthenticationEntryPoint authenticationEntryPoint) {
+        this.accessDeniedHandler = accessDeniedHandler;
+        this.authenticationEntryPoint = authenticationEntryPoint;
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                .exceptionHandling()
+                    .accessDeniedHandler(accessDeniedHandler)
+                    .authenticationEntryPoint(authenticationEntryPoint);
+    }
+}
+```
+The registered `AccessDeniedHandler` and `AuthenticationEntryPoint` are responsible for handling `AccessDeniedException`
+and `AuthenticationException` exceptions, respectively.
 
 ### Customizing the Error Representation
 By default, errors would manifest themselves in the HTTP response bodies with the following JSON schema:

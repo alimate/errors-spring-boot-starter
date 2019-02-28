@@ -18,7 +18,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
  * matrix variables to allow for differentiated exception handling and status codes. The
  * main motivation of this handler is to handle those new exceptions.
  *
- * <p>We chose to handle those exceptions here (and not in {@link SpringMvcWebErrorHandler}),
+ * <p>We chose to handle these exceptions here (and not in {@link ServletWebErrorHandler}),
  * because this way we can conditionally register this handler iff those exceptions are
  * present in the classpath.
  *

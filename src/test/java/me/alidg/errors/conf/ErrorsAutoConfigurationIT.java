@@ -32,7 +32,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ErrorsAutoConfigurationIT {
 
     private final WebApplicationContextRunner contextRunner = new WebApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(ErrorsAutoConfiguration.class));
+            .withConfiguration(AutoConfigurations.of(
+                    ErrorsAutoConfiguration.class,
+                    ServletErrorsAutoConfiguration.class)
+            );
 
     @Test
     public void whenAnotherWebErrorHandlersRegistered_TheDefaultOneShouldBeDiscarded() {
@@ -60,10 +63,11 @@ public class ErrorsAutoConfigurationIT {
 
             // Web Error Handlers
             List<WebErrorHandler> implementations = getImplementations(errorHandlers);
-            assertImplementations(implementations, 6,
+            assertImplementations(implementations, 7,
                     SpringValidationWebErrorHandler.class, ConstraintViolationWebErrorHandler.class,
-                    AnnotatedWebErrorHandler.class, SpringMvcWebErrorHandler.class,
-                    SpringSecurityWebErrorHandler.class, MissingRequestParametersWebErrorHandler.class
+                    AnnotatedWebErrorHandler.class, ServletWebErrorHandler.class,
+                    SpringSecurityWebErrorHandler.class, MissingRequestParametersWebErrorHandler.class,
+                    ResponseStatusWebErrorHandler.class
             );
 
             // Default Error Handler
@@ -81,11 +85,11 @@ public class ErrorsAutoConfigurationIT {
 
             // Web Error Handlers
             List<WebErrorHandler> implementations = getImplementations(errorHandlers);
-            assertImplementations(implementations, 8,
+            assertImplementations(implementations, 9,
                     SpringValidationWebErrorHandler.class, ConstraintViolationWebErrorHandler.class,
-                    AnnotatedWebErrorHandler.class, SpringMvcWebErrorHandler.class,
+                    AnnotatedWebErrorHandler.class, ServletWebErrorHandler.class,
                     Sec.class, First.class, SpringSecurityWebErrorHandler.class,
-                    MissingRequestParametersWebErrorHandler.class);
+                    MissingRequestParametersWebErrorHandler.class, ResponseStatusWebErrorHandler.class);
 
             // Default Error Handler
             WebErrorHandler defaultHandler = getDefaultHandler(errorHandlers);
@@ -102,10 +106,11 @@ public class ErrorsAutoConfigurationIT {
 
             // Web Error Handlers
             List<WebErrorHandler> implementations = getImplementations(errorHandlers);
-            assertImplementations(implementations, 6,
+            assertImplementations(implementations, 7,
                     SpringValidationWebErrorHandler.class, ConstraintViolationWebErrorHandler.class,
-                    AnnotatedWebErrorHandler.class, SpringMvcWebErrorHandler.class,
-                    SpringSecurityWebErrorHandler.class, MissingRequestParametersWebErrorHandler.class
+                    AnnotatedWebErrorHandler.class, ServletWebErrorHandler.class,
+                    SpringSecurityWebErrorHandler.class, MissingRequestParametersWebErrorHandler.class,
+                    ResponseStatusWebErrorHandler.class
             );
 
             // Default Error Handler
@@ -123,11 +128,11 @@ public class ErrorsAutoConfigurationIT {
 
             // Web Error Handlers
             List<WebErrorHandler> implementations = getImplementations(errorHandlers);
-            assertImplementations(implementations, 8,
+            assertImplementations(implementations, 9,
                     SpringValidationWebErrorHandler.class, ConstraintViolationWebErrorHandler.class,
-                    AnnotatedWebErrorHandler.class, SpringMvcWebErrorHandler.class,
+                    AnnotatedWebErrorHandler.class, ServletWebErrorHandler.class,
                     Sec.class, First.class, SpringSecurityWebErrorHandler.class,
-                    MissingRequestParametersWebErrorHandler.class);
+                    MissingRequestParametersWebErrorHandler.class, ResponseStatusWebErrorHandler.class);
 
             // Default Error Handler
             WebErrorHandler defaultHandler = getDefaultHandler(errorHandlers);

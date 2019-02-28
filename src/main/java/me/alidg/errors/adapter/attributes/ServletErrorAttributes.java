@@ -1,20 +1,14 @@
-package me.alidg.errors.adapter;
+package me.alidg.errors.adapter.attributes;
 
 import me.alidg.errors.HttpError;
 import me.alidg.errors.WebErrorHandlers;
-import me.alidg.errors.annotation.ExceptionMapping;
+import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
-import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.ACCESS_DENIED;
-import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.AUTH_REQUIRED;
-import static org.springframework.http.HttpStatus.FORBIDDEN;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.web.context.request.RequestAttributes.SCOPE_REQUEST;
 
 /**
@@ -27,7 +21,7 @@ import static org.springframework.web.context.request.RequestAttributes.SCOPE_RE
  * @see HttpErrorAttributesAdapter
  * @see org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController
  */
-public class HttpErrorAttributes extends DefaultErrorAttributes {
+public class ServletErrorAttributes extends DefaultErrorAttributes {
 
     /**
      * To convey the status code from the handled exception to the
@@ -52,8 +46,8 @@ public class HttpErrorAttributes extends DefaultErrorAttributes {
      * @param httpErrorAttributesAdapter To adapt our representation of an error to Spring Boot's representation.
      * @throws NullPointerException When one of the required parameters is null.
      */
-    public HttpErrorAttributes(WebErrorHandlers webErrorHandlers,
-                               HttpErrorAttributesAdapter httpErrorAttributesAdapter) {
+    public ServletErrorAttributes(WebErrorHandlers webErrorHandlers,
+                                  HttpErrorAttributesAdapter httpErrorAttributesAdapter) {
         requireNonNull(webErrorHandlers, "Web error handlers is required");
         requireNonNull(httpErrorAttributesAdapter, "Adapter is required");
 
@@ -75,22 +69,7 @@ public class HttpErrorAttributes extends DefaultErrorAttributes {
     public Map<String, Object> getErrorAttributes(WebRequest webRequest, boolean includeStackTrace) {
         Map<String, Object> attributes = super.getErrorAttributes(webRequest, includeStackTrace);
         Throwable exception = getError(webRequest);
-
-        if (exception == null) {
-            switch (getStatusCode(attributes)) {
-                case 401:
-                    exception = new UnauthorizedException();
-                    break;
-                case 403:
-                    exception = new ForbiddenException();
-                    break;
-                case 404:
-                    exception = new NoHandlerFoundException("", getPath(attributes), HttpHeaders.EMPTY);
-                    break;
-                default:
-                    exception = new IllegalStateException("The exception is null: " + attributes);
-            }
-        }
+        if (exception == null) exception = Exceptions.refineUnknownException(attributes);
 
         HttpError httpError = webErrorHandlers.handle(exception, webRequest.getLocale());
         saveStatusCodeInRequest(webRequest, httpError);
@@ -110,36 +89,4 @@ public class HttpErrorAttributes extends DefaultErrorAttributes {
         int statusCode = httpError.getHttpStatus().value();
         webRequest.setAttribute(STATUS_CODE_ATTR, statusCode, SCOPE_REQUEST);
     }
-
-    /**
-     * Extracts the status code from error attributes.
-     *
-     * @param attributes The error attributes.
-     * @return Extracted status code.
-     */
-    private int getStatusCode(Map<String, Object> attributes) {
-        try {
-            return (Integer) attributes.getOrDefault("status", 0);
-        } catch (Exception e) {
-            return 0;
-        }
-    }
-
-    /**
-     * @param attributes The error attributes.
-     * @return The request URL.
-     */
-    private String getPath(Map<String, Object> attributes) {
-        try {
-            return (String) attributes.getOrDefault("path", "N/A");
-        } catch (Exception e) {
-            return "N/A";
-        }
-    }
-
-    @ExceptionMapping(statusCode = UNAUTHORIZED, errorCode = AUTH_REQUIRED)
-    private static final class UnauthorizedException extends RuntimeException {}
-
-    @ExceptionMapping(statusCode = FORBIDDEN, errorCode = ACCESS_DENIED)
-    private static final class ForbiddenException extends RuntimeException {}
 }

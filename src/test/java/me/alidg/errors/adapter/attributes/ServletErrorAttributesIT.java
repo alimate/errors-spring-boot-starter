@@ -1,8 +1,9 @@
-package me.alidg.errors.adapter;
+package me.alidg.errors.adapter.attributes;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import me.alidg.errors.conf.ErrorsAutoConfiguration;
+import me.alidg.errors.conf.ServletErrorsAutoConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +28,7 @@ import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import static me.alidg.Params.p;
-import static me.alidg.errors.handlers.SpringMvcWebErrorHandler.NO_HANDLER;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.NO_HANDLER;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.ACCESS_DENIED;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.AUTH_REQUIRED;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -36,12 +37,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Integration tests for {@link HttpErrorAttributes}.
+ * Integration tests for {@link ServletErrorAttributes}.
  *
  * @author Ali Dehghani
  */
 @RunWith(JUnitParamsRunner.class)
-public class HttpErrorAttributesIT {
+public class ServletErrorAttributesIT {
 
     /**
      * To perform web requests.
@@ -93,6 +94,7 @@ public class HttpErrorAttributesIT {
             ErrorMvcAutoConfiguration.class,
             ValidationAutoConfiguration.class,
             MessageSourceAutoConfiguration.class,
+            ServletErrorsAutoConfiguration.class,
             DispatcherServletAutoConfiguration.class,
             PropertyPlaceholderAutoConfiguration.class,
             HttpMessageConvertersAutoConfiguration.class,

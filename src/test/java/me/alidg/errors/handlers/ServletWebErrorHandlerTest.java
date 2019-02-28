@@ -23,7 +23,7 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static me.alidg.Params.p;
-import static me.alidg.errors.handlers.SpringMvcWebErrorHandler.*;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.springframework.http.HttpStatus.*;
@@ -31,17 +31,17 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PDF;
 
 /**
- * Unit tests for {@link SpringMvcWebErrorHandler} handler.
+ * Unit tests for {@link ServletWebErrorHandler} handler.
  *
  * @author Ali Dehghani
  */
 @RunWith(JUnitParamsRunner.class)
-public class SpringMvcWebErrorHandlerTest {
+public class ServletWebErrorHandlerTest {
 
     /**
      * Subject under test.
      */
-    private final SpringMvcWebErrorHandler handler = new SpringMvcWebErrorHandler();
+    private final ServletWebErrorHandler handler = new ServletWebErrorHandler();
 
     @Test
     @Parameters(method = "provideParamsForCanHandle")
@@ -82,8 +82,8 @@ public class SpringMvcWebErrorHandlerTest {
                 p(new HttpMessageNotReadableException("", mock(HttpInputMessage.class)), INVALID_OR_MISSING_BODY ,BAD_REQUEST, emptyMap()),
                 p(
                         new HttpMediaTypeNotAcceptableException(asList(APPLICATION_JSON, MediaType.APPLICATION_PDF)),
-                        SpringMvcWebErrorHandler.NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE,
-                        singletonMap(SpringMvcWebErrorHandler.NOT_ACCEPTABLE, asList(APPLICATION_JSON, APPLICATION_PDF))
+                        ServletWebErrorHandler.NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE,
+                        singletonMap(ServletWebErrorHandler.NOT_ACCEPTABLE, asList(APPLICATION_JSON, APPLICATION_PDF))
                 ),
                 p(
                         new HttpMediaTypeNotSupportedException(APPLICATION_JSON, emptyList()),
@@ -93,9 +93,9 @@ public class SpringMvcWebErrorHandlerTest {
                 ),
                 p(
                         new HttpRequestMethodNotSupportedException("POST"),
-                        SpringMvcWebErrorHandler.METHOD_NOT_ALLOWED,
+                        ServletWebErrorHandler.METHOD_NOT_ALLOWED,
                         HttpStatus.METHOD_NOT_ALLOWED,
-                        singletonMap(SpringMvcWebErrorHandler.METHOD_NOT_ALLOWED, singletonList("POST"))
+                        singletonMap(ServletWebErrorHandler.METHOD_NOT_ALLOWED, singletonList("POST"))
                 ),
                 p(
                         new MissingServletRequestParameterException("name", "String"),
