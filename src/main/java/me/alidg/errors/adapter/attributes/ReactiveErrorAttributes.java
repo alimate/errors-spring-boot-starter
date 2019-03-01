@@ -63,7 +63,7 @@ public class ReactiveErrorAttributes extends DefaultErrorAttributes {
         Throwable exception = getError(request);
         if (exception == null) exception = Exceptions.refineUnknownException(attributes);
 
-        HttpError httpError = webErrorHandlers.handle(exception, LocaleContextHolder.getLocale());
+        HttpError httpError = webErrorHandlers.handle(exception, request, LocaleContextHolder.getLocale());
         Map<String, Object> adapted = httpErrorAttributesAdapter.adapt(httpError);
         adapted.put("status", httpError.getHttpStatus().value());
 

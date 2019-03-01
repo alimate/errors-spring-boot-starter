@@ -103,21 +103,23 @@ public class WebErrorHandlers {
      * falls back to a default handler and then tries to handle the exception using the chosen
      * handler. Then would convert the {@link HandledException} to its corresponding {@link HttpError}.
      *
-     * @param exception The exception to handle.
-     * @param locale    Will be used to target a specific locale while translating the codes to error
-     *                  messages.
+     * @param exception   The exception to handle.
+     * @param httpRequest The current HTTP request.
+     * @param locale      Will be used to target a specific locale while translating the codes to error
+     *                    messages.
      * @return An {@link HttpError} instance containing both error and message combinations and also,
      * the intended HTTP Status Code.
      */
     @NonNull
-    public HttpError handle(@Nullable Throwable exception, @Nullable Locale locale) {
+    public HttpError handle(@Nullable Throwable exception, @Nullable Object httpRequest, @Nullable Locale locale) {
         if (locale == null) locale = Locale.ROOT;
 
         if (exceptionLogger != null) exceptionLogger.log(exception);
 
         log.debug("About to handle an exception", exception);
+        Throwable refined = null;
         if (exceptionRefiner != null) {
-            Throwable refined = exceptionRefiner.refine(exception);
+            refined = exceptionRefiner.refine(exception);
             if (refined != null) {
                 exception = refined;
                 log.debug("The caught exception got refined", refined);
@@ -130,7 +132,12 @@ public class WebErrorHandlers {
         HandledException handled = handler.handle(exception);
         List<CodedMessage> codeWithMessages = translateErrors(handled, locale);
 
-        return new HttpError(codeWithMessages, handled.getStatusCode());
+        HttpError httpError = new HttpError(codeWithMessages, handled.getStatusCode());
+        httpError.setOriginalException(exception);
+        httpError.setRefinedException(refined);
+        httpError.setRequest(httpRequest);
+
+        return httpError;
     }
 
     private List<CodedMessage> translateErrors(HandledException handled, Locale locale) {

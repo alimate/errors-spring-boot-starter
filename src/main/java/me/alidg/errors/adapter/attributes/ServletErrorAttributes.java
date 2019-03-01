@@ -71,7 +71,7 @@ public class ServletErrorAttributes extends DefaultErrorAttributes {
         Throwable exception = getError(webRequest);
         if (exception == null) exception = Exceptions.refineUnknownException(attributes);
 
-        HttpError httpError = webErrorHandlers.handle(exception, webRequest.getLocale());
+        HttpError httpError = webErrorHandlers.handle(exception, webRequest, webRequest.getLocale());
         saveStatusCodeInRequest(webRequest, httpError);
 
         return httpErrorAttributesAdapter.adapt(httpError);
