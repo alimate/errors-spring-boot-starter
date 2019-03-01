@@ -41,19 +41,19 @@ Built on top of Spring Boot's great exception handling mechanism, the `errors-sp
 
 ### Download
 
-Download the [latest JAR](https://search.maven.org/remotecontent?filepath=me/alidg/errors-spring-boot-starter/1.2.0/errors-spring-boot-starter-1.2.0.jar) or grab via Maven:
+Download the [latest JAR](https://search.maven.org/remotecontent?filepath=me/alidg/errors-spring-boot-starter/1.3.0/errors-spring-boot-starter-1.3.0.jar) or grab via Maven:
 
 ```
 <dependency>
     <groupId>me.alidg</groupId>
     <artifactId>errors-spring-boot-starter</artifactId>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
 </dependency>
 ```
 
 or Gradle:
 ```
-compile "me.alidg:errors-spring-boot-starter:1.2.0"
+compile "me.alidg:errors-spring-boot-starter:1.3.0"
 ```
 
 ### Prerequisites
