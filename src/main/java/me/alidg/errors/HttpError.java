@@ -1,6 +1,7 @@
 package me.alidg.errors;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -24,6 +25,24 @@ public class HttpError {
     private final HttpStatus httpStatus;
 
     /**
+     * Encapsulates the current and probably failed HTTP request. It's either a
+     * {@link org.springframework.web.context.request.WebRequest} for Servlet requests
+     * or {@link org.springframework.web.reactive.function.server.ServerRequest} for reactive
+     * stack requests.
+     */
+    @Nullable private Object request;
+
+    /**
+     * Encapsulates the original exception raised while processing the HTTP request.
+     */
+    @Nullable private Throwable originalException;
+
+    /**
+     * Encapsulates the possible refined exception, if any.
+     */
+    @Nullable private Throwable refinedException;
+
+    /**
      * Constructing a HTTP error instance.
      *
      * @param errors Collection of codes/messages combinations.
@@ -40,6 +59,53 @@ public class HttpError {
      */
     public List<CodedMessage> getErrors() {
         return errors;
+    }
+
+    /**
+     * Returns the current and probably failed HTTP request. It's either a
+     * {@link org.springframework.web.context.request.WebRequest} for Servlet requests
+     * or {@link org.springframework.web.reactive.function.server.ServerRequest} for reactive
+     * stack requests.
+     *
+     * @return The current HTTP request.
+     */
+    public Object getRequest() {
+        return request;
+    }
+
+    /**
+     * @param request {@link #request}.
+     */
+    public void setRequest(Object request) {
+        this.request = request;
+    }
+
+    /**
+     * @return The original exception raised while processing the HTTP request.
+     */
+    public Throwable getOriginalException() {
+        return originalException;
+    }
+
+    /**
+     * @param originalException {@link #originalException}.
+     */
+    public void setOriginalException(Throwable originalException) {
+        this.originalException = originalException;
+    }
+
+    /**
+     * @return The possible refined exception, if any.
+     */
+    public Throwable getRefinedException() {
+        return refinedException;
+    }
+
+    /**
+     * @param refinedException {@link #refinedException}.
+     */
+    public void setRefinedException(Throwable refinedException) {
+        this.refinedException = refinedException;
     }
 
     /**

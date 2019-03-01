@@ -6,6 +6,7 @@ import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 
 import java.util.Locale;
 
@@ -49,13 +50,14 @@ public abstract class ErrorsControllerAdvice {
      * Catches any exception and converts it to a HTTP response with appropriate status
      * code and error code-message combinations.
      *
-     * @param exception The caught exception.
-     * @param locale    Determines the locale for message translation.
+     * @param exception  The caught exception.
+     * @param webRequest The current HTTP request.
+     * @param locale     Determines the locale for message translation.
      * @return A HTTP response with appropriate error body and status code.
      */
     @ExceptionHandler
-    public ResponseEntity<?> handleException(Throwable exception, Locale locale) {
-        HttpError httpError = errorHandlers.handle(exception, locale);
+    public ResponseEntity<?> handleException(Throwable exception, WebRequest webRequest, Locale locale) {
+        HttpError httpError = errorHandlers.handle(exception, webRequest, locale);
 
         return ResponseEntity.status(httpError.getHttpStatus()).body(httpErrorAttributesAdapter.adapt(httpError));
     }
