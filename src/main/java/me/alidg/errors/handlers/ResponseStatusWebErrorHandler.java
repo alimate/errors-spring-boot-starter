@@ -95,6 +95,8 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
 
         if (exception instanceof ResponseStatusException) {
             HttpStatus status = ((ResponseStatusException) exception).getStatus();
+            if (status == NOT_FOUND) return new HandledException(NO_HANDLER, status, null);
+
             return new HandledException(UNKNOWN_ERROR_CODE, status, null);
         }
 

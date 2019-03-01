@@ -160,7 +160,8 @@ public class ReactiveIT {
     @Test
     public void errorAttributes_ShouldHandleHandlerNotFoundSituations() {
         client.get().uri("/should_not_be_found").exchange()
-                .expectStatus().isNotFound();
+                .expectStatus().isNotFound()
+                .expectBody().jsonPath("errors[0].code").isEqualTo(NO_HANDLER);
 
         verify(logger()).log(any());
     }
