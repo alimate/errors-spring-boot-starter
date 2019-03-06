@@ -4,10 +4,13 @@ import me.alidg.errors.HttpError;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
+import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
 /**
@@ -38,5 +41,15 @@ public class DefaultHttpErrorAttributesAdapterTest {
         assertThat(errors.get(0)).containsValues("f", null);
         assertThat(errors.get(1)).containsOnlyKeys("code", "message");
         assertThat(errors.get(1)).containsValues("s", "a message");
+    }
+
+    @Test
+    public void adapt_ShouldAdaptFingerprintToAMapProperly() {
+        HttpError httpError = new HttpError(Collections.emptyList(), HttpStatus.BAD_REQUEST);
+        httpError.setFingerprint("fingerprint");
+
+        Map<String, Object> adapted = adapter.adapt(httpError);
+
+        assertThat(adapted).contains(entry("fingerprint", "fingerprint"));
     }
 }

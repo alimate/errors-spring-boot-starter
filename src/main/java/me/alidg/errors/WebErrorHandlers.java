@@ -46,6 +46,7 @@ public class WebErrorHandlers {
     /**
      * Helps us to translate error codes to possibly localized error messages.
      */
+    @NonNull
     private final MessageSource messageSource;
 
     /**
@@ -53,6 +54,7 @@ public class WebErrorHandlers {
      * would choose at most one implementation from this collection to delegate the exception
      * handling task. This collection can't be null or empty.
      */
+    @NonNull
     private final List<WebErrorHandler> implementations;
 
     /**
@@ -61,35 +63,44 @@ public class WebErrorHandlers {
      * would be used in such circumstances but you have the option to provide your own custom error
      * handler as the fallback handler.
      */
+    @NonNull
     private WebErrorHandler defaultWebErrorHandler = LastResortWebErrorHandler.INSTANCE;
 
     /**
      * To refine exceptions before handling the them.
      */
+    @Nullable
     private final ExceptionRefiner exceptionRefiner;
 
     /**
      * To log the to-be-handled exceptions.
      */
+    @Nullable
     private final ExceptionLogger exceptionLogger;
 
     /**
      * To execute additional actions using HttpErrors (e.g. logging or messaging).
      */
+    @NonNull
     private final List<ErrorActionExecutor> errorActionExecutors;
 
+    /**
+     * To generate unique fingerprint of error message.
+     */
+    @Nullable
+    private final FingerprintProvider fingerprintProvider;
+
+    /**
+     * Backwards-compatible constructor with defaults for {@link #errorActionExecutors}
+     * and {@link #fingerprintProvider}.
+     */
     public WebErrorHandlers(@NonNull MessageSource messageSource,
             @NonNull List<WebErrorHandler> implementations,
             @Nullable WebErrorHandler defaultWebErrorHandler,
             @Nullable ExceptionRefiner exceptionRefiner,
             @Nullable ExceptionLogger exceptionLogger) {
-        enforcePreconditions(messageSource, implementations);
-        this.messageSource = messageSource;
-        this.implementations = implementations;
-        if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
-        this.exceptionRefiner = exceptionRefiner;
-        this.exceptionLogger = exceptionLogger;
-        this.errorActionExecutors = Collections.emptyList();
+        this(messageSource, implementations, defaultWebErrorHandler, exceptionRefiner,
+                exceptionLogger, Collections.emptyList(), null);
     }
 
     /**
@@ -102,7 +113,8 @@ public class WebErrorHandlers {
      * @param defaultWebErrorHandler Fallback web error handler.
      * @param exceptionRefiner       Possibly can refine exceptions before handling them.
      * @param exceptionLogger        Logs exceptions.
-     * @param errorActionExecutors    Executes additional actions on HttpError.
+     * @param errorActionExecutors   Executes additional actions on HttpError.
+     * @param fingerprintProvider    Calculates fingerprint of error message.
      *
      * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException When the collection of implementations is empty.
@@ -112,7 +124,8 @@ public class WebErrorHandlers {
                             @Nullable WebErrorHandler defaultWebErrorHandler,
                             @Nullable ExceptionRefiner exceptionRefiner,
                             @Nullable ExceptionLogger exceptionLogger,
-                            @NonNull List<ErrorActionExecutor> errorActionExecutors) {
+                            @NonNull List<ErrorActionExecutor> errorActionExecutors,
+                            @Nullable FingerprintProvider fingerprintProvider) {
         enforcePreconditions(messageSource, implementations);
         this.messageSource = messageSource;
         this.implementations = implementations;
@@ -120,6 +133,7 @@ public class WebErrorHandlers {
         this.exceptionRefiner = exceptionRefiner;
         this.exceptionLogger = exceptionLogger;
         this.errorActionExecutors = errorActionExecutors;
+        this.fingerprintProvider = fingerprintProvider;
     }
 
     /**
@@ -160,6 +174,10 @@ public class WebErrorHandlers {
         httpError.setOriginalException(exception);
         httpError.setRefinedException(refined);
         httpError.setRequest(httpRequest);
+
+        if (fingerprintProvider != null) {
+            httpError.setFingerprint(fingerprintProvider.generate(httpError));
+        }
 
         errorActionExecutors.forEach(p -> p.execute(httpError));
 
