@@ -8,6 +8,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -73,6 +74,25 @@ public class WebErrorHandlers {
     private final ExceptionLogger exceptionLogger;
 
     /**
+     * To execute additional actions using HttpErrors (e.g. logging or messaging).
+     */
+    private final List<ErrorActionExecutor> errorActionExecutors;
+
+    public WebErrorHandlers(@NonNull MessageSource messageSource,
+            @NonNull List<WebErrorHandler> implementations,
+            @Nullable WebErrorHandler defaultWebErrorHandler,
+            @Nullable ExceptionRefiner exceptionRefiner,
+            @Nullable ExceptionLogger exceptionLogger) {
+        enforcePreconditions(messageSource, implementations);
+        this.messageSource = messageSource;
+        this.implementations = implementations;
+        if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
+        this.exceptionRefiner = exceptionRefiner;
+        this.exceptionLogger = exceptionLogger;
+        this.errorActionExecutors = Collections.emptyList();
+    }
+
+    /**
      * To initialize the {@link WebErrorHandlers} instance with a code-to-message translator, a
      * non-empty collection of {@link WebErrorHandler} implementations and an optional fallback
      * error handler.
@@ -82,6 +102,8 @@ public class WebErrorHandlers {
      * @param defaultWebErrorHandler Fallback web error handler.
      * @param exceptionRefiner       Possibly can refine exceptions before handling them.
      * @param exceptionLogger        Logs exceptions.
+     * @param errorActionExecutors    Executes additional actions on HttpError.
+     *
      * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException When the collection of implementations is empty.
      */
@@ -89,13 +111,15 @@ public class WebErrorHandlers {
                             @NonNull List<WebErrorHandler> implementations,
                             @Nullable WebErrorHandler defaultWebErrorHandler,
                             @Nullable ExceptionRefiner exceptionRefiner,
-                            @Nullable ExceptionLogger exceptionLogger) {
+                            @Nullable ExceptionLogger exceptionLogger,
+                            @NonNull List<ErrorActionExecutor> errorActionExecutors) {
         enforcePreconditions(messageSource, implementations);
         this.messageSource = messageSource;
         this.implementations = implementations;
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
         this.exceptionRefiner = exceptionRefiner;
         this.exceptionLogger = exceptionLogger;
+        this.errorActionExecutors = errorActionExecutors;
     }
 
     /**
@@ -136,6 +160,8 @@ public class WebErrorHandlers {
         httpError.setOriginalException(exception);
         httpError.setRefinedException(refined);
         httpError.setRequest(httpRequest);
+
+        errorActionExecutors.forEach(p -> p.execute(httpError));
 
         return httpError;
     }
