@@ -2,6 +2,7 @@ package me.alidg.errors.adapter;
 
 import me.alidg.errors.Argument;
 import me.alidg.errors.HttpError;
+import me.alidg.errors.conf.ErrorsProperties;
 import org.springframework.lang.NonNull;
 
 import java.util.HashMap;
@@ -28,6 +29,12 @@ import static java.util.stream.Collectors.toList;
  * @author Ali Dehghani
  */
 public class DefaultHttpErrorAttributesAdapter implements HttpErrorAttributesAdapter {
+
+    private final ErrorsProperties errorsProperties;
+
+    public DefaultHttpErrorAttributesAdapter(ErrorsProperties errorsProperties) {
+        this.errorsProperties = errorsProperties;
+    }
 
     /**
      * Converts the given {@link HttpError} to a {@link Map}.
@@ -62,10 +69,28 @@ public class DefaultHttpErrorAttributesAdapter implements HttpErrorAttributesAda
         map.put("code", codedMessage.getCode());
         map.put("message", codedMessage.getMessage());
 
-        if (!codedMessage.getArguments().isEmpty()) {
-            map.put("arguments", codedMessage.getArguments().stream().collect(Collectors.toMap(Argument::getName, Argument::getValue)));
-        }
+        exposeArgumentsIfNeeded(map, codedMessage);
 
         return map;
+    }
+
+    private void exposeArgumentsIfNeeded(Map<String, Object> map, HttpError.CodedMessage codedMessage) {
+        switch (errorsProperties.getExposeArguments()) {
+            case never:
+                return;
+
+            case always:
+                map.put("arguments", codedMessage.getArguments().stream().collect(Collectors.toMap(Argument::getName, Argument::getValue)));
+                return;
+
+            case non_empty:
+                if (!codedMessage.getArguments().isEmpty()) {
+                    map.put("arguments", codedMessage.getArguments().stream().collect(Collectors.toMap(Argument::getName, Argument::getValue)));
+                }
+                return;
+
+            default:
+                throw new IllegalStateException();
+        }
     }
 }

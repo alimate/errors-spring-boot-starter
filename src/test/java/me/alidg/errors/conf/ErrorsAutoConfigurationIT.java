@@ -158,6 +158,26 @@ public class ErrorsAutoConfigurationIT {
         });
     }
 
+    @Test
+    public void withProperties_ErrorsPropertiesBeanIsLoaded() {
+        contextRunner.run(ctx -> {
+            ErrorsProperties properties = ctx.getBean(ErrorsProperties.class);
+
+            assertThat(properties).isNotNull();
+            assertThat(properties.getExposeArguments()).isEqualTo(ErrorsProperties.ArgumentExposure.never);
+        });
+    }
+
+    @Test
+    public void withProperties_ErrorsPropertiesBeanIsConfigurable() {
+        contextRunner.withPropertyValues("spring.errors.expose-arguments=always").run(ctx -> {
+            ErrorsProperties properties = ctx.getBean(ErrorsProperties.class);
+
+            assertThat(properties).isNotNull();
+            assertThat(properties.getExposeArguments()).isEqualTo(ErrorsProperties.ArgumentExposure.always);
+        });
+    }
+
     private void assertDefaultHandler(WebErrorHandler actualHandler,
                                       Class<? extends WebErrorHandler> expectedType) {
         assertThat(actualHandler).isNotNull();

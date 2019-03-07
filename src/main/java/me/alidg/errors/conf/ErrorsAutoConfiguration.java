@@ -18,6 +18,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
@@ -64,6 +65,7 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
  */
 @ConditionalOnWebApplication
 @AutoConfigureAfter({MessageSourceAutoConfiguration.class, WebMvcAutoConfiguration.class})
+@EnableConfigurationProperties(ErrorsProperties.class)
 public class ErrorsAutoConfiguration {
 
     /**
@@ -144,8 +146,8 @@ public class ErrorsAutoConfiguration {
     @Bean
     @ConditionalOnBean(WebErrorHandlers.class)
     @ConditionalOnMissingBean(HttpErrorAttributesAdapter.class)
-    public HttpErrorAttributesAdapter httpErrorAttributesAdapter() {
-        return new DefaultHttpErrorAttributesAdapter();
+    public HttpErrorAttributesAdapter httpErrorAttributesAdapter(ErrorsProperties errorsProperties) {
+        return new DefaultHttpErrorAttributesAdapter(errorsProperties);
     }
 
     /**
