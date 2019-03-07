@@ -46,7 +46,17 @@ import org.springframework.security.web.server.authorization.ServerAccessDeniedH
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.MatrixVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.WebFluxConfigurationSupport;
@@ -60,10 +70,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static me.alidg.Params.p;
 import static me.alidg.errors.handlers.LastResortWebErrorHandler.UNKNOWN_ERROR_CODE;
-import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.*;
-import static me.alidg.errors.handlers.ServletWebErrorHandler.*;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_COOKIE;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_HEADER;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_MATRIX_VARIABLE;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.INVALID_OR_MISSING_BODY;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.MISSING_PARAMETER;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.MISSING_PART;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.NOT_SUPPORTED;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.NO_HANDLER;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.ACCESS_DENIED;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.AUTH_REQUIRED;
 import static me.alidg.errors.reactive.ReactiveIT.Dto.dto;
@@ -75,9 +92,15 @@ import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpStatus.METHOD_NOT_ALLOWED;
 import static org.springframework.http.HttpStatus.NOT_ACCEPTABLE;
-import static org.springframework.http.HttpStatus.*;
-import static org.springframework.http.MediaType.*;
-import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.*;
+import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY;
+import static org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
+import static org.springframework.http.MediaType.IMAGE_JPEG;
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.csrf;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockUser;
+import static org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.springSecurity;
 
 /**
  * Integration tests for our reactive stack support.
@@ -485,6 +508,6 @@ public class ReactiveIT {
     }
 
     private CodedMessage cm(String code, String message) {
-        return new CodedMessage(code, message);
+        return new CodedMessage(code, message, emptyList());
     }
 }

@@ -2,6 +2,7 @@ package me.alidg.errors.handlers;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.junit.Test;
@@ -16,12 +17,20 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static me.alidg.Params.p;
+import static me.alidg.errors.Argument.arg;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -54,7 +63,7 @@ public class ConstraintViolationWebErrorHandlerTest {
     @Parameters(method = "provideParamsForHandle")
     public void handle_ShouldHandleViolationExceptionsProperly(ConstraintViolationException exception,
                                                                Set<String> errorCodes,
-                                                               Map<String, List<?>> arguments) {
+                                                               Map<String, List<Argument>> arguments) {
         HandledException handledException = handler.handle(exception);
 
         assertThat(handledException.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
@@ -80,27 +89,27 @@ public class ConstraintViolationWebErrorHandlerTest {
                 p(
                         v(new Person("alidg", 19)),
                         setOf("username.size"),
-                        singletonMap("username.size", asList(10, 6))
+                        singletonMap("username.size", asList(arg("max", 10), arg("min", 6)))
                 ),
                 p(
                         v(new Person("", 19)),
                         setOf("username.blank", "username.size"),
-                        singletonMap("username.size", asList(10, 6))
+                        singletonMap("username.size", asList(arg("max", 10), arg("min", 6)))
                 ),
                 p(
                         v(new Person("ali", 12)),
                         setOf("username.size", "age.min"),
                         new HashMap<String, List<?>>() {{
-                            put("username.size", asList(10, 6));
-                            put("age.min", singletonList(18L));
+                            put("username.size", asList(arg("max", 10), arg("min", 6)));
+                            put("age.min", singletonList(arg("value", 18L)));
                         }}
                 ),
                 p(
                         v(new Person("ali", 35)),
                         setOf("username.size", "age.max"),
                         new HashMap<String, List<?>>() {{
-                            put("username.size", asList(10, 6));
-                            put("age.max", singletonList(30L));
+                            put("username.size", asList(arg("max", 10), arg("min", 6)));
+                            put("age.max", singletonList(arg("value", 30L)));
                         }}
                 )
         );

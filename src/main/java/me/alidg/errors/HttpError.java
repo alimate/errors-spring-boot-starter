@@ -1,8 +1,10 @@
 package me.alidg.errors;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -149,7 +151,6 @@ public class HttpError {
      * Represents an error code paired with its appropriate error message.
      */
     public static class CodedMessage {
-
         /**
          * The error code.
          */
@@ -161,12 +162,18 @@ public class HttpError {
         private final String message;
 
         /**
+         * Exception arguments.
+         */
+        private final List<Argument> arguments;
+
+        /**
          * @param code The error code.
          * @param message The error message.
          */
-        public CodedMessage(String code, String message) {
-            this.code = code;
+        public CodedMessage(@NonNull String code, String message, @NonNull List<Argument> arguments) {
+            this.code = Objects.requireNonNull(code);
             this.message = message;
+            this.arguments = Objects.requireNonNull(arguments);
         }
 
         /**
@@ -185,6 +192,10 @@ public class HttpError {
             return message;
         }
 
+        public List<Argument> getArguments() {
+            return Collections.unmodifiableList(arguments);
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o)
@@ -194,12 +205,13 @@ public class HttpError {
 
             CodedMessage that = (CodedMessage) o;
             return Objects.equals(getCode(), that.getCode()) &&
-                    Objects.equals(getMessage(), that.getMessage());
+                    Objects.equals(getMessage(), that.getMessage()) &&
+                    Objects.equals(getArguments(), that.getArguments());
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(getCode(), getMessage());
+            return Objects.hash(getCode(), getMessage(), getArguments());
         }
 
         @Override
@@ -207,6 +219,7 @@ public class HttpError {
             return "CodedMessage{" +
                     "code='" + code + '\'' +
                     ", message='" + message + '\'' +
+                    ", arguments=" + arguments +
                     '}';
         }
     }

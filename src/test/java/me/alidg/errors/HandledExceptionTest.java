@@ -12,7 +12,11 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonMap;
 import static me.alidg.Params.p;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -50,7 +54,7 @@ public class HandledExceptionTest {
 
     @Test
     @Parameters(method = "provideMaps")
-    public void constructors_ShouldSetNullArgumentsAsEmptyMaps(Map<String, List<?>> provided,
+    public void constructors_ShouldSetNullArgumentsAsEmptyMaps(Map<String, List<Argument>> provided,
                                                                Map<?, ?> expected) {
         assertThat(new HandledException(singleton("error"), BAD_REQUEST, provided).getArguments())
                 .isEqualTo(expected);

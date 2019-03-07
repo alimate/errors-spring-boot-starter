@@ -46,7 +46,17 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.MatrixVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -59,10 +69,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static me.alidg.Params.p;
-import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.*;
-import static me.alidg.errors.handlers.ServletWebErrorHandler.*;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_COOKIE;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_HEADER;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_MATRIX_VARIABLE;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.INVALID_OR_MISSING_BODY;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.METHOD_NOT_ALLOWED;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.MISSING_PARAMETER;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.MISSING_PART;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.NOT_SUPPORTED;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.ACCESS_DENIED;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.AUTH_REQUIRED;
 import static me.alidg.errors.mvc.ErrorsControllerAdviceIT.Dto.dto;
@@ -70,7 +87,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -268,7 +289,7 @@ public class ErrorsControllerAdviceIT {
     }
 
     private CodedMessage cm(String code, String message) {
-        return new CodedMessage(code, message);
+        return new CodedMessage(code, message, emptyList());
     }
 
     @EnableWebMvc

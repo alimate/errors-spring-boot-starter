@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Locale;
 
 import static me.alidg.Params.p;
+import static me.alidg.errors.Argument.arg;
 import static me.alidg.errors.WebErrorHandlersIT.Pojo.pojo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,7 +62,7 @@ public class WebErrorHandlersIT {
             ));
 
     @Test
-    @Parameters(method = "provideValidationParams")
+    @Parameters(method = "provideSpringValidationParams")
     public void validationException_ShouldBeHandledProperly(Object pojo, Locale locale, CodedMessage... codedMessages) {
         contextRunner.run(ctx -> {
             WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
@@ -94,12 +95,14 @@ public class WebErrorHandlersIT {
             // Without locale
             HttpError error = errorHandlers.handle(exception, null, null);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-            assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42"));
+            assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42",
+                    arg("min", 10), arg("max", 12), arg("theAnswer", "42"), arg("notUsed", "123")));
 
             // With locale
             error = errorHandlers.handle(exception, null, Locale.CANADA);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-            assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42"));
+            assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42",
+                    arg("min", 10), arg("max", 12), arg("theAnswer", "42"), arg("notUsed", "123")));
 
             verifyPostProcessorsHasBeenCalled(ctx);
         });
@@ -222,31 +225,131 @@ public class WebErrorHandlersIT {
     private Object[] provideValidationParams() {
         return p(
                 // Invalid text
-                p(pojo("", 10, "a"), null, cm("text.required", "The text is required")),
-                p(pojo("", 10, "a"), Locale.CANADA, cm("text.required", "The text is required")),
-                p(pojo("", 10, "a"), IRAN_LOCALE, cm("text.required", "متن اجباری است")),
+                p(
+                        pojo("", 10, "a"), null,
+                        cm("text.required", "The text is required")
+                ),
+                p(
+                        pojo("", 10, "a"), Locale.CANADA,
+                        cm("text.required", "The text is required")
+                ),
+                p(
+                        pojo("", 10, "a"), IRAN_LOCALE,
+                        cm("text.required", "متن اجباری است")
+                ),
 
                 // Invalid number: min
-                p(pojo("t", -1, "a"), null, cm("number.min", "The min is 0")),
-                p(pojo("t", -1, "a"), Locale.GERMANY, cm("number.min", "The min is 0")),
+                p(
+                        pojo("t", -1, "a"), null,
+                        cm("number.min", "The min is 0", arg("value", 0L))
+                ),
+                p(
+                        pojo("t", -1, "a"), Locale.GERMANY,
+                        cm("number.min", "The min is 0", arg("value", 0L))
+                ),
 
                 // Invalid number: max
-                p(pojo("t", 11, "a"), null, cm("number.max", null)),
-                p(pojo("t", 11, "a"), Locale.GERMANY, cm("number.max", null)),
-                p(pojo("t", 11, "a"), IRAN_LOCALE, cm("number.max", null)),
+                p(
+                        pojo("t", 11, "a"), null,
+                        cm("number.max", null, arg("value", 10L))
+                ),
+                p(
+                        pojo("t", 11, "a"), Locale.GERMANY,
+                        cm("number.max", null, arg("value", 10L))
+                ),
+                p(
+                        pojo("t", 11, "a"), IRAN_LOCALE,
+                        cm("number.max", null, arg("value", 10L))
+                ),
 
                 // Invalid range
-                p(pojo("t", 0), null, cm("range.limit", "Between 1 and 3")),
-                p(pojo("t", 0), Locale.GERMANY, cm("range.limit", "Between 1 and 3")),
+                p(
+                        pojo("t", 0), null,
+                        cm("range.limit", "Between 1 and 3", arg("max", 3), arg("min", 1))
+                ),
+                p(
+                        pojo("t", 0), Locale.GERMANY,
+                        cm("range.limit", "Between 1 and 3", arg("max", 3), arg("min", 1))
+                ),
 
                 // Mixed
                 p(
-                        pojo("", 11), null, cm("range.limit", "Between 1 and 3"),
-                        cm("number.max", null), cm("text.required", "The text is required")
+                        pojo("", 11), null,
+                        cm("range.limit", "Between 1 and 3", arg("max", 3), arg("min", 1)),
+                        cm("number.max", null, arg("value", 10L)),
+                        cm("text.required", "The text is required")
                 ),
                 p(
-                        pojo("", 11), Locale.CANADA, cm("range.limit", "Between 1 and 3"),
-                        cm("number.max", null), cm("text.required", "The text is required")
+                        pojo("", 11), Locale.CANADA,
+                        cm("range.limit", "Between 1 and 3", arg("max", 3), arg("min", 1)),
+                        cm("number.max", null, arg("value", 10L)),
+                        cm("text.required", "The text is required")
+                )
+        );
+    }
+
+    private Object[] provideSpringValidationParams() {
+        return p(
+                // Invalid text
+                p(
+                        pojo("", 10, "a"), null,
+                        cm("text.required", "The text is required")
+                ),
+                p(
+                        pojo("", 10, "a"), Locale.CANADA,
+                        cm("text.required", "The text is required")
+                ),
+                p(
+                        pojo("", 10, "a"), IRAN_LOCALE,
+                        cm("text.required", "متن اجباری است")
+                ),
+
+                // Invalid number: min
+                p(
+                        pojo("t", -1, "a"), null,
+                        cm("number.min", "The min is 0", arg("arg0", 0L))
+                ),
+                p(
+                        pojo("t", -1, "a"), Locale.GERMANY,
+                        cm("number.min", "The min is 0", arg("arg0", 0L))
+                ),
+
+                // Invalid number: max
+                p(
+                        pojo("t", 11, "a"), null,
+                        cm("number.max", null, arg("arg0", 10L))
+                ),
+                p(
+                        pojo("t", 11, "a"), Locale.GERMANY,
+                        cm("number.max", null, arg("arg0", 10L))
+                ),
+                p(
+                        pojo("t", 11, "a"), IRAN_LOCALE,
+                        cm("number.max", null, arg("arg0", 10L))
+                ),
+
+                // Invalid range
+                p(
+                        pojo("t", 0), null,
+                        cm("range.limit", "Between 1 and 3", arg("arg0", 3), arg("arg1", 1))
+                ),
+                p(
+                        pojo("t", 0), Locale.GERMANY,
+                        cm("range.limit", "Between 1 and 3", arg("arg0", 3), arg("arg1", 1))
+                ),
+
+                // Mixed
+                p(
+                        pojo("", 11), null,
+                        cm("range.limit", "Between 1 and 3", arg("arg0", 3), arg("arg1", 1)),
+                        cm("number.max", null, arg("arg0", 10L)),
+                        cm("text.required", "The text is required")
+                ),
+                p(
+                        pojo("", 11), Locale.CANADA,
+                        cm("range.limit", "Between 1 and 3", arg("arg0", 3), arg("arg1", 1)),
+                        cm("number.max", null, arg("arg0", 10L)),
+                        cm("text.required", "The text is required")
                 )
         );
     }
@@ -256,7 +359,8 @@ public class WebErrorHandlersIT {
                 p(
                         new SymptomException(new SomeException(10, 11)),
                         HttpStatus.UNPROCESSABLE_ENTITY,
-                        cm("invalid_params", "Params are: 10, 11 and 42")
+                        cm("invalid_params", "Params are: 10, 11 and 42",
+                                arg("min", 10), arg("max", 11), arg("theAnswer", "42"), arg("notUsed", "123"))
                 ),
                 p(
                         new SymptomException(null), HttpStatus.INTERNAL_SERVER_ERROR, cm("unknown_error", null)
@@ -274,8 +378,8 @@ public class WebErrorHandlersIT {
         );
     }
 
-    private CodedMessage cm(String code, String message) {
-        return new CodedMessage(code, message);
+    private CodedMessage cm(String code, String message, Argument... arguments) {
+        return new CodedMessage(code, message, Arrays.asList(arguments));
     }
 
     static class Pojo {

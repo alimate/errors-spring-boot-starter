@@ -1,10 +1,12 @@
 package me.alidg.errors.adapter;
 
+import me.alidg.errors.Argument;
 import me.alidg.errors.HttpError;
 import org.springframework.lang.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -55,10 +57,14 @@ public class DefaultHttpErrorAttributesAdapter implements HttpErrorAttributesAda
         return map;
     }
 
-    private Map<String, String> toMap(HttpError.CodedMessage codedMessage) {
-        Map<String, String> map = new HashMap<>();
+    private Map<String, Object> toMap(HttpError.CodedMessage codedMessage) {
+        Map<String, Object> map = new HashMap<>();
         map.put("code", codedMessage.getCode());
         map.put("message", codedMessage.getMessage());
+
+        if (!codedMessage.getArguments().isEmpty()) {
+            map.put("arguments", codedMessage.getArguments().stream().collect(Collectors.toMap(Argument::getName, Argument::getValue)));
+        }
 
         return map;
     }

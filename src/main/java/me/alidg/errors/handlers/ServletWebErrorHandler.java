@@ -19,6 +19,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static me.alidg.errors.Argument.arg;
 
 /**
  * A {@link WebErrorHandler} implementation responsible for handling common Spring MVC
@@ -98,14 +99,15 @@ public class ServletWebErrorHandler implements WebErrorHandler {
         if (exception instanceof HttpMediaTypeNotAcceptableException) {
             List<MediaType> types = ((HttpMediaTypeNotAcceptableException) exception).getSupportedMediaTypes();
 
-            return new HandledException(NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE, singletonMap(NOT_ACCEPTABLE, types));
+            return new HandledException(NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE,
+                    singletonMap(NOT_ACCEPTABLE, singletonList(arg("types", types))));
         }
 
         if (exception instanceof HttpMediaTypeNotSupportedException) {
             MediaType contentType = ((HttpMediaTypeNotSupportedException) exception).getContentType();
 
             return new HandledException(NOT_SUPPORTED, HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                    singletonMap(NOT_SUPPORTED, singletonList(contentType))
+                    singletonMap(NOT_SUPPORTED, singletonList(arg("contentType", contentType)))
             );
         }
 
@@ -113,7 +115,7 @@ public class ServletWebErrorHandler implements WebErrorHandler {
             String method = ((HttpRequestMethodNotSupportedException) exception).getMethod();
 
             return new HandledException(METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED,
-                    singletonMap(METHOD_NOT_ALLOWED, singletonList(method))
+                    singletonMap(METHOD_NOT_ALLOWED, singletonList(arg("method", method)))
             );
         }
 
@@ -123,7 +125,7 @@ public class ServletWebErrorHandler implements WebErrorHandler {
             String type = actualException.getParameterType();
 
             return new HandledException(MISSING_PARAMETER, HttpStatus.BAD_REQUEST,
-                    singletonMap(MISSING_PARAMETER, asList(name, type))
+                    singletonMap(MISSING_PARAMETER, asList(arg("name", name), arg("type", type)))
             );
         }
 
@@ -131,14 +133,16 @@ public class ServletWebErrorHandler implements WebErrorHandler {
             String name = ((MissingServletRequestPartException) exception).getRequestPartName();
 
             return new HandledException(MISSING_PART, HttpStatus.BAD_REQUEST,
-                    singletonMap(MISSING_PART, singletonList(name))
+                    singletonMap(MISSING_PART, singletonList(arg("name", name)))
             );
         }
 
         if (exception instanceof NoHandlerFoundException) {
             String url = ((NoHandlerFoundException) exception).getRequestURL();
 
-            return new HandledException(NO_HANDLER, HttpStatus.NOT_FOUND, singletonMap(NO_HANDLER, singletonList(url)));
+            return new HandledException(NO_HANDLER, HttpStatus.NOT_FOUND,
+                    singletonMap(NO_HANDLER, singletonList(arg("url", url)))
+            );
         }
 
         return new HandledException("unknown_error", HttpStatus.INTERNAL_SERVER_ERROR, null);

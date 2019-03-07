@@ -2,6 +2,7 @@ package me.alidg.errors.handlers;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
@@ -14,6 +15,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static me.alidg.Params.p;
+import static me.alidg.errors.Argument.arg;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -43,7 +45,7 @@ public class AnnotatedWebErrorHandlerTest {
     public void handle_ShouldProperlyHandleTheGivenException(Exception exception,
                                                              String code,
                                                              HttpStatus status,
-                                                             List<?> args) {
+                                                             List<Argument> args) {
         HandledException handled = handler.handle(exception);
 
         assertThat(handled).isNotNull();
@@ -64,8 +66,15 @@ public class AnnotatedWebErrorHandlerTest {
 
     private Object[] provideParamsForHandle() {
         return p(
-                p(new Annotated("f", "s"), "annotated", BAD_REQUEST, asList("42", "f", "s")),
-                p(new Inherited(), "annotated", BAD_REQUEST, asList("42", null, "random" ,"s")),
+                p(new Annotated("f", "s"), "annotated", BAD_REQUEST, asList(
+                        arg("staticExposure", "42"),
+                        arg("someValue", "f"),
+                        arg("getOther", "s"))),
+                p(new Inherited(), "annotated", BAD_REQUEST, asList(
+                        arg("staticExposure", "42"),
+                        null,
+                        arg("random", "random"),
+                        arg("getOther", "s"))),
                 p(new NoExposedArgs(), "no_exposed", BAD_REQUEST, Collections.emptyList())
         );
     }

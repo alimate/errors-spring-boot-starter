@@ -1,5 +1,6 @@
 package me.alidg.errors.handlers;
 
+import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.http.HttpStatus;
@@ -7,10 +8,17 @@ import org.springframework.http.HttpStatus;
 import javax.annotation.Nonnull;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+import static me.alidg.errors.Argument.arg;
 
 /**
  * A {@link WebErrorHandler} implementation responsible for handling {@link ConstraintViolationException}s
@@ -52,7 +60,7 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
     public HandledException handle(Throwable exception) {
         ConstraintViolationException violationException = (ConstraintViolationException) exception;
         Set<String> errorCodes = extractErrorCodes(violationException);
-        Map<String, List<?>> arguments = extractArguments(violationException);
+        Map<String, List<Argument>> arguments = extractArguments(violationException);
 
         return new HandledException(errorCodes, HttpStatus.BAD_REQUEST, arguments);
     }
@@ -75,7 +83,7 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
      * @param violationException The exception to extract the arguments from.
      * @return To-be-exposed arguments.
      */
-    private Map<String, List<?>> extractArguments(ConstraintViolationException violationException) {
+    private Map<String, List<Argument>> extractArguments(ConstraintViolationException violationException) {
         return violationException
                 .getConstraintViolations()
                 .stream()
@@ -122,7 +130,7 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
      * @return To be exposed arguments for the given violation.
      */
     @SuppressWarnings("unchecked")
-    private List<?> filterAndSortArguments(ConstraintViolation violation) {
+    private List<Argument> filterAndSortArguments(ConstraintViolation violation) {
         Map<String, Object> attributes = new HashMap<>(violation.getConstraintDescriptor().getAttributes());
         attributes.remove("groups");
         attributes.remove("payload");
@@ -134,7 +142,7 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
                 .entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByKey())
-                .map(Map.Entry::getValue)
+                .map(e -> arg(e.getKey(), e.getValue()))
                 .collect(toList());
     }
 

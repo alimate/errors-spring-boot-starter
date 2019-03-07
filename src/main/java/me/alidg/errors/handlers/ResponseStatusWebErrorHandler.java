@@ -1,14 +1,24 @@
 package me.alidg.errors.handlers;
 
+import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.MatrixVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.support.WebExchangeBindException;
-import org.springframework.web.server.*;
+import org.springframework.web.server.MediaTypeNotSupportedStatusException;
+import org.springframework.web.server.MethodNotAllowedException;
+import org.springframework.web.server.NotAcceptableStatusException;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.server.ServerWebInputException;
+import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -16,14 +26,23 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static me.alidg.errors.Argument.arg;
 import static me.alidg.errors.handlers.LastResortWebErrorHandler.UNKNOWN_ERROR_CODE;
-import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.*;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_COOKIE;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_HEADER;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_MATRIX_VARIABLE;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.INVALID_OR_MISSING_BODY;
 import static me.alidg.errors.handlers.ServletWebErrorHandler.METHOD_NOT_ALLOWED;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.MISSING_PARAMETER;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.MISSING_PART;
 import static me.alidg.errors.handlers.ServletWebErrorHandler.NOT_ACCEPTABLE;
-import static me.alidg.errors.handlers.ServletWebErrorHandler.*;
-import static org.springframework.http.HttpStatus.*;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.NOT_SUPPORTED;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.NO_HANDLER;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE;
 
 /**
  * {@link WebErrorHandler} implementation expert at handling exceptions of type
@@ -60,25 +79,23 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
     @Override
     public HandledException handle(Throwable exception) {
         if (exception instanceof MediaTypeNotSupportedStatusException) {
-            Map<String, List<?>> arguments =
-                    arguments(NOT_SUPPORTED, ((MediaTypeNotSupportedStatusException) exception).getSupportedMediaTypes());
-            return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, arguments);
+            List<MediaType> mediaTypes = ((MediaTypeNotSupportedStatusException) exception).getSupportedMediaTypes();
+            return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, argMap(NOT_SUPPORTED, arg("supportedMediaTypes", mediaTypes)));
         }
 
         if (exception instanceof UnsupportedMediaTypeStatusException) {
-            Map<String, List<?>> arguments =
-                    arguments(NOT_SUPPORTED, ((UnsupportedMediaTypeStatusException) exception).getSupportedMediaTypes());
-            return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, arguments);
-        }
-
-        if (exception instanceof MethodNotAllowedException) {
-            List<String> arguments = singletonList(((MethodNotAllowedException) exception).getHttpMethod());
-            return new HandledException(METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED, arguments(METHOD_NOT_ALLOWED, arguments));
+            List<MediaType> mediaTypes = ((UnsupportedMediaTypeStatusException) exception).getSupportedMediaTypes();
+            return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, argMap(NOT_SUPPORTED, arg("supportedMediaTypes", mediaTypes)));
         }
 
         if (exception instanceof NotAcceptableStatusException) {
-            List<List<MediaType>> arguments = singletonList(((NotAcceptableStatusException) exception).getSupportedMediaTypes());
-            return new HandledException(NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE, arguments(NOT_ACCEPTABLE, arguments));
+            List<MediaType> mediaTypes = ((NotAcceptableStatusException) exception).getSupportedMediaTypes();
+            return new HandledException(NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE, argMap(NOT_ACCEPTABLE, arg("supportedMediaTypes", mediaTypes)));
+        }
+
+        if (exception instanceof MethodNotAllowedException) {
+            String httpMethod = ((MethodNotAllowedException) exception).getHttpMethod();
+            return new HandledException(METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED, argMap(METHOD_NOT_ALLOWED, arg("method", httpMethod)));
         }
 
         if (exception instanceof WebExchangeBindException) {
@@ -110,8 +127,12 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
      * @param arguments The to-be-exposed arguments.
      * @return The intended map.
      */
-    private Map<String, List<?>> arguments(String code, List<?> arguments) {
+    private Map<String, List<Argument>> argMap(String code, List<Argument> arguments) {
         return singletonMap(code, arguments);
+    }
+
+    private Map<String, List<Argument>> argMap(String code, Argument... arguments) {
+        return argMap(code, asList(arguments));
     }
 
     /**
@@ -162,8 +183,8 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
         }
 
         if (code != null) {
-            List<String> arguments = asList(parameterName, parameter.getParameterType().getSimpleName());
-            return new HandledException(code, BAD_REQUEST, singletonMap(code, arguments));
+            List<Argument> arguments = asList(arg("name", parameterName), arg("type", parameter.getParameterType().getSimpleName()));
+            return new HandledException(code, BAD_REQUEST, argMap(code, arguments));
         }
 
         return null;

@@ -19,11 +19,18 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static me.alidg.Params.p;
+import static me.alidg.errors.Argument.arg;
 import static me.alidg.errors.handlers.SpringValidationWebErrorHandlerTest.TBV.tbv;
 import static me.alidg.errors.handlers.SpringValidationWebErrorHandlerTest.TBVchild.tbvChild;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -94,14 +101,19 @@ public class SpringValidationWebErrorHandlerTest {
 
     private Object[] provideParamsForHandle() {
         return p(
-                p(tbv("ali", 0, "coding"), e("age.min"), singletonMap("age.min", singletonList(1L))),
-                p(tbv("ali", 29), e("interests.limit"), singletonMap("interests.limit", asList(6, 1))),
+                p(tbv("ali", 0, "coding"), e("age.min"),
+                        singletonMap("age.min", singletonList(arg("arg0", 1L)))),
+                p(tbv("ali", 29), e("interests.limit"),
+                        singletonMap("interests.limit", asList(arg("arg0", 6), arg("arg1", 1)))),
                 p(tbv("", 29, "coding"), e("name.required"), emptyMap()),
                 p(
                         tbv("", 200), e("name.required", "age.max", "interests.limit"),
-                        m("age.max", singletonList(100L), "interests.limit", asList(6, 1))
+                        m(
+                                "age.max", singletonList(arg("arg0", 100L)),
+                                "interests.limit", asList(arg("arg0", 6), arg("arg1", 1))
+                        )
                 ),
-                p(tbv("ali", 29, asList("coding"), asList(tbvChild(""), tbvChild(""), tbvChild(""))), e("stringField.required"), emptyMap())
+                p(tbv("ali", 29, singletonList("coding"), asList(tbvChild(""), tbvChild(""), tbvChild(""))), e("stringField.required"), emptyMap())
         );
     }
 

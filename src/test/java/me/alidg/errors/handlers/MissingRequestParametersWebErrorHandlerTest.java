@@ -19,7 +19,10 @@ import java.util.Map;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static me.alidg.Params.p;
-import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.*;
+import static me.alidg.errors.Argument.arg;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_COOKIE;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_HEADER;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_MATRIX_VARIABLE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -73,19 +76,19 @@ public class MissingRequestParametersWebErrorHandlerTest {
                         new MissingRequestHeaderException("Authorization", getParameter()),
                         MISSING_HEADER,
                         BAD_REQUEST,
-                        singletonMap(MISSING_HEADER, singletonList("Authorization"))
+                        singletonMap(MISSING_HEADER, singletonList(arg("header", "Authorization")))
                 ),
                 p(
                         new MissingRequestCookieException("sessionId", getParameter()),
                         MISSING_COOKIE,
                         BAD_REQUEST,
-                        singletonMap(MISSING_COOKIE, singletonList("sessionId"))
+                        singletonMap(MISSING_COOKIE, singletonList(arg("cookie", "sessionId")))
                 ),
                 p(
                         new MissingMatrixVariableException("name", getParameter()),
                         MISSING_MATRIX_VARIABLE,
                         BAD_REQUEST,
-                        singletonMap(MISSING_MATRIX_VARIABLE, singletonList("name"))
+                        singletonMap(MISSING_MATRIX_VARIABLE, singletonList(arg("variable", "name")))
                 )
         );
     }

@@ -206,12 +206,13 @@ public class WebErrorHandlers {
             throw new IllegalArgumentException("We need at least one error handler");
     }
 
-    private CodedMessage withMessage(String code, Object[] args, Locale locale) {
+    private CodedMessage withMessage(String code, List<Argument> arguments, Locale locale) {
         try {
+            Object[] args = arguments.stream().map(Argument::getValue).toArray(Object[]::new);
             String message = messageSource.getMessage(code, args, locale);
-            return new CodedMessage(code, message);
+            return new CodedMessage(code, message, arguments);
         } catch (Exception e) {
-            return new CodedMessage(code, null);
+            return new CodedMessage(code, null, arguments);
         }
     }
 
@@ -231,7 +232,7 @@ public class WebErrorHandlers {
         return toInspect.getClass().getName();
     }
 
-    private Object[] getArgumentsFor(HandledException handled, String errorCode) {
-        return handled.getArguments().getOrDefault(errorCode, emptyList()).toArray();
+    private List<Argument> getArgumentsFor(HandledException handled, String errorCode) {
+        return handled.getArguments().getOrDefault(errorCode, emptyList());
     }
 }

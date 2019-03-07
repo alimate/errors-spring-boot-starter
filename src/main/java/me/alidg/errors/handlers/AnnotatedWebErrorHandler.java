@@ -1,5 +1,6 @@
 package me.alidg.errors.handlers;
 
+import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.annotation.ExceptionMapping;
@@ -17,6 +18,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
+import static me.alidg.errors.Argument.arg;
 
 /**
  * {@link WebErrorHandler} implementation responsible for handling exceptions annotated with
@@ -66,7 +68,7 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
         ExceptionMapping exceptionMapping = exception.getClass().getAnnotation(ExceptionMapping.class);
         String errorCode = exceptionMapping.errorCode();
         HttpStatus httpStatus = exceptionMapping.statusCode();
-        List<Object> arguments = getExposedValues(exception);
+        List<Argument> arguments = getExposedValues(exception);
 
         return new HandledException(errorCode, httpStatus, singletonMap(errorCode, arguments));
     }
@@ -78,7 +80,7 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
      * @param exception The exception to extract the members from.
      * @return Array of exposed arguments.
      */
-    private List<Object> getExposedValues(Throwable exception) {
+    private List<Argument> getExposedValues(Throwable exception) {
         List<AnnotatedElement> members = new ArrayList<>();
         members.addAll(getExposedFields(exception));
         members.addAll(getExposedMethods(exception));
@@ -96,18 +98,18 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
      * @param exception The containing exception that those fields or methods are declared in.
      * @return The field value or method return value.
      */
-    private Object getValue(AnnotatedElement element, Throwable exception) {
+    private Argument getValue(AnnotatedElement element, Throwable exception) {
         try {
             if (element instanceof Field) {
                 Field f = (Field) element;
                 f.setAccessible(true);
 
-                return f.get(exception);
+                return arg(f.getName(), f.get(exception));
             } else if (element instanceof Method) {
                 Method m = (Method) element;
                 m.setAccessible(true);
 
-                return m.invoke(exception);
+                return arg(m.getName(), m.invoke(exception));
             }
         } catch (Exception ignored) {}
 

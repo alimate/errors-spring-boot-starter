@@ -1,5 +1,6 @@
 package me.alidg.errors.handlers;
 
+import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.http.HttpStatus;
@@ -10,13 +11,15 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import javax.validation.ConstraintViolation;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toMap;
+import static me.alidg.errors.Argument.arg;
 
 /**
  * A {@link WebErrorHandler} responsible for handling validation errors thrown by
@@ -99,11 +102,13 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
      * @param error Encapsulates the error details.
      * @return Collection of all arguments for the given {@code error} details.
      */
-    private List<Object> arguments(ObjectError error) {
+    private List<Argument> arguments(ObjectError error) {
         Object[] args = error.getArguments();
-
-        return args == null || args.length <= 1 ?
-                emptyList() : Arrays.asList(Arrays.copyOfRange(args, 1, args.length));
+        if (args == null || args.length <= 1) return emptyList();
+        return IntStream.range(0, args.length - 1)
+                .boxed()
+                .map(i -> arg("arg" + i, args[i + 1]))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -112,7 +117,7 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
      * @param input The error code to arguments map.
      * @return The filtered map.
      */
-    private Map<String, List<?>> dropEmptyValues(Map<String, List<Object>> input) {
+    private Map<String, List<Argument>> dropEmptyValues(Map<String, List<Argument>> input) {
         return input.entrySet().stream()
                 .filter(e -> e.getValue() != null && !e.getValue().isEmpty())
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));

@@ -1,5 +1,6 @@
 package me.alidg.errors.handlers;
 
+import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.lang.NonNull;
@@ -11,6 +12,7 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static me.alidg.errors.Argument.arg;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 /**
@@ -65,17 +67,17 @@ public class MissingRequestParametersWebErrorHandler implements WebErrorHandler 
     @NonNull
     @Override
     public HandledException handle(Throwable exception) {
-        List<String> arguments = null;
+        List<Argument> arguments = null;
         String errorCode = "unknown_error";
 
         if (exception instanceof MissingRequestHeaderException) {
-            arguments = singletonList(((MissingRequestHeaderException) exception).getHeaderName());
+            arguments = singletonList(arg("header", ((MissingRequestHeaderException) exception).getHeaderName()));
             errorCode = MISSING_HEADER;
         } else if (exception instanceof MissingRequestCookieException) {
-            arguments = singletonList(((MissingRequestCookieException) exception).getCookieName());
+            arguments = singletonList(arg("cookie", ((MissingRequestCookieException) exception).getCookieName()));
             errorCode = MISSING_COOKIE;
         } else if (exception instanceof MissingMatrixVariableException) {
-            arguments = singletonList(((MissingMatrixVariableException) exception).getVariableName());
+            arguments = singletonList(arg("variable", ((MissingMatrixVariableException) exception).getVariableName()));
             errorCode = MISSING_MATRIX_VARIABLE;
         }
 

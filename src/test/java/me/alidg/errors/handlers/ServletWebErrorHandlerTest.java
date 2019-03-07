@@ -21,12 +21,23 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static me.alidg.Params.p;
-import static me.alidg.errors.handlers.ServletWebErrorHandler.*;
+import static me.alidg.errors.Argument.arg;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.INVALID_OR_MISSING_BODY;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.MISSING_PARAMETER;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.MISSING_PART;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.NOT_SUPPORTED;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.NO_HANDLER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PDF;
 
@@ -83,37 +94,37 @@ public class ServletWebErrorHandlerTest {
                 p(
                         new HttpMediaTypeNotAcceptableException(asList(APPLICATION_JSON, MediaType.APPLICATION_PDF)),
                         ServletWebErrorHandler.NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE,
-                        singletonMap(ServletWebErrorHandler.NOT_ACCEPTABLE, asList(APPLICATION_JSON, APPLICATION_PDF))
+                        singletonMap(ServletWebErrorHandler.NOT_ACCEPTABLE, singletonList(arg("types", asList(APPLICATION_JSON, APPLICATION_PDF))))
                 ),
                 p(
                         new HttpMediaTypeNotSupportedException(APPLICATION_JSON, emptyList()),
                         NOT_SUPPORTED,
                         UNSUPPORTED_MEDIA_TYPE,
-                        singletonMap(NOT_SUPPORTED, singletonList(APPLICATION_JSON))
+                        singletonMap(NOT_SUPPORTED, singletonList(arg("contentType", APPLICATION_JSON)))
                 ),
                 p(
                         new HttpRequestMethodNotSupportedException("POST"),
                         ServletWebErrorHandler.METHOD_NOT_ALLOWED,
                         HttpStatus.METHOD_NOT_ALLOWED,
-                        singletonMap(ServletWebErrorHandler.METHOD_NOT_ALLOWED, singletonList("POST"))
+                        singletonMap(ServletWebErrorHandler.METHOD_NOT_ALLOWED, singletonList(arg("method", "POST")))
                 ),
                 p(
                         new MissingServletRequestParameterException("name", "String"),
                         MISSING_PARAMETER,
                         BAD_REQUEST,
-                        singletonMap(MISSING_PARAMETER, asList("name", "String"))
+                        singletonMap(MISSING_PARAMETER, asList(arg("name", "name"), arg("type", "String")))
                 ),
                 p(
                         new MissingServletRequestPartException("file"),
                         MISSING_PART,
                         BAD_REQUEST,
-                        singletonMap(MISSING_PART, singletonList("file"))
+                        singletonMap(MISSING_PART, singletonList(arg("name", "file")))
                 ),
                 p(
                         new NoHandlerFoundException("POST", "/test", null),
                         NO_HANDLER,
                         NOT_FOUND,
-                        singletonMap(NO_HANDLER, singletonList("/test"))
+                        singletonMap(NO_HANDLER, singletonList(arg("url", "/test")))
                 ),
                 p(new ServletException(), "unknown_error", INTERNAL_SERVER_ERROR, emptyMap())
         );
