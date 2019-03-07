@@ -2,13 +2,20 @@ package me.alidg.errors.conf;
 
 import me.alidg.errors.ExceptionLogger;
 import me.alidg.errors.ExceptionRefiner;
-import me.alidg.errors.WebErrorHandlerPostProcessor;
 import me.alidg.errors.FingerprintProvider;
 import me.alidg.errors.WebErrorHandler;
+import me.alidg.errors.WebErrorHandlerPostProcessor;
 import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.adapter.DefaultHttpErrorAttributesAdapter;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
-import me.alidg.errors.handlers.*;
+import me.alidg.errors.fingerprint.UuidFingerprintProvider;
+import me.alidg.errors.handlers.AnnotatedWebErrorHandler;
+import me.alidg.errors.handlers.ConstraintViolationWebErrorHandler;
+import me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler;
+import me.alidg.errors.handlers.ResponseStatusWebErrorHandler;
+import me.alidg.errors.handlers.ServletWebErrorHandler;
+import me.alidg.errors.handlers.SpringSecurityWebErrorHandler;
+import me.alidg.errors.handlers.SpringValidationWebErrorHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -29,7 +36,12 @@ import org.springframework.web.context.WebApplicationContext;
 
 import javax.validation.MessageInterpolator;
 import javax.validation.Validator;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET;
 
@@ -101,7 +113,8 @@ public class ErrorsAutoConfiguration {
                                              @Autowired(required = false) ExceptionRefiner exceptionRefiner,
                                              @Autowired(required = false) ExceptionLogger exceptionLogger,
                                              @Autowired(required = false) List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
-                                             @Autowired(required = false) FingerprintProvider fingerprintProvider,
+                                             FingerprintProvider fingerprintProvider,
+                                             ErrorsProperties errorsProperties,
                                              ApplicationContext context) {
 
         List<WebErrorHandler> handlers = new ArrayList<>(BUILT_IN_HANDLERS);
@@ -119,7 +132,7 @@ public class ErrorsAutoConfiguration {
                 webErrorHandlerPostProcessors : Collections.emptyList();
 
         return new WebErrorHandlers(messageSource, handlers, defaultWebErrorHandler, exceptionRefiner, exceptionLogger,
-                processors, fingerprintProvider);
+                processors, fingerprintProvider, errorsProperties);
     }
 
     /**
@@ -188,6 +201,12 @@ public class ErrorsAutoConfiguration {
     @ConditionalOnClass(name = "org.springframework.web.server.ResponseStatusException")
     public ResponseStatusWebErrorHandler responseStatusWebErrorHandler() {
         return new ResponseStatusWebErrorHandler();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public FingerprintProvider fingerprintProvider() {
+        return new UuidFingerprintProvider();
     }
 
     /**

@@ -8,11 +8,21 @@ public class ErrorsProperties {
 
     private ArgumentExposure exposeArguments = ArgumentExposure.never;
 
+    private boolean addFingerprint = false;
+
     public ArgumentExposure getExposeArguments() {
         return exposeArguments;
     }
 
     public void setExposeArguments(ArgumentExposure exposeArguments) {
         this.exposeArguments = exposeArguments;
+    }
+
+    public boolean isAddFingerprint() {
+        return addFingerprint;
+    }
+
+    public void setAddFingerprint(boolean addFingerprint) {
+        this.addFingerprint = addFingerprint;
     }
 }

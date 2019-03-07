@@ -1,6 +1,8 @@
 package me.alidg.errors;
 
 import me.alidg.errors.HttpError.CodedMessage;
+import me.alidg.errors.conf.ErrorsProperties;
+import me.alidg.errors.fingerprint.UuidFingerprintProvider;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,8 +89,11 @@ public class WebErrorHandlers {
     /**
      * To generate unique fingerprint of error message.
      */
-    @Nullable
+    @NonNull
     private final FingerprintProvider fingerprintProvider;
+
+    @NonNull
+    private final ErrorsProperties errorsProperties;
 
     /**
      * Backward-compatible constructor with defaults for {@link #webErrorHandlerPostProcessors}
@@ -108,7 +113,8 @@ public class WebErrorHandlers {
                             @Nullable ExceptionRefiner exceptionRefiner,
                             @Nullable ExceptionLogger exceptionLogger) {
         this(messageSource, implementations, defaultWebErrorHandler, exceptionRefiner,
-                exceptionLogger, Collections.emptyList(), null);
+                exceptionLogger, Collections.emptyList(), new UuidFingerprintProvider(),
+                new ErrorsProperties());
     }
 
     /**
@@ -132,7 +138,8 @@ public class WebErrorHandlers {
                             @Nullable ExceptionRefiner exceptionRefiner,
                             @Nullable ExceptionLogger exceptionLogger,
                             @NonNull List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
-                            @Nullable FingerprintProvider fingerprintProvider) {
+                            @NonNull FingerprintProvider fingerprintProvider,
+                            @NonNull ErrorsProperties errorsProperties) {
         enforcePreconditions(messageSource, implementations);
         this.messageSource = messageSource;
         this.implementations = implementations;
@@ -141,6 +148,7 @@ public class WebErrorHandlers {
         this.exceptionLogger = exceptionLogger;
         this.webErrorHandlerPostProcessors = webErrorHandlerPostProcessors;
         this.fingerprintProvider = fingerprintProvider;
+        this.errorsProperties = errorsProperties;
     }
 
     /**
@@ -182,7 +190,7 @@ public class WebErrorHandlers {
         httpError.setRefinedException(refined);
         httpError.setRequest(httpRequest);
 
-        if (fingerprintProvider != null) {
+        if (errorsProperties.isAddFingerprint()) {
             httpError.setFingerprint(fingerprintProvider.generate(httpError));
         }
 

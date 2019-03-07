@@ -6,7 +6,6 @@ import me.alidg.errors.HttpError.CodedMessage;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
 import me.alidg.errors.conf.ErrorsAutoConfiguration;
-import me.alidg.errors.fingerprint.Md5FingerprintProvider;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -187,7 +186,7 @@ public class WebErrorHandlersIT {
 
     @Test
     public void errorFingerprint_ShouldBeCalculatedWhenConfigured() {
-        contextRunner.withUserConfiguration(FingerprintConfig.class).run(ctx -> {
+        contextRunner.withPropertyValues("spring.errors.add-fingerprint=true").run(ctx -> {
             WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
 
             HttpError error = errorHandlers.handle(new SomeException(10, 12), null, null);
@@ -199,7 +198,7 @@ public class WebErrorHandlersIT {
 
     @Test
     public void errorFingerprint_ShouldBeUnique() {
-        contextRunner.withUserConfiguration(FingerprintConfig.class).run(ctx -> {
+        contextRunner.withPropertyValues("spring.errors.add-fingerprint=true").run(ctx -> {
             WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
 
             Exception e1 = new SomeException(1, 2);
@@ -464,14 +463,6 @@ public class WebErrorHandlersIT {
         @Bean
         public ExceptionRefiner exceptionRefiner() {
             return exception -> exception instanceof SymptomException ? exception.getCause() : exception;
-        }
-    }
-
-    @TestConfiguration
-    static class FingerprintConfig {
-        @Bean
-        FingerprintProvider provider() {
-            return new Md5FingerprintProvider();
         }
     }
 
