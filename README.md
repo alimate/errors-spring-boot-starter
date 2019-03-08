@@ -363,7 +363,7 @@ application backend (e.g. in detailed log message). To generate error fingerprin
 *Spring Bean* of type `FingerprintProvider`.
 
 We provide two fingerprint providers out of the box:
- - `Md5FingerprintProvider`.
+ - `Md5FingerprintProvider`
 which generates MD5 checksum of full class name of original exception and current time.
  - `UuidFingerprintProvider` which generates a random UUID regardless of the handled exxception.
 
@@ -428,8 +428,8 @@ public class StdErrExceptionLogger implements ExceptionLogger {
 
 ### Post Processing Handled Exceptions
 As a more powerful alternative to `ExceptionLogger` mechanism, there is also `WebErrorHandlerPostProcessor`
-interface. You may declare multiple action executors which implement this interface and are exposed
-as *Spring Bean*. Below is an example of more advanced logging action executor:
+interface. You may declare multiple post processors which implement this interface and are exposed
+as *Spring Bean*. Below is an example of more advanced logging post processors:
 ```java
 @Component
 public class LoggingErrorWebErrorHandlerPostProcessor implements WebErrorHandlerPostProcessor {
