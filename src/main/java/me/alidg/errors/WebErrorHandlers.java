@@ -82,7 +82,7 @@ public class WebErrorHandlers {
      * To execute additional actions using HttpErrors (e.g. logging or messaging).
      */
     @NonNull
-    private final List<ErrorActionExecutor> errorActionExecutors;
+    private final List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors;
 
     /**
      * To generate unique fingerprint of error message.
@@ -91,7 +91,7 @@ public class WebErrorHandlers {
     private final FingerprintProvider fingerprintProvider;
 
     /**
-     * Backwards-compatible constructor with defaults for {@link #errorActionExecutors}
+     * Backward-compatible constructor with defaults for {@link #webErrorHandlerPostProcessors}
      * and {@link #fingerprintProvider}.
      */
     public WebErrorHandlers(@NonNull MessageSource messageSource,
@@ -113,7 +113,7 @@ public class WebErrorHandlers {
      * @param defaultWebErrorHandler Fallback web error handler.
      * @param exceptionRefiner       Possibly can refine exceptions before handling them.
      * @param exceptionLogger        Logs exceptions.
-     * @param errorActionExecutors   Executes additional actions on HttpError.
+     * @param webErrorHandlerPostProcessors   Executes additional actions on HttpError.
      * @param fingerprintProvider    Calculates fingerprint of error message.
      *
      * @throws NullPointerException     When one of the required parameters is null.
@@ -124,7 +124,7 @@ public class WebErrorHandlers {
                             @Nullable WebErrorHandler defaultWebErrorHandler,
                             @Nullable ExceptionRefiner exceptionRefiner,
                             @Nullable ExceptionLogger exceptionLogger,
-                            @NonNull List<ErrorActionExecutor> errorActionExecutors,
+                            @NonNull List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
                             @Nullable FingerprintProvider fingerprintProvider) {
         enforcePreconditions(messageSource, implementations);
         this.messageSource = messageSource;
@@ -132,7 +132,7 @@ public class WebErrorHandlers {
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
         this.exceptionRefiner = exceptionRefiner;
         this.exceptionLogger = exceptionLogger;
-        this.errorActionExecutors = errorActionExecutors;
+        this.webErrorHandlerPostProcessors = webErrorHandlerPostProcessors;
         this.fingerprintProvider = fingerprintProvider;
     }
 
@@ -179,7 +179,7 @@ public class WebErrorHandlers {
             httpError.setFingerprint(fingerprintProvider.generate(httpError));
         }
 
-        errorActionExecutors.forEach(p -> p.execute(httpError));
+        webErrorHandlerPostProcessors.forEach(p -> p.process(httpError));
 
         return httpError;
     }

@@ -15,10 +15,10 @@ import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfigura
 import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
-import org.springframework.lang.NonNull;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
@@ -38,7 +38,9 @@ import java.util.Locale;
 import static me.alidg.Params.p;
 import static me.alidg.errors.WebErrorHandlersIT.Pojo.pojo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * Integration tests for {@link WebErrorHandlers}.
@@ -77,6 +79,8 @@ public class WebErrorHandlersIT {
             HttpError argumentError = errorHandlers.handle(new MethodArgumentNotValidException(mock(MethodParameter.class), result), null, locale);
             assertThat(argumentError.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
             assertThat(argumentError.getErrors()).containsOnly(codedMessages);
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
     }
 
@@ -96,6 +100,8 @@ public class WebErrorHandlersIT {
             error = errorHandlers.handle(exception, null, Locale.CANADA);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
             assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42"));
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
     }
 
@@ -108,6 +114,8 @@ public class WebErrorHandlersIT {
             HttpError error = errorHandlers.handle(exception, null, null);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
             assertThat(error.getErrors()).containsOnly(cm(LastResortWebErrorHandler.UNKNOWN_ERROR_CODE, null));
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
     }
 
@@ -123,6 +131,8 @@ public class WebErrorHandlersIT {
 
             assertThat(httpError.getHttpStatus()).isEqualTo(expectedStatus);
             assertThat(httpError.getErrors()).containsOnly(codedMessages);
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
     }
 
@@ -136,6 +146,8 @@ public class WebErrorHandlersIT {
 
             assertThat(httpError.getHttpStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
             assertThat(httpError.getErrors()).containsOnly(cm("unknown_error", null));
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
     }
 
@@ -153,6 +165,8 @@ public class WebErrorHandlersIT {
             error = errorHandlers.handle(exception, null, locale);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
             assertThat(error.getErrors()).containsOnly(codedMessages);
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
     }
 
@@ -163,6 +177,8 @@ public class WebErrorHandlersIT {
 
             HttpError error = errorHandlers.handle(new SomeException(10, 12), null, null);
             assertThat(error.getFingerprint()).isNull();
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
     }
 
@@ -173,6 +189,8 @@ public class WebErrorHandlersIT {
 
             HttpError error = errorHandlers.handle(new SomeException(10, 12), null, null);
             assertThat(error.getFingerprint()).isNotNull();
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
     }
 
@@ -188,21 +206,13 @@ public class WebErrorHandlersIT {
             HttpError error2 = errorHandlers.handle(e2, null, null);
 
             assertThat(error1.getFingerprint()).isNotEqualTo(error2.getFingerprint());
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
     }
 
-    @Test
-    public void actionExecutor_ShouldBeCalled() {
-        contextRunner.withUserConfiguration(ErrorActionExecutorConfig.class).run(ctx -> {
-            WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
-            MockExecutor executor = ctx.getBean(MockExecutor.class);
-
-            assertThat(executor.executed).isFalse();
-
-            errorHandlers.handle(new SomeException(1, 2), null, null);
-
-            assertThat(executor.executed).isTrue();
-        });
+    private void verifyPostProcessorsHasBeenCalled(ApplicationContext ctx) {
+        ctx.getBeansOfType(WebErrorHandlerPostProcessor.class).values().forEach(p -> verify(p).process(any()));
     }
 
     private Object[] provideParamsForUnknownErrors() {
@@ -363,18 +373,15 @@ public class WebErrorHandlersIT {
 
     @TestConfiguration
     static class ErrorActionExecutorConfig {
+
         @Bean
-        MockExecutor executor() {
-            return new MockExecutor();
+        public WebErrorHandlerPostProcessor first() {
+            return mock(WebErrorHandlerPostProcessor.class);
         }
-    }
 
-    static class MockExecutor implements ErrorActionExecutor {
-        private boolean executed;
-
-        @Override
-        public void execute(@NonNull HttpError error) {
-            executed = true;
+        @Bean
+        public WebErrorHandlerPostProcessor second() {
+            return mock(WebErrorHandlerPostProcessor.class);
         }
     }
 }

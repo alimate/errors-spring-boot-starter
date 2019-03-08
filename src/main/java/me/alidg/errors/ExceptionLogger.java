@@ -4,8 +4,9 @@ import org.springframework.lang.Nullable;
 
 /**
  * Defines a contract to log the to-be-handled exceptions, that's it!
+ *
  * <p>
- * For richer alternative check {@link ErrorActionExecutor}.
+ * For a richer alternative check {@link WebErrorHandlerPostProcessor}.
  *
  * @implNote Do not throw exceptions in method implementations.
  *

@@ -1,6 +1,5 @@
 package me.alidg.errors.fingerprint;
 
-
 import me.alidg.errors.FingerprintProvider;
 import me.alidg.errors.HttpError;
 import org.springframework.lang.NonNull;

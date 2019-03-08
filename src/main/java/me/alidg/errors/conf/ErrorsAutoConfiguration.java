@@ -2,7 +2,7 @@ package me.alidg.errors.conf;
 
 import me.alidg.errors.ExceptionLogger;
 import me.alidg.errors.ExceptionRefiner;
-import me.alidg.errors.ErrorActionExecutor;
+import me.alidg.errors.WebErrorHandlerPostProcessor;
 import me.alidg.errors.FingerprintProvider;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
@@ -96,7 +96,7 @@ public class ErrorsAutoConfiguration {
                                              @Qualifier("defaultWebErrorHandler") @Autowired(required = false) WebErrorHandler defaultWebErrorHandler,
                                              @Autowired(required = false) ExceptionRefiner exceptionRefiner,
                                              @Autowired(required = false) ExceptionLogger exceptionLogger,
-                                             @Autowired(required = false) List<ErrorActionExecutor> errorActionExecutors,
+                                             @Autowired(required = false) List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
                                              @Autowired(required = false) FingerprintProvider fingerprintProvider,
                                              ApplicationContext context) {
 
@@ -111,9 +111,11 @@ public class ErrorsAutoConfiguration {
             handlers.addAll(customHandlers);
         }
 
-        List<ErrorActionExecutor> processors = errorActionExecutors != null ? errorActionExecutors : Collections.emptyList();
+        List<WebErrorHandlerPostProcessor> processors = webErrorHandlerPostProcessors != null ?
+                webErrorHandlerPostProcessors : Collections.emptyList();
 
-        return new WebErrorHandlers(messageSource, handlers, defaultWebErrorHandler, exceptionRefiner, exceptionLogger, processors, fingerprintProvider);
+        return new WebErrorHandlers(messageSource, handlers, defaultWebErrorHandler, exceptionRefiner, exceptionLogger,
+                processors, fingerprintProvider);
     }
 
     /**
