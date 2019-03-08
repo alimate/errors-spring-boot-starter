@@ -49,8 +49,9 @@ public class HandledException {
      *     }
      * </pre>
      * If the given interest list wasn't valid, then this map would contain an entry with the
-     * {@code interests.range_limit} as the key and {@code List(1, 7)} as the values. Later on
-     * we can use those exposed values in our message, for example, the following error template:
+     * {@code interests.range_limit} as the key and {@code List(Argument(min, 1), Argument(max, 7))}
+     * as the values. Later on we can use those exposed values in our message, for example,
+     * the following error template:
      * <pre>
      *     You should define between {0} and {1} interests.
      * </pre>

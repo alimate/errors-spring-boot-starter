@@ -96,14 +96,15 @@ public class WebErrorHandlers {
     private final ErrorsProperties errorsProperties;
 
     /**
-     * Backward-compatible constructor with defaults for {@link #webErrorHandlerPostProcessors}
-     * and {@link #fingerprintProvider}.
+     * Backward-compatible constructor with defaults for {@link #webErrorHandlerPostProcessors},
+     * {@link #fingerprintProvider}, and {@link #errorsProperties}.
      *
      * @param messageSource          The code to message translator.
      * @param implementations        Collection of {@link WebErrorHandler} implementations.
      * @param defaultWebErrorHandler Fallback web error handler.
      * @param exceptionRefiner       Possibly can refine exceptions before handling them.
      * @param exceptionLogger        Logs exceptions.
+     *
      * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException When the collection of implementations is empty.
      */
@@ -129,6 +130,8 @@ public class WebErrorHandlers {
      * @param exceptionLogger               Logs exceptions.
      * @param webErrorHandlerPostProcessors Executes additional actions on HttpError.
      * @param fingerprintProvider           Calculates fingerprint of error message.
+     * @param errorsProperties              Configuration properties bean.
+     *
      * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException When the collection of implementations is empty.
      */
@@ -141,14 +144,14 @@ public class WebErrorHandlers {
                             @NonNull FingerprintProvider fingerprintProvider,
                             @NonNull ErrorsProperties errorsProperties) {
         enforcePreconditions(messageSource, implementations);
-        this.messageSource = messageSource;
-        this.implementations = implementations;
+        this.messageSource = requireNonNull(messageSource);
+        this.implementations = requireNonNull(implementations);
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
         this.exceptionRefiner = exceptionRefiner;
         this.exceptionLogger = exceptionLogger;
-        this.webErrorHandlerPostProcessors = webErrorHandlerPostProcessors;
-        this.fingerprintProvider = fingerprintProvider;
-        this.errorsProperties = errorsProperties;
+        this.webErrorHandlerPostProcessors = requireNonNull(webErrorHandlerPostProcessors);
+        this.fingerprintProvider = requireNonNull(fingerprintProvider);
+        this.errorsProperties = requireNonNull(errorsProperties);
     }
 
     /**

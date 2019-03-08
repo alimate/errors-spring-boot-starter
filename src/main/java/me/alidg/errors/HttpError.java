@@ -148,7 +148,7 @@ public class HttpError {
     }
 
     /**
-     * Represents an error code paired with its appropriate error message.
+     * Represents an error code paired with its appropriate error message and exception arguments.
      */
     public static class CodedMessage {
         /**
@@ -169,6 +169,7 @@ public class HttpError {
         /**
          * @param code The error code.
          * @param message The error message.
+         * @param arguments Exception arguments.
          */
         public CodedMessage(@NonNull String code, String message, @NonNull List<Argument> arguments) {
             this.code = Objects.requireNonNull(code);
@@ -192,6 +193,10 @@ public class HttpError {
             return message;
         }
 
+        /**
+         * @return Exception arguments.
+         * @see #arguments
+         */
         public List<Argument> getArguments() {
             return Collections.unmodifiableList(arguments);
         }

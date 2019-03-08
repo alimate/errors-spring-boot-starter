@@ -102,6 +102,7 @@ public class ErrorsAutoConfiguration {
      * @param exceptionLogger               To log exceptions.
      * @param webErrorHandlerPostProcessors Post processors to execute after we handled the exception.
      * @param fingerprintProvider           To generate unique fingerprints for handled exceptions.
+     * @param errorsProperties              Configuration properties bean.
      * @param context                       To tell Servlet or Reactive stacks apart.
      * @return The expected {@link WebErrorHandlers}.
      */
@@ -153,6 +154,8 @@ public class ErrorsAutoConfiguration {
      * In the absence of a bean of type {@link HttpErrorAttributesAdapter}, registers the default
      * implementation of {@link HttpErrorAttributesAdapter} as a bean, to adapt our
      * {@link me.alidg.errors.HttpError} to Spring's {@link ErrorAttributes} abstraction.
+     *
+     * @param errorsProperties Configuration properties bean.
      *
      * @return The to-be-registered {@link HttpErrorAttributesAdapter}.
      */

@@ -127,12 +127,8 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
      * @param arguments The to-be-exposed arguments.
      * @return The intended map.
      */
-    private Map<String, List<Argument>> argMap(String code, List<Argument> arguments) {
-        return singletonMap(code, arguments);
-    }
-
-    private Map<String, List<Argument>> argMap(String code, Argument... arguments) {
-        return argMap(code, asList(arguments));
+    private static Map<String, List<Argument>> argMap(String code, Argument... arguments) {
+        return singletonMap(code, asList(arguments));
     }
 
     /**
@@ -183,8 +179,8 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
         }
 
         if (code != null) {
-            List<Argument> arguments = asList(arg("name", parameterName), arg("type", parameter.getParameterType().getSimpleName()));
-            return new HandledException(code, BAD_REQUEST, argMap(code, arguments));
+            return new HandledException(code, BAD_REQUEST,
+                    argMap(code, arg("name", parameterName), arg("type", parameter.getParameterType().getSimpleName())));
         }
 
         return null;

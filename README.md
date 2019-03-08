@@ -11,6 +11,7 @@ A Bootiful, consistent and opinionated approach to handle all sorts of exception
     + [Error Codes](#error-codes)
     + [Error Message](#error-message)
     + [Exposing Arguments](#exposing-arguments)
+      + [Exposing Named Arguments](#exposing-named-arguments)
     + [Validation and Binding Errors](#validation-and-binding-errors)
     + [Custom Exceptions](#custom-exceptions)
     + [Spring MVC](#spring-mvc)
@@ -26,6 +27,8 @@ A Bootiful, consistent and opinionated approach to handle all sorts of exception
     + [Post Processing Handled Exceptions](#post-processing-handled-exceptions)
     + [Registering Custom Handlers](#registering-custom-handlers)
     + [Enabling Web MVC Test Support](#enabling-web-mvc-test-support)
+  * [Appendix](#appendix)
+    + [Configuration](#configuration)
   * [License](#license)
 
 ## Make error handling great again!
@@ -184,8 +187,32 @@ public class UserAlreadyExistsException extends RuntimeException {
 ```
 Then the `username` property from the `UserAlreadyExistsException` would be available to the message under the 
 `user.already_exists` key as the first argument. `@ExposeAsArg` can be used on fields and no-arg methods with a
-return type.
-The `HandledException` class also accepts the *to-be-exposed* arguments in its constructor.
+return type. The `HandledException` class also accepts the *to-be-exposed* arguments in its constructor.
+
+#### Exposing Named Arguments
+By default error arguments are used in message interpolation only. It is also possible to additionally  get those
+arguments in error response by defining configuration property `spring.errors.expose-arguments`.
+With arguments exposed you might get the following response payload:
+```json
+{
+  "errors": [
+    {
+      "code": "password.min_length",
+      "message": "The password must be at least 6 characters",
+      "arguments": {
+        "min": 6
+      }
+    }
+  ]
+}
+```
+
+Property `spring.errors.expose-arguments` takes 3 possible values:
+ - `never` - named arguments will never be exposed. This is the default setting.
+ - `non_empty` - named arguments will be exposed only in case there are any. If error has no arguments,
+   result payload will not have `"arguments"` element.
+ - `always` - the `"arguments"` element is always present in payload, even when the error has no arguments.
+   In that case empty map will be provided: `"arguments": {}`.
 
 ### Validation and Binding Errors
 Validation errors can be processed as you might expect. For example, if a client passed an empty JSON to a controller method
@@ -359,13 +386,15 @@ By default, errors would manifest themselves in the HTTP response bodies with th
 #### Fingerprinting
 There is also an option to generate error `fingerprint`. Fingerprint is a unique hash of error
 event which might be used as a correlation ID of error presented to user, and reported in
-application backend (e.g. in detailed log message). To generate error fingerprints, define a
-*Spring Bean* of type `FingerprintProvider`.
+application backend (e.g. in detailed log message). To generate error fingerprints, add
+configuration property `spring.errors.add-fingerprint=true`.
 
-We provide two fingerprint providers out of the box:
- - `Md5FingerprintProvider`
-which generates MD5 checksum of full class name of original exception and current time.
- - `UuidFingerprintProvider` which generates a random UUID regardless of the handled exxception.
+We provide two fingerprint providers implementations:
+ - `UuidFingerprintProvider` which generates a random UUID regardless of the handled exception.
+   This is the default provider and will be used out of the box if
+   `spring.errors.add-fingerprint=true` property is configured.
+ - `Md5FingerprintProvider` which generates MD5 checksum of full class name of original exception
+   and current time.
 
 #### Customizing the Error Representation
 In order to change the default error representation, just implement the `HttpErrorAttributesAdapter` 
@@ -495,7 +524,20 @@ public class UserControllerIT {
     }
 }
 ```
- 
+
+## Appendix
+
+### Configuration
+Additional configuration of this starter can be provided by configuration properties - the Spring Boot way.
+All configuration properties start with `spring.errors`. Below is a list of supported properties:
+
+|            Property              |             Values             | Default value |
+|:--------------------------------:|:------------------------------:|:-------------:|
+| `spring.errors.expose-arguments` | `never`, `non_empty`, `always` |    `never`    |
+| `spring.errors.add-fingerprint`  |        `true`, `false`         |    `false`    |
+
+Check `ErrorsProperties` implementation for more details.
+
 ## License
 Copyright 2018 alimate
 
