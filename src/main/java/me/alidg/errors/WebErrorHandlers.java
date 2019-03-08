@@ -93,12 +93,20 @@ public class WebErrorHandlers {
     /**
      * Backward-compatible constructor with defaults for {@link #webErrorHandlerPostProcessors}
      * and {@link #fingerprintProvider}.
+     *
+     * @param messageSource          The code to message translator.
+     * @param implementations        Collection of {@link WebErrorHandler} implementations.
+     * @param defaultWebErrorHandler Fallback web error handler.
+     * @param exceptionRefiner       Possibly can refine exceptions before handling them.
+     * @param exceptionLogger        Logs exceptions.
+     * @throws NullPointerException     When one of the required parameters is null.
+     * @throws IllegalArgumentException When the collection of implementations is empty.
      */
     public WebErrorHandlers(@NonNull MessageSource messageSource,
-            @NonNull List<WebErrorHandler> implementations,
-            @Nullable WebErrorHandler defaultWebErrorHandler,
-            @Nullable ExceptionRefiner exceptionRefiner,
-            @Nullable ExceptionLogger exceptionLogger) {
+                            @NonNull List<WebErrorHandler> implementations,
+                            @Nullable WebErrorHandler defaultWebErrorHandler,
+                            @Nullable ExceptionRefiner exceptionRefiner,
+                            @Nullable ExceptionLogger exceptionLogger) {
         this(messageSource, implementations, defaultWebErrorHandler, exceptionRefiner,
                 exceptionLogger, Collections.emptyList(), null);
     }
@@ -108,14 +116,13 @@ public class WebErrorHandlers {
      * non-empty collection of {@link WebErrorHandler} implementations and an optional fallback
      * error handler.
      *
-     * @param messageSource          The code to message translator.
-     * @param implementations        Collection of {@link WebErrorHandler} implementations.
-     * @param defaultWebErrorHandler Fallback web error handler.
-     * @param exceptionRefiner       Possibly can refine exceptions before handling them.
-     * @param exceptionLogger        Logs exceptions.
-     * @param webErrorHandlerPostProcessors   Executes additional actions on HttpError.
-     * @param fingerprintProvider    Calculates fingerprint of error message.
-     *
+     * @param messageSource                 The code to message translator.
+     * @param implementations               Collection of {@link WebErrorHandler} implementations.
+     * @param defaultWebErrorHandler        Fallback web error handler.
+     * @param exceptionRefiner              Possibly can refine exceptions before handling them.
+     * @param exceptionLogger               Logs exceptions.
+     * @param webErrorHandlerPostProcessors Executes additional actions on HttpError.
+     * @param fingerprintProvider           Calculates fingerprint of error message.
      * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException When the collection of implementations is empty.
      */

@@ -81,12 +81,14 @@ public class ErrorsAutoConfiguration {
      * built-in {@link WebErrorHandler}s, a set of custom {@link WebErrorHandler}s and a default fallback
      * {@link WebErrorHandler}.
      *
-     * @param messageSource          Will be used for error code to error message translation.
-     * @param customHandlers         Optional custom {@link WebErrorHandler}s.
-     * @param defaultWebErrorHandler A default {@link WebErrorHandler} to be used as the fallback error handler.
-     * @param exceptionRefiner       To refine exceptions before handling them.
-     * @param exceptionLogger        To log exceptions.
-     * @param context                To tell Servlet or Reactive stacks apart.
+     * @param messageSource                 Will be used for error code to error message translation.
+     * @param customHandlers                Optional custom {@link WebErrorHandler}s.
+     * @param defaultWebErrorHandler        A default {@link WebErrorHandler} to be used as the fallback error handler.
+     * @param exceptionRefiner              To refine exceptions before handling them.
+     * @param exceptionLogger               To log exceptions.
+     * @param webErrorHandlerPostProcessors Post processors to execute after we handled the exception.
+     * @param fingerprintProvider           To generate unique fingerprints for handled exceptions.
+     * @param context                       To tell Servlet or Reactive stacks apart.
      * @return The expected {@link WebErrorHandlers}.
      */
     @Bean
