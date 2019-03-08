@@ -4,6 +4,7 @@ import me.alidg.errors.HttpError.CodedMessage;
 import me.alidg.errors.conf.ErrorsProperties;
 import me.alidg.errors.fingerprint.UuidFingerprintProvider;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
+import me.alidg.errors.message.ErrorMessageInterpolator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -44,12 +45,6 @@ public class WebErrorHandlers {
      * Plain old logger.
      */
     private static final Logger log = LoggerFactory.getLogger(WebErrorHandlers.class);
-
-    /**
-     * Helps us to translate error codes to possibly localized error messages.
-     */
-    @NonNull
-    private final MessageSource messageSource;
 
     /**
      * Collection of {@link WebErrorHandler} implementations. The {@link WebErrorHandlers}
@@ -98,6 +93,9 @@ public class WebErrorHandlers {
     @NonNull
     private final ErrorsProperties errorsProperties;
 
+    @NonNull
+    private final ErrorMessageInterpolator messageInterpolator;
+
     /**
      * Backward-compatible constructor with defaults for {@link #webErrorHandlerPostProcessors},
      * {@link #fingerprintProvider}, and {@link #errorsProperties}.
@@ -145,15 +143,17 @@ public class WebErrorHandlers {
                             @NonNull List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
                             @NonNull FingerprintProvider fingerprintProvider,
                             @NonNull ErrorsProperties errorsProperties) {
-        enforcePreconditions(messageSource, implementations);
-        this.messageSource = requireNonNull(messageSource, "Message source is required");
-        this.implementations = requireNonNull(implementations, "Web error handlers are is required");
+        requireNonNull(messageSource, "We need a MessageSource implementation to message translation");
+        if (requireNonNull(implementations, "Collection of error handlers is required").isEmpty()) {
+            throw new IllegalArgumentException("We need at least one error handler");
+        }
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
         this.exceptionRefiner = exceptionRefiner;
         this.exceptionLogger = exceptionLogger;
         this.webErrorHandlerPostProcessors = requireNonNull(webErrorHandlerPostProcessors, "Postprocessor can not be null");
         this.fingerprintProvider = requireNonNull(fingerprintProvider, "Fingerprint provider is required");
         this.errorsProperties = requireNonNull(errorsProperties, "Error Properties is required");
+        this.messageInterpolator = new ErrorMessageInterpolator(messageSource, errorsProperties.isNamedArguments());
     }
 
     /**
@@ -212,17 +212,9 @@ public class WebErrorHandlers {
                 .collect(toList());
     }
 
-    private void enforcePreconditions(MessageSource messageSource, List<WebErrorHandler> webErrorHandlers) {
-        requireNonNull(messageSource, "We need a MessageSource implementation to message translation");
-        requireNonNull(webErrorHandlers, "Collection of error handlers is required");
-        if (webErrorHandlers.isEmpty())
-            throw new IllegalArgumentException("We need at least one error handler");
-    }
-
     private CodedMessage withMessage(String code, List<Argument> arguments, Locale locale) {
         try {
-            Object[] args = arguments.stream().map(Argument::getValue).toArray(Object[]::new);
-            String message = messageSource.getMessage(code, args, locale);
+            String message = messageInterpolator.interpolate(code, arguments, locale);
 
             return new CodedMessage(code, message, arguments);
         } catch (Exception e) {
