@@ -40,13 +40,17 @@ public class DefaultHttpErrorAttributesAdapter implements HttpErrorAttributesAda
                 .map(this::toMap)
                 .collect(collectingAndThen(
                         toList(),
-                        errors -> errorDetails(errors, httpError.getHttpStatus().value())
+                        errors -> errorDetails(errors, httpError)
                 ));
     }
 
-    private Map<String, Object> errorDetails(Object errors, int status) {
+    private Map<String, Object> errorDetails(Object errors, HttpError httpError) {
         Map<String, Object> map = new HashMap<>();
         map.put("errors", errors);
+
+        if (httpError.getFingerprint() != null) {
+            map.put("fingerprint", httpError.getFingerprint());
+        }
 
         return map;
     }

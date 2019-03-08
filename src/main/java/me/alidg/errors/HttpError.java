@@ -25,6 +25,11 @@ public class HttpError {
     private final HttpStatus httpStatus;
 
     /**
+     * Unique fingerprint of the error.
+     */
+    @Nullable private String fingerprint;
+
+    /**
      * Encapsulates the current and probably failed HTTP request. It's either a
      * {@link org.springframework.web.context.request.WebRequest} for Servlet requests
      * or {@link org.springframework.web.reactive.function.server.ServerRequest} for reactive
@@ -116,11 +121,27 @@ public class HttpError {
         return httpStatus;
     }
 
+    /**
+     * @return Error fingerprint. Helpful as a correlation ID.
+     * @see #fingerprint
+     */
+    public String getFingerprint() {
+        return fingerprint;
+    }
+
+    /**
+     * @param fingerprint {@link #fingerprint}.
+     */
+    public void setFingerprint(String fingerprint) {
+        this.fingerprint = fingerprint;
+    }
+
     @Override
     public String toString() {
         return "HttpError{" +
                 "errors=" + errors +
                 ", httpStatus=" + httpStatus +
+                ", fingerprint=" + fingerprint +
                 '}';
     }
 

@@ -6,6 +6,7 @@ import me.alidg.errors.HttpError.CodedMessage;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
 import me.alidg.errors.conf.ErrorsAutoConfiguration;
+import me.alidg.errors.fingerprint.Md5FingerprintProvider;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,6 +15,7 @@ import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfigura
 import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
@@ -36,7 +38,9 @@ import java.util.Locale;
 import static me.alidg.Params.p;
 import static me.alidg.errors.WebErrorHandlersIT.Pojo.pojo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * Integration tests for {@link WebErrorHandlers}.
@@ -60,8 +64,6 @@ public class WebErrorHandlersIT {
     @Parameters(method = "provideValidationParams")
     public void validationException_ShouldBeHandledProperly(Object pojo, Locale locale, CodedMessage... codedMessages) {
         contextRunner.run(ctx -> {
-            HttpError error;
-
             WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
             Validator validator = ctx.getBean(Validator.class);
 
@@ -69,14 +71,16 @@ public class WebErrorHandlersIT {
             validator.validate(pojo, result);
 
             // Assertions for BindException
-            error = errorHandlers.handle(new BindException(result), null, locale);
-            assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-            assertThat(error.getErrors()).containsOnly(codedMessages);
+            HttpError bindError = errorHandlers.handle(new BindException(result), null, locale);
+            assertThat(bindError.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(bindError.getErrors()).containsOnly(codedMessages);
 
             // Assertions for MethodArgumentNotValidException
-            error = errorHandlers.handle(new MethodArgumentNotValidException(mock(MethodParameter.class), result), null, locale);
-            assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
-            assertThat(error.getErrors()).containsOnly(codedMessages);
+            HttpError argumentError = errorHandlers.handle(new MethodArgumentNotValidException(mock(MethodParameter.class), result), null, locale);
+            assertThat(argumentError.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(argumentError.getErrors()).containsOnly(codedMessages);
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
     }
 
@@ -96,6 +100,8 @@ public class WebErrorHandlersIT {
             error = errorHandlers.handle(exception, null, Locale.CANADA);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
             assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42"));
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
     }
 
@@ -108,6 +114,8 @@ public class WebErrorHandlersIT {
             HttpError error = errorHandlers.handle(exception, null, null);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
             assertThat(error.getErrors()).containsOnly(cm(LastResortWebErrorHandler.UNKNOWN_ERROR_CODE, null));
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
     }
 
@@ -123,6 +131,8 @@ public class WebErrorHandlersIT {
 
             assertThat(httpError.getHttpStatus()).isEqualTo(expectedStatus);
             assertThat(httpError.getErrors()).containsOnly(codedMessages);
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
     }
 
@@ -136,6 +146,8 @@ public class WebErrorHandlersIT {
 
             assertThat(httpError.getHttpStatus()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
             assertThat(httpError.getErrors()).containsOnly(cm("unknown_error", null));
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
     }
 
@@ -153,7 +165,54 @@ public class WebErrorHandlersIT {
             error = errorHandlers.handle(exception, null, locale);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
             assertThat(error.getErrors()).containsOnly(codedMessages);
+
+            verifyPostProcessorsHasBeenCalled(ctx);
         });
+    }
+
+    @Test
+    public void errorFingerprint_ShouldNotBeCalculatedByDefault() {
+        contextRunner.run(ctx -> {
+            WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
+
+            HttpError error = errorHandlers.handle(new SomeException(10, 12), null, null);
+            assertThat(error.getFingerprint()).isNull();
+
+            verifyPostProcessorsHasBeenCalled(ctx);
+        });
+    }
+
+    @Test
+    public void errorFingerprint_ShouldBeCalculatedWhenConfigured() {
+        contextRunner.withUserConfiguration(FingerprintConfig.class).run(ctx -> {
+            WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
+
+            HttpError error = errorHandlers.handle(new SomeException(10, 12), null, null);
+            assertThat(error.getFingerprint()).isNotNull();
+
+            verifyPostProcessorsHasBeenCalled(ctx);
+        });
+    }
+
+    @Test
+    public void errorFingerprint_ShouldBeUnique() {
+        contextRunner.withUserConfiguration(FingerprintConfig.class).run(ctx -> {
+            WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
+
+            Exception e1 = new SomeException(1, 2);
+            Exception e2 = new RuntimeException();
+
+            HttpError error1 = errorHandlers.handle(e1, null, null);
+            HttpError error2 = errorHandlers.handle(e2, null, null);
+
+            assertThat(error1.getFingerprint()).isNotEqualTo(error2.getFingerprint());
+
+            verifyPostProcessorsHasBeenCalled(ctx);
+        });
+    }
+
+    private void verifyPostProcessorsHasBeenCalled(ApplicationContext ctx) {
+        ctx.getBeansOfType(WebErrorHandlerPostProcessor.class).values().forEach(p -> verify(p).process(any()));
     }
 
     private Object[] provideParamsForUnknownErrors() {
@@ -301,6 +360,28 @@ public class WebErrorHandlersIT {
         @Bean
         public ExceptionRefiner exceptionRefiner() {
             return exception -> exception instanceof SymptomException ? exception.getCause() : exception;
+        }
+    }
+
+    @TestConfiguration
+    static class FingerprintConfig {
+        @Bean
+        FingerprintProvider provider() {
+            return new Md5FingerprintProvider();
+        }
+    }
+
+    @TestConfiguration
+    static class ErrorActionExecutorConfig {
+
+        @Bean
+        public WebErrorHandlerPostProcessor first() {
+            return mock(WebErrorHandlerPostProcessor.class);
+        }
+
+        @Bean
+        public WebErrorHandlerPostProcessor second() {
+            return mock(WebErrorHandlerPostProcessor.class);
         }
     }
 }

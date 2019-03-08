@@ -8,6 +8,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -45,6 +46,7 @@ public class WebErrorHandlers {
     /**
      * Helps us to translate error codes to possibly localized error messages.
      */
+    @NonNull
     private final MessageSource messageSource;
 
     /**
@@ -52,6 +54,7 @@ public class WebErrorHandlers {
      * would choose at most one implementation from this collection to delegate the exception
      * handling task. This collection can't be null or empty.
      */
+    @NonNull
     private final List<WebErrorHandler> implementations;
 
     /**
@@ -60,22 +63,36 @@ public class WebErrorHandlers {
      * would be used in such circumstances but you have the option to provide your own custom error
      * handler as the fallback handler.
      */
+    @NonNull
     private WebErrorHandler defaultWebErrorHandler = LastResortWebErrorHandler.INSTANCE;
 
     /**
      * To refine exceptions before handling the them.
      */
+    @Nullable
     private final ExceptionRefiner exceptionRefiner;
 
     /**
      * To log the to-be-handled exceptions.
      */
+    @Nullable
     private final ExceptionLogger exceptionLogger;
 
     /**
-     * To initialize the {@link WebErrorHandlers} instance with a code-to-message translator, a
-     * non-empty collection of {@link WebErrorHandler} implementations and an optional fallback
-     * error handler.
+     * To execute additional actions using HttpErrors (e.g. logging or messaging).
+     */
+    @NonNull
+    private final List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors;
+
+    /**
+     * To generate unique fingerprint of error message.
+     */
+    @Nullable
+    private final FingerprintProvider fingerprintProvider;
+
+    /**
+     * Backward-compatible constructor with defaults for {@link #webErrorHandlerPostProcessors}
+     * and {@link #fingerprintProvider}.
      *
      * @param messageSource          The code to message translator.
      * @param implementations        Collection of {@link WebErrorHandler} implementations.
@@ -90,12 +107,40 @@ public class WebErrorHandlers {
                             @Nullable WebErrorHandler defaultWebErrorHandler,
                             @Nullable ExceptionRefiner exceptionRefiner,
                             @Nullable ExceptionLogger exceptionLogger) {
+        this(messageSource, implementations, defaultWebErrorHandler, exceptionRefiner,
+                exceptionLogger, Collections.emptyList(), null);
+    }
+
+    /**
+     * To initialize the {@link WebErrorHandlers} instance with a code-to-message translator, a
+     * non-empty collection of {@link WebErrorHandler} implementations and an optional fallback
+     * error handler.
+     *
+     * @param messageSource                 The code to message translator.
+     * @param implementations               Collection of {@link WebErrorHandler} implementations.
+     * @param defaultWebErrorHandler        Fallback web error handler.
+     * @param exceptionRefiner              Possibly can refine exceptions before handling them.
+     * @param exceptionLogger               Logs exceptions.
+     * @param webErrorHandlerPostProcessors Executes additional actions on HttpError.
+     * @param fingerprintProvider           Calculates fingerprint of error message.
+     * @throws NullPointerException     When one of the required parameters is null.
+     * @throws IllegalArgumentException When the collection of implementations is empty.
+     */
+    public WebErrorHandlers(@NonNull MessageSource messageSource,
+                            @NonNull List<WebErrorHandler> implementations,
+                            @Nullable WebErrorHandler defaultWebErrorHandler,
+                            @Nullable ExceptionRefiner exceptionRefiner,
+                            @Nullable ExceptionLogger exceptionLogger,
+                            @NonNull List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
+                            @Nullable FingerprintProvider fingerprintProvider) {
         enforcePreconditions(messageSource, implementations);
         this.messageSource = messageSource;
         this.implementations = implementations;
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
         this.exceptionRefiner = exceptionRefiner;
         this.exceptionLogger = exceptionLogger;
+        this.webErrorHandlerPostProcessors = webErrorHandlerPostProcessors;
+        this.fingerprintProvider = fingerprintProvider;
     }
 
     /**
@@ -136,6 +181,12 @@ public class WebErrorHandlers {
         httpError.setOriginalException(exception);
         httpError.setRefinedException(refined);
         httpError.setRequest(httpRequest);
+
+        if (fingerprintProvider != null) {
+            httpError.setFingerprint(fingerprintProvider.generate(httpError));
+        }
+
+        webErrorHandlerPostProcessors.forEach(p -> p.process(httpError));
 
         return httpError;
     }

@@ -2,6 +2,8 @@ package me.alidg.errors.conf;
 
 import me.alidg.errors.ExceptionLogger;
 import me.alidg.errors.ExceptionRefiner;
+import me.alidg.errors.WebErrorHandlerPostProcessor;
+import me.alidg.errors.FingerprintProvider;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.adapter.DefaultHttpErrorAttributesAdapter;
@@ -79,12 +81,14 @@ public class ErrorsAutoConfiguration {
      * built-in {@link WebErrorHandler}s, a set of custom {@link WebErrorHandler}s and a default fallback
      * {@link WebErrorHandler}.
      *
-     * @param messageSource          Will be used for error code to error message translation.
-     * @param customHandlers         Optional custom {@link WebErrorHandler}s.
-     * @param defaultWebErrorHandler A default {@link WebErrorHandler} to be used as the fallback error handler.
-     * @param exceptionRefiner       To refine exceptions before handling them.
-     * @param exceptionLogger        To log exceptions.
-     * @param context                To tell Servlet or Reactive stacks apart.
+     * @param messageSource                 Will be used for error code to error message translation.
+     * @param customHandlers                Optional custom {@link WebErrorHandler}s.
+     * @param defaultWebErrorHandler        A default {@link WebErrorHandler} to be used as the fallback error handler.
+     * @param exceptionRefiner              To refine exceptions before handling them.
+     * @param exceptionLogger               To log exceptions.
+     * @param webErrorHandlerPostProcessors Post processors to execute after we handled the exception.
+     * @param fingerprintProvider           To generate unique fingerprints for handled exceptions.
+     * @param context                       To tell Servlet or Reactive stacks apart.
      * @return The expected {@link WebErrorHandlers}.
      */
     @Bean
@@ -94,6 +98,8 @@ public class ErrorsAutoConfiguration {
                                              @Qualifier("defaultWebErrorHandler") @Autowired(required = false) WebErrorHandler defaultWebErrorHandler,
                                              @Autowired(required = false) ExceptionRefiner exceptionRefiner,
                                              @Autowired(required = false) ExceptionLogger exceptionLogger,
+                                             @Autowired(required = false) List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
+                                             @Autowired(required = false) FingerprintProvider fingerprintProvider,
                                              ApplicationContext context) {
 
         List<WebErrorHandler> handlers = new ArrayList<>(BUILT_IN_HANDLERS);
@@ -107,7 +113,11 @@ public class ErrorsAutoConfiguration {
             handlers.addAll(customHandlers);
         }
 
-        return new WebErrorHandlers(messageSource, handlers, defaultWebErrorHandler, exceptionRefiner, exceptionLogger);
+        List<WebErrorHandlerPostProcessor> processors = webErrorHandlerPostProcessors != null ?
+                webErrorHandlerPostProcessors : Collections.emptyList();
+
+        return new WebErrorHandlers(messageSource, handlers, defaultWebErrorHandler, exceptionRefiner, exceptionLogger,
+                processors, fingerprintProvider);
     }
 
     /**

@@ -17,10 +17,13 @@ A Bootiful, consistent and opinionated approach to handle all sorts of exception
     + [Spring Security](#spring-security)
       + [Reactive](#reactive-security)
       + [Servlet](#servlet-security)
-    + [Customizing the Error Representation](#customizing-the-error-representation)
+    + [Error Representation](#error-representation)
+      + [Fingerprinting](#fingerprinting)
+      + [Customizing the Error Representation](#customizing-the-error-representation)
     + [Default Error Handler](#default-error-handler)
     + [Refining Exceptions](#refining-exceptions)
     + [Logging Exceptions](#logging-exceptions)
+    + [Post Processing Handled Exceptions](#post-processing-handled-exceptions)
     + [Registering Custom Handlers](#registering-custom-handlers)
     + [Enabling Web MVC Test Support](#enabling-web-mvc-test-support)
   * [License](#license)
@@ -36,6 +39,7 @@ Built on top of Spring Boot's great exception handling mechanism, the `errors-sp
  - Exposing arguments from exceptions to error messages.
  - Supporting both traditional and reactive stacks.
  - Customizable exception logging.
+ - Supporting error fingerprinting.
 
 ## Getting Started
 
@@ -43,7 +47,7 @@ Built on top of Spring Boot's great exception handling mechanism, the `errors-sp
 
 Download the [latest JAR](https://search.maven.org/remotecontent?filepath=me/alidg/errors-spring-boot-starter/1.3.0/errors-spring-boot-starter-1.3.0.jar) or grab via Maven:
 
-```
+```xml
 <dependency>
     <groupId>me.alidg</groupId>
     <artifactId>errors-spring-boot-starter</artifactId>
@@ -339,7 +343,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 The registered `AccessDeniedHandler` and `AuthenticationEntryPoint` are responsible for handling `AccessDeniedException`
 and `AuthenticationException` exceptions, respectively.
 
-### Customizing the Error Representation
+### Error Representation
 By default, errors would manifest themselves in the HTTP response bodies with the following JSON schema:
 ```json
 {
@@ -351,8 +355,21 @@ By default, errors would manifest themselves in the HTTP response bodies with th
   ]
 }
 ```
-In order to change this representation, just implement the `HttpErrorAttributesAdapter` interface and register it as
-*Spring Bean*:
+
+#### Fingerprinting
+There is also an option to generate error `fingerprint`. Fingerprint is a unique hash of error
+event which might be used as a correlation ID of error presented to user, and reported in
+application backend (e.g. in detailed log message). To generate error fingerprints, define a
+*Spring Bean* of type `FingerprintProvider`.
+
+We provide two fingerprint providers out of the box:
+ - `Md5FingerprintProvider`
+which generates MD5 checksum of full class name of original exception and current time.
+ - `UuidFingerprintProvider` which generates a random UUID regardless of the handled exxception.
+
+#### Customizing the Error Representation
+In order to change the default error representation, just implement the `HttpErrorAttributesAdapter` 
+interface and register it as *Spring Bean*:
 ```java
 @Component
 public class OopsDrivenHttpErrorAttributesAdapter implements HttpErrorAttributesAdapter {
@@ -408,6 +425,32 @@ public class StdErrExceptionLogger implements ExceptionLogger {
     }
 }
 ``` 
+
+### Post Processing Handled Exceptions
+As a more powerful alternative to `ExceptionLogger` mechanism, there is also `WebErrorHandlerPostProcessor`
+interface. You may declare multiple post processors which implement this interface and are exposed
+as *Spring Bean*. Below is an example of more advanced logging post processors:
+```java
+@Component
+public class LoggingErrorWebErrorHandlerPostProcessor implements WebErrorHandlerPostProcessor {
+    private static final Logger log = LoggerFactory.getLogger(LoggingErrorWebErrorHandlerPostProcessor.class);
+    
+    @Override 
+    public void process(@NonNull HttpError error) {
+        if (error.getHttpStatus().is4xxClientError()) {
+            log.warn("[{}] {}", error.getFingerprint(), prepareMessage(error));
+        } else if (error.getHttpStatus().is5xxServerError()) {
+            log.error("[{}] {}", error.getFingerprint(), prepareMessage(error), error.getOriginalException());
+        }
+    }
+    
+    private String prepareMessage(HttpError error) {
+        return error.getErrors().stream()
+                    .map(HttpError.CodedMessage::getMessage)
+                    .collect(Collectors.joining("; "));
+    }
+}
+```
 
 ### Registering Custom Handlers
 In order to provide a custom handler for a specific exception, just implement the `WebErrorHandler` interface for that
