@@ -6,6 +6,7 @@ import me.alidg.errors.FingerprintProvider;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlerPostProcessor;
 import me.alidg.errors.WebErrorHandlers;
+import me.alidg.errors.WebErrorHandlersBuilder;
 import me.alidg.errors.adapter.DefaultHttpErrorAttributesAdapter;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
 import me.alidg.errors.fingerprint.UuidFingerprintProvider;
@@ -120,7 +121,7 @@ public class ErrorsAutoConfiguration {
         List<WebErrorHandler> handlers = new ArrayList<>(BUILT_IN_HANDLERS);
         if (isServletApplication(context)) handlers.add(new ServletWebErrorHandler());
 
-        if (!customHandlers.isEmpty()) {
+        if (customHandlers != null && !customHandlers.isEmpty()) {
             customHandlers.remove(defaultWebErrorHandler);
             customHandlers.removeIf(Objects::isNull);
             customHandlers.sort(AnnotationAwareOrderComparator.INSTANCE);
@@ -128,8 +129,17 @@ public class ErrorsAutoConfiguration {
             handlers.addAll(customHandlers);
         }
 
-        return new WebErrorHandlers(messageSource, handlers, defaultWebErrorHandler, exceptionRefiner,
-                exceptionLogger, webErrorHandlerPostProcessors, fingerprintProvider, errorsProperties);
+        WebErrorHandlersBuilder builder = WebErrorHandlers.builder(messageSource)
+                .withErrorsProperties(errorsProperties)
+                .withErrorHandlers(handlers)
+                .withExceptionRefiner(exceptionRefiner)
+                .withExceptionLogger(exceptionLogger)
+                .withFingerprintProvider(fingerprintProvider);
+
+        if (defaultWebErrorHandler != null) builder.withDefaultWebErrorHandler(defaultWebErrorHandler);
+        if (webErrorHandlerPostProcessors != null) builder.withErrorActionExecutors(webErrorHandlerPostProcessors);
+
+        return builder.build();
     }
 
     /**

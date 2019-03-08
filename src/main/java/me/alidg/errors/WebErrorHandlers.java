@@ -52,7 +52,7 @@ public class WebErrorHandlers {
      * handling task. This collection can't be null or empty.
      */
     @NonNull
-    private final List<WebErrorHandler> implementations;
+    private final List<WebErrorHandler> webErrorHandlers;
 
     /**
      * This is the fallback error handler which will be used when all other {@link WebErrorHandler}
@@ -97,24 +97,19 @@ public class WebErrorHandlers {
     private final ErrorMessageInterpolator messageInterpolator;
 
     /**
-     * Backward-compatible constructor with defaults for {@link #webErrorHandlerPostProcessors},
-     * {@link #fingerprintProvider}, and {@link #errorsProperties}.
+     * Backward-compatible constructor with defaults for {@link #webErrorHandlerPostProcessors}
      *
-     * @param messageSource          The code to message translator.
-     * @param implementations        Collection of {@link WebErrorHandler} implementations.
-     * @param defaultWebErrorHandler Fallback web error handler.
-     * @param exceptionRefiner       Possibly can refine exceptions before handling them.
-     * @param exceptionLogger        Logs exceptions.
-     *
-     * @throws NullPointerException     When one of the required parameters is null.
-     * @throws IllegalArgumentException When the collection of implementations is empty.
+     * @deprecated Use {@link #builder(MessageSource)} instead.
      */
+    @Deprecated
     public WebErrorHandlers(@NonNull MessageSource messageSource,
-                            @NonNull List<WebErrorHandler> implementations,
+                            @NonNull List<WebErrorHandler> webErrorHandlers,
                             @Nullable WebErrorHandler defaultWebErrorHandler,
                             @Nullable ExceptionRefiner exceptionRefiner,
                             @Nullable ExceptionLogger exceptionLogger) {
-        this(messageSource, implementations, defaultWebErrorHandler, exceptionRefiner, exceptionLogger,
+        this(messageSource, webErrorHandlers, defaultWebErrorHandler,
+                exceptionRefiner != null ? exceptionRefiner : new ExceptionRefiner.NoOp(),
+                exceptionLogger != null ? exceptionLogger : new ExceptionLogger.NoOp(),
                 Collections.emptyList(), new UuidFingerprintProvider(), new ErrorsProperties());
     }
 
@@ -124,7 +119,7 @@ public class WebErrorHandlers {
      * error handler.
      *
      * @param messageSource                 The code to message translator.
-     * @param implementations               Collection of {@link WebErrorHandler} implementations.
+     * @param webErrorHandlers              Collection of {@link WebErrorHandler} implementations.
      * @param defaultWebErrorHandler        Fallback web error handler.
      * @param exceptionRefiner              Possibly can refine exceptions before handling them.
      * @param exceptionLogger               Logs exceptions.
@@ -135,26 +130,33 @@ public class WebErrorHandlers {
      * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException When the collection of implementations is empty.
      */
-    public WebErrorHandlers(@NonNull MessageSource messageSource,
-                            @NonNull List<WebErrorHandler> implementations,
-                            @Nullable WebErrorHandler defaultWebErrorHandler,
-                            @NonNull ExceptionRefiner exceptionRefiner,
-                            @NonNull ExceptionLogger exceptionLogger,
-                            @NonNull List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
-                            @NonNull FingerprintProvider fingerprintProvider,
-                            @NonNull ErrorsProperties errorsProperties) {
-        requireNonNull(messageSource, "We need a MessageSource implementation to message translation");
-        if (requireNonNull(implementations, "Collection of error handlers is required").isEmpty()) {
-            throw new IllegalArgumentException("We need at least one error handler");
-        }
-        this.implementations = implementations;
+    WebErrorHandlers(@NonNull MessageSource messageSource,
+                     @NonNull List<WebErrorHandler> webErrorHandlers,
+                     @Nullable WebErrorHandler defaultWebErrorHandler,
+                     @NonNull ExceptionRefiner exceptionRefiner,
+                     @NonNull ExceptionLogger exceptionLogger,
+                     @NonNull List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
+                     @NonNull FingerprintProvider fingerprintProvider,
+                     @NonNull ErrorsProperties errorsProperties) {
+        MessageSource ms = requireNonNull(messageSource, "We need a MessageSource implementation to message translation");
+        this.errorsProperties = requireNonNull(errorsProperties);
+        this.messageInterpolator = new ErrorMessageInterpolator(ms, errorsProperties.isNamedArguments());
+        this.webErrorHandlers = requireAtLeastOneHandler(webErrorHandlers);
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
         this.exceptionRefiner = requireNonNull(exceptionRefiner);
         this.exceptionLogger = requireNonNull(exceptionLogger);
-        this.webErrorHandlerPostProcessors = requireNonNull(webErrorHandlerPostProcessors, "Postprocessor can not be null");
-        this.fingerprintProvider = requireNonNull(fingerprintProvider, "Fingerprint provider is required");
-        this.errorsProperties = requireNonNull(errorsProperties, "Error Properties is required");
-        this.messageInterpolator = new ErrorMessageInterpolator(messageSource, errorsProperties.isNamedArguments());
+        this.webErrorHandlerPostProcessors = requireNonNull(webErrorHandlerPostProcessors);
+        this.fingerprintProvider = requireNonNull(fingerprintProvider);
+    }
+
+    public static WebErrorHandlersBuilder builder(@NonNull MessageSource messageSource) {
+        return new WebErrorHandlersBuilder(messageSource);
+    }
+
+    private static <T> List<T> requireAtLeastOneHandler(List<T> handlers) {
+        if (requireNonNull(handlers, "Collection of error handlers is required").isEmpty())
+            throw new IllegalArgumentException("We need at least one error handler");
+        return handlers;
     }
 
     /**
@@ -232,7 +234,7 @@ public class WebErrorHandlers {
     private WebErrorHandler findHandler(Throwable exception) {
         if (exception == null) return defaultWebErrorHandler;
 
-        return implementations
+        return webErrorHandlers
                 .stream()
                 .filter(p -> p.canHandle(exception))
                 .findFirst()
