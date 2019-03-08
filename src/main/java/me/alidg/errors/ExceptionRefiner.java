@@ -22,4 +22,14 @@ public interface ExceptionRefiner {
      * @return The refined exception.
      */
     @Nullable Throwable refine(@Nullable Throwable exception);
+
+    /**
+     * Exception refiner that does nothing.
+     */
+    final class NoOp implements ExceptionRefiner {
+        @Override
+        public Throwable refine(Throwable exception) {
+            return null;
+        }
+    }
 }

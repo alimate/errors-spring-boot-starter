@@ -66,13 +66,13 @@ public class WebErrorHandlers {
     /**
      * To refine exceptions before handling the them.
      */
-    @Nullable
+    @NonNull
     private final ExceptionRefiner exceptionRefiner;
 
     /**
      * To log the to-be-handled exceptions.
      */
-    @Nullable
+    @NonNull
     private final ExceptionLogger exceptionLogger;
 
     /**
@@ -138,8 +138,8 @@ public class WebErrorHandlers {
     public WebErrorHandlers(@NonNull MessageSource messageSource,
                             @NonNull List<WebErrorHandler> implementations,
                             @Nullable WebErrorHandler defaultWebErrorHandler,
-                            @Nullable ExceptionRefiner exceptionRefiner,
-                            @Nullable ExceptionLogger exceptionLogger,
+                            @NonNull ExceptionRefiner exceptionRefiner,
+                            @NonNull ExceptionLogger exceptionLogger,
                             @NonNull List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
                             @NonNull FingerprintProvider fingerprintProvider,
                             @NonNull ErrorsProperties errorsProperties) {
@@ -147,9 +147,10 @@ public class WebErrorHandlers {
         if (requireNonNull(implementations, "Collection of error handlers is required").isEmpty()) {
             throw new IllegalArgumentException("We need at least one error handler");
         }
+        this.implementations = implementations;
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
-        this.exceptionRefiner = exceptionRefiner;
-        this.exceptionLogger = exceptionLogger;
+        this.exceptionRefiner = requireNonNull(exceptionRefiner);
+        this.exceptionLogger = requireNonNull(exceptionLogger);
         this.webErrorHandlerPostProcessors = requireNonNull(webErrorHandlerPostProcessors, "Postprocessor can not be null");
         this.fingerprintProvider = requireNonNull(fingerprintProvider, "Fingerprint provider is required");
         this.errorsProperties = requireNonNull(errorsProperties, "Error Properties is required");
@@ -161,7 +162,7 @@ public class WebErrorHandlers {
      * falls back to a default handler and then tries to handle the exception using the chosen
      * handler. Then would convert the {@link HandledException} to its corresponding {@link HttpError}.
      *
-     * @param exception   The exception to handle.
+     * @param originalException   The originalException to handle.
      * @param httpRequest The current HTTP request.
      * @param locale      Will be used to target a specific locale while translating the codes to error
      *                    messages.
@@ -169,20 +170,14 @@ public class WebErrorHandlers {
      * the intended HTTP Status Code.
      */
     @NonNull
-    public HttpError handle(@Nullable Throwable exception, @Nullable Object httpRequest, @Nullable Locale locale) {
+    public HttpError handle(@Nullable Throwable originalException, @Nullable Object httpRequest, @Nullable Locale locale) {
         if (locale == null) locale = Locale.ROOT;
 
-        if (exceptionLogger != null) exceptionLogger.log(exception);
+        exceptionLogger.log(originalException);
 
-        log.debug("About to handle an exception", exception);
-        Throwable refined = null;
-        if (exceptionRefiner != null) {
-            refined = exceptionRefiner.refine(exception);
-            if (refined != null) {
-                exception = refined;
-                log.debug("The caught exception got refined", refined);
-            }
-        }
+        log.debug("About to handle an exception", originalException);
+
+        Throwable exception = refineIfNeeded(originalException);
 
         WebErrorHandler handler = findHandler(exception);
         log.debug("The '{}' is going to handle the '{}' exception", className(handler), className(exception));
@@ -191,17 +186,29 @@ public class WebErrorHandlers {
         List<CodedMessage> codeWithMessages = translateErrors(handled, locale);
 
         HttpError httpError = new HttpError(codeWithMessages, handled.getStatusCode());
-        httpError.setOriginalException(exception);
-        httpError.setRefinedException(refined);
+        httpError.setOriginalException(originalException);
+        httpError.setRefinedException(exception);
         httpError.setRequest(httpRequest);
 
         if (errorsProperties.isAddFingerprint()) {
-            httpError.setFingerprint(fingerprintProvider.generate(httpError));
+            String fingerprint = fingerprintProvider.generate(httpError);
+            log.debug("Generated fingerprint: {}", fingerprint);
+            httpError.setFingerprint(fingerprint);
         }
 
+        log.debug("About to execute {} error handler post processors", webErrorHandlerPostProcessors.size());
         webErrorHandlerPostProcessors.forEach(p -> p.process(httpError));
 
         return httpError;
+    }
+
+    private Throwable refineIfNeeded(Throwable exception) {
+        Throwable refined = exceptionRefiner.refine(exception);
+        if (refined != null) {
+            log.debug("The caught exception got refined", refined);
+            return refined;
+        }
+        return exception;
     }
 
     private List<CodedMessage> translateErrors(HandledException handled, Locale locale) {

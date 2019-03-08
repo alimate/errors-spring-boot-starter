@@ -38,7 +38,6 @@ import javax.validation.MessageInterpolator;
 import javax.validation.Validator;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -109,11 +108,11 @@ public class ErrorsAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public WebErrorHandlers webErrorHandlers(MessageSource messageSource,
-                                             @Autowired(required = false) List<WebErrorHandler> customHandlers,
+                                             List<WebErrorHandler> customHandlers,
                                              @Qualifier("defaultWebErrorHandler") @Autowired(required = false) WebErrorHandler defaultWebErrorHandler,
-                                             @Autowired(required = false) ExceptionRefiner exceptionRefiner,
-                                             @Autowired(required = false) ExceptionLogger exceptionLogger,
-                                             @Autowired(required = false) List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
+                                             ExceptionRefiner exceptionRefiner,
+                                             ExceptionLogger exceptionLogger,
+                                             List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
                                              FingerprintProvider fingerprintProvider,
                                              ErrorsProperties errorsProperties,
                                              ApplicationContext context) {
@@ -121,7 +120,7 @@ public class ErrorsAutoConfiguration {
         List<WebErrorHandler> handlers = new ArrayList<>(BUILT_IN_HANDLERS);
         if (isServletApplication(context)) handlers.add(new ServletWebErrorHandler());
 
-        if (customHandlers != null && !customHandlers.isEmpty()) {
+        if (!customHandlers.isEmpty()) {
             customHandlers.remove(defaultWebErrorHandler);
             customHandlers.removeIf(Objects::isNull);
             customHandlers.sort(AnnotationAwareOrderComparator.INSTANCE);
@@ -129,13 +128,8 @@ public class ErrorsAutoConfiguration {
             handlers.addAll(customHandlers);
         }
 
-        List<WebErrorHandlerPostProcessor> processors = webErrorHandlerPostProcessors != null ?
-                webErrorHandlerPostProcessors : Collections.emptyList();
-
-        return new WebErrorHandlers(
-                messageSource, handlers, defaultWebErrorHandler, exceptionRefiner,
-                exceptionLogger, processors, fingerprintProvider, errorsProperties
-        );
+        return new WebErrorHandlers(messageSource, handlers, defaultWebErrorHandler, exceptionRefiner,
+                exceptionLogger, webErrorHandlerPostProcessors, fingerprintProvider, errorsProperties);
     }
 
     /**
@@ -208,12 +202,27 @@ public class ErrorsAutoConfiguration {
         return new ResponseStatusWebErrorHandler();
     }
 
+    @Bean
+    @ConditionalOnBean(WebErrorHandlers.class)
+    @ConditionalOnMissingBean
+    ExceptionRefiner exceptionRefiner() {
+        return new ExceptionRefiner.NoOp();
+    }
+
+    @Bean
+    @ConditionalOnBean(WebErrorHandlers.class)
+    @ConditionalOnMissingBean
+    ExceptionLogger exceptionLogger() {
+        return new ExceptionLogger.NoOp();
+    }
+
     /**
      * Registers a very simple UUID based {@link FingerprintProvider} in the absence of a custom provider.
      *
      * @return The UUID based fingerprint provider.
      */
     @Bean
+    @ConditionalOnBean(WebErrorHandlers.class)
     @ConditionalOnMissingBean
     public FingerprintProvider fingerprintProvider() {
         return new UuidFingerprintProvider();

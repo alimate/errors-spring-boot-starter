@@ -22,4 +22,14 @@ public interface ExceptionLogger {
      * @param exception The exception to log.
      */
     void log(@Nullable Throwable exception);
+
+    /**
+     * Exception logger that does nothing.
+     */
+    final class NoOp implements ExceptionLogger {
+        @Override
+        public void log(Throwable exception) {
+            // do nothing
+        }
+    }
 }
