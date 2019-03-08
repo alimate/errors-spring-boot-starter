@@ -23,7 +23,7 @@ A Bootiful, consistent and opinionated approach to handle all sorts of exception
     + [Default Error Handler](#default-error-handler)
     + [Refining Exceptions](#refining-exceptions)
     + [Logging Exceptions](#logging-exceptions)
-    + [Executing Arbitrary Actions](#executing-arbitrary-actions)
+    + [Post Processing Handled Exceptions](#post-processing-handled-exceptions)
     + [Registering Custom Handlers](#registering-custom-handlers)
     + [Enabling Web MVC Test Support](#enabling-web-mvc-test-support)
   * [License](#license)
@@ -39,6 +39,7 @@ Built on top of Spring Boot's great exception handling mechanism, the `errors-sp
  - Exposing arguments from exceptions to error messages.
  - Supporting both traditional and reactive stacks.
  - Customizable exception logging.
+ - Supporting error fingerprinting.
 
 ## Getting Started
 
@@ -359,13 +360,15 @@ By default, errors would manifest themselves in the HTTP response bodies with th
 There is also an option to generate error `fingerprint`. Fingerprint is a unique hash of error
 event which might be used as a correlation ID of error presented to user, and reported in
 application backend (e.g. in detailed log message). To generate error fingerprints, define a
-*Spring Bean* of type `me.alidg.errors.FingerprintProvider`.
+*Spring Bean* of type `FingerprintProvider`.
 
-There already exists implementation of such provider: `me.alidg.errors.fingerprint.Md5FingerprintProvider`.
-This provider generates MD5 checksum of full class name of original exception and current time.
+We provide two fingerprint providers out of the box:
+ - `Md5FingerprintProvider`.
+which generates MD5 checksum of full class name of original exception and current time.
+ - `UuidFingerprintProvider` which generates a random UUID regardless of the handled exxception.
 
 #### Customizing the Error Representation
-In order to change default error representation, just implement the `HttpErrorAttributesAdapter` 
+In order to change the default error representation, just implement the `HttpErrorAttributesAdapter` 
 interface and register it as *Spring Bean*:
 ```java
 @Component
@@ -423,16 +426,17 @@ public class StdErrExceptionLogger implements ExceptionLogger {
 }
 ``` 
 
-### Executing Arbitrary Actions
-As a more powerful alternative to `ExceptionLogger` mechanism, there is also `ErrorActionExecutor`
+### Post Processing Handled Exceptions
+As a more powerful alternative to `ExceptionLogger` mechanism, there is also `WebErrorHandlerPostProcessor`
 interface. You may declare multiple action executors which implement this interface and are exposed
 as *Spring Bean*. Below is an example of more advanced logging action executor:
 ```java
 @Component
-public class LoggingErrorActionExecutor implements ErrorActionExecutor {
-    private static final Logger log = LoggerFactory.getLogger(LoggingErrorActionExecutor.class);
+public class LoggingErrorWebErrorHandlerPostProcessor implements WebErrorHandlerPostProcessor {
+    private static final Logger log = LoggerFactory.getLogger(LoggingErrorWebErrorHandlerPostProcessor.class);
     
-    @Override public void execute(@NonNull HttpError error) {
+    @Override 
+    public void process(@NonNull HttpError error) {
         if (error.getHttpStatus().is4xxClientError()) {
             log.warn("[{}] {}", error.getFingerprint(), prepareMessage(error));
         } else if (error.getHttpStatus().is5xxServerError()) {
