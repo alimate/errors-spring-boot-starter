@@ -6,7 +6,7 @@ import me.alidg.errors.HttpError.CodedMessage;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
 import me.alidg.errors.conf.ErrorsAutoConfiguration;
-import me.alidg.errors.fingerprint.MD5FingerprintProvider;
+import me.alidg.errors.fingerprint.Md5FingerprintProvider;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -367,7 +367,7 @@ public class WebErrorHandlersIT {
     static class FingerprintConfig {
         @Bean
         FingerprintProvider provider() {
-            return new MD5FingerprintProvider();
+            return new Md5FingerprintProvider();
         }
     }
 

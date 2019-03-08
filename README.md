@@ -361,7 +361,7 @@ event which might be used as a correlation ID of error presented to user, and re
 application backend (e.g. in detailed log message). To generate error fingerprints, define a
 *Spring Bean* of type `me.alidg.errors.FingerprintProvider`.
 
-There already exists implementation of such provider: `me.alidg.errors.fingerprint.MD5FingerprintProvider`.
+There already exists implementation of such provider: `me.alidg.errors.fingerprint.Md5FingerprintProvider`.
 This provider generates MD5 checksum of full class name of original exception and current time.
 
 #### Customizing the Error Representation
