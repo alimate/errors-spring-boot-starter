@@ -3,9 +3,12 @@ package me.alidg.errors;
 import java.util.Objects;
 
 /**
- * Represents single named exception argument.
+ * Represents a single named exception argument.
+ *
+ * @author zarebski-m
  */
-public class Argument {
+public final class Argument {
+
     /**
      * Name of the argument.
      */
@@ -17,11 +20,10 @@ public class Argument {
     private final Object value;
 
     /**
-     * Named constructor of {@link Argument} instance.
+     * Creates an {@link Argument} instance based on the given name-value pair.
      *
      * @param name  Name of the argument.
      * @param value Value of the argument.
-     *
      * @return Instance of {@link Argument}.
      */
     public static Argument arg(String name, Object value) {
@@ -54,21 +56,25 @@ public class Argument {
         return name + "=" + value;
     }
 
+    /**
+     * Two arguments are equal iff they share the same name.
+     *
+     * @param other The other one to compare.
+     * @return {@code true} if they share the same name, {@code false} otherwise.
+     */
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        Argument argument = (Argument) o;
-        return Objects.equals(name, argument.name) &&
-                Objects.equals(value, argument.value);
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (other == null || getClass() != other.getClass()) return false;
+        Argument argument = (Argument) other;
+        return Objects.equals(getName(), argument.getName());
     }
 
+    /**
+     * @return The equals compatible hashcode.
+     */
     @Override
     public int hashCode() {
-        return Objects.hash(name, value);
+        return Objects.hash(getName());
     }
 }
