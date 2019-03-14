@@ -34,7 +34,7 @@ public class DefaultHttpErrorAttributesAdapterTest {
     @SuppressWarnings("unchecked")
     public void adapt_ShouldAdaptTheHttpErrorToAMapProperly() {
         ErrorsProperties errorsProperties = new ErrorsProperties();
-        errorsProperties.setExposeArguments(ArgumentExposure.non_empty);
+        errorsProperties.setExposeArguments(ArgumentExposure.NON_EMPTY);
         HttpErrorAttributesAdapter adapter = new DefaultHttpErrorAttributesAdapter(errorsProperties);
 
         HttpError.CodedMessage first = new HttpError.CodedMessage("f", null, emptyList());
@@ -87,12 +87,12 @@ public class DefaultHttpErrorAttributesAdapterTest {
 
     private Object[] provideExposureParams() {
         return p(
-                p(ArgumentExposure.never, emptyList(), false),
-                p(ArgumentExposure.never, singletonList(arg("name", "value")), false),
-                p(ArgumentExposure.non_empty, emptyList(), false),
-                p(ArgumentExposure.non_empty, singletonList(arg("name", "value")), true),
-                p(ArgumentExposure.always, emptyList(), true),
-                p(ArgumentExposure.always, singletonList(arg("name", "value")), true)
+                p(ArgumentExposure.NEVER, emptyList(), false),
+                p(ArgumentExposure.NEVER, singletonList(arg("name", "value")), false),
+                p(ArgumentExposure.NON_EMPTY, emptyList(), false),
+                p(ArgumentExposure.NON_EMPTY, singletonList(arg("name", "value")), true),
+                p(ArgumentExposure.ALWAYS, emptyList(), true),
+                p(ArgumentExposure.ALWAYS, singletonList(arg("name", "value")), true)
         );
     }
 }

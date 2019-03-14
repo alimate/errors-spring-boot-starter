@@ -1,12 +1,16 @@
 package me.alidg.errors.conf;
 
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.adapter.DefaultHttpErrorAttributesAdapter;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
+import me.alidg.errors.conf.ErrorsProperties.ArgumentExposure;
 import me.alidg.errors.handlers.*;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
@@ -22,6 +26,7 @@ import java.util.List;
 
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
+import static me.alidg.Params.p;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -29,13 +34,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Ali Dehghani
  */
+@RunWith(JUnitParamsRunner.class)
 public class ErrorsAutoConfigurationIT {
 
     private final WebApplicationContextRunner contextRunner = new WebApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(
                     ErrorsAutoConfiguration.class,
-                    ServletErrorsAutoConfiguration.class)
-            );
+                    ServletErrorsAutoConfiguration.class
+            ));
 
     @Test
     public void whenAnotherWebErrorHandlersRegistered_TheDefaultOneShouldBeDiscarded() {
@@ -164,18 +170,30 @@ public class ErrorsAutoConfigurationIT {
             ErrorsProperties properties = ctx.getBean(ErrorsProperties.class);
 
             assertThat(properties).isNotNull();
-            assertThat(properties.getExposeArguments()).isEqualTo(ErrorsProperties.ArgumentExposure.never);
+            assertThat(properties.getExposeArguments()).isEqualTo(ArgumentExposure.NEVER);
         });
     }
 
     @Test
-    public void withProperties_ErrorsPropertiesBeanIsConfigurable() {
-        contextRunner.withPropertyValues("spring.errors.expose-arguments=always").run(ctx -> {
+    @Parameters(method = "provideExposures")
+    public void withProperties_ErrorsPropertiesBeanIsConfigurable(String value, ArgumentExposure expected) {
+        contextRunner.withPropertyValues("errors.expose-arguments=" + value).run(ctx -> {
             ErrorsProperties properties = ctx.getBean(ErrorsProperties.class);
 
             assertThat(properties).isNotNull();
-            assertThat(properties.getExposeArguments()).isEqualTo(ErrorsProperties.ArgumentExposure.always);
+            assertThat(properties.getExposeArguments()).isEqualTo(expected);
         });
+    }
+
+    private Object[] provideExposures() {
+        return p(
+                p("ALWAYS¨", ArgumentExposure.ALWAYS),
+                p("always¨", ArgumentExposure.ALWAYS),
+                p("NON_EMPTY¨", ArgumentExposure.NON_EMPTY),
+                p("non_empty¨", ArgumentExposure.NON_EMPTY),
+                p("NEVER¨", ArgumentExposure.NEVER),
+                p("never¨", ArgumentExposure.NEVER)
+        );
     }
 
     private void assertDefaultHandler(WebErrorHandler actualHandler,

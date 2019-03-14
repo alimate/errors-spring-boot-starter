@@ -191,7 +191,7 @@ return type. The `HandledException` class also accepts the *to-be-exposed* argum
 
 #### Exposing Named Arguments
 By default error arguments are used in message interpolation only. It is also possible to additionally  get those
-arguments in error response by defining configuration property `spring.errors.expose-arguments`.
+arguments in error response by defining configuration property `errors.expose-arguments`.
 With arguments exposed you might get the following response payload:
 ```json
 {
@@ -207,7 +207,7 @@ With arguments exposed you might get the following response payload:
 }
 ```
 
-Property `spring.errors.expose-arguments` takes 3 possible values:
+Property `errors.expose-arguments` takes 3 possible values:
  - `never` - named arguments will never be exposed. This is the default setting.
  - `non_empty` - named arguments will be exposed only in case there are any. If error has no arguments,
    result payload will not have `"arguments"` element.
@@ -387,12 +387,12 @@ By default, errors would manifest themselves in the HTTP response bodies with th
 There is also an option to generate error `fingerprint`. Fingerprint is a unique hash of error
 event which might be used as a correlation ID of error presented to user, and reported in
 application backend (e.g. in detailed log message). To generate error fingerprints, add
-configuration property `spring.errors.add-fingerprint=true`.
+configuration property `errors.add-fingerprint=true`.
 
 We provide two fingerprint providers implementations:
  - `UuidFingerprintProvider` which generates a random UUID regardless of the handled exception.
    This is the default provider and will be used out of the box if
-   `spring.errors.add-fingerprint=true` property is configured.
+   `errors.add-fingerprint=true` property is configured.
  - `Md5FingerprintProvider` which generates MD5 checksum of full class name of original exception
    and current time.
 
@@ -529,12 +529,12 @@ public class UserControllerIT {
 
 ### Configuration
 Additional configuration of this starter can be provided by configuration properties - the Spring Boot way.
-All configuration properties start with `spring.errors`. Below is a list of supported properties:
+All configuration properties start with `errors`. Below is a list of supported properties:
 
 |            Property              |             Values             | Default value |
 |:--------------------------------:|:------------------------------:|:-------------:|
-| `spring.errors.expose-arguments` | `never`, `non_empty`, `always` |    `never`    |
-| `spring.errors.add-fingerprint`  |        `true`, `false`         |    `false`    |
+| `errors.expose-arguments` | `never`, `non_empty`, `always` |    `never`    |
+| `errors.add-fingerprint`  |        `true`, `false`         |    `false`    |
 
 Check `ErrorsProperties` implementation for more details.
 

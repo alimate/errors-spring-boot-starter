@@ -92,6 +92,9 @@ public class WebErrorHandlers {
     @NonNull
     private final FingerprintProvider fingerprintProvider;
 
+    /**
+     * Encapsulates the configuration properties to configure the error starter.
+     */
     @NonNull
     private final ErrorsProperties errorsProperties;
 
@@ -113,9 +116,8 @@ public class WebErrorHandlers {
                             @Nullable WebErrorHandler defaultWebErrorHandler,
                             @Nullable ExceptionRefiner exceptionRefiner,
                             @Nullable ExceptionLogger exceptionLogger) {
-        this(messageSource, implementations, defaultWebErrorHandler, exceptionRefiner,
-                exceptionLogger, Collections.emptyList(), new UuidFingerprintProvider(),
-                new ErrorsProperties());
+        this(messageSource, implementations, defaultWebErrorHandler, exceptionRefiner, exceptionLogger,
+                Collections.emptyList(), new UuidFingerprintProvider(), new ErrorsProperties());
     }
 
     /**
@@ -144,14 +146,14 @@ public class WebErrorHandlers {
                             @NonNull FingerprintProvider fingerprintProvider,
                             @NonNull ErrorsProperties errorsProperties) {
         enforcePreconditions(messageSource, implementations);
-        this.messageSource = requireNonNull(messageSource);
-        this.implementations = requireNonNull(implementations);
+        this.messageSource = requireNonNull(messageSource, "Message source is required");
+        this.implementations = requireNonNull(implementations, "Web error handlers are is required");
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
         this.exceptionRefiner = exceptionRefiner;
         this.exceptionLogger = exceptionLogger;
-        this.webErrorHandlerPostProcessors = requireNonNull(webErrorHandlerPostProcessors);
-        this.fingerprintProvider = requireNonNull(fingerprintProvider);
-        this.errorsProperties = requireNonNull(errorsProperties);
+        this.webErrorHandlerPostProcessors = requireNonNull(webErrorHandlerPostProcessors, "Postprocessor can not be null");
+        this.fingerprintProvider = requireNonNull(fingerprintProvider, "Fingerprint provider is required");
+        this.errorsProperties = requireNonNull(errorsProperties, "Error Properties is required");
     }
 
     /**

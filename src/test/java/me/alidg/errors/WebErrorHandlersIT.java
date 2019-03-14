@@ -186,7 +186,7 @@ public class WebErrorHandlersIT {
 
     @Test
     public void errorFingerprint_ShouldBeCalculatedWhenConfigured() {
-        contextRunner.withPropertyValues("spring.errors.add-fingerprint=true").run(ctx -> {
+        contextRunner.withPropertyValues("errors.add-fingerprint=true").run(ctx -> {
             WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
 
             HttpError error = errorHandlers.handle(new SomeException(10, 12), null, null);
@@ -198,7 +198,7 @@ public class WebErrorHandlersIT {
 
     @Test
     public void errorFingerprint_ShouldBeUnique() {
-        contextRunner.withPropertyValues("spring.errors.add-fingerprint=true").run(ctx -> {
+        contextRunner.withPropertyValues("errors.add-fingerprint=true").run(ctx -> {
             WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
 
             Exception e1 = new SomeException(1, 2);

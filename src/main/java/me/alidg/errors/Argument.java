@@ -67,6 +67,7 @@ public final class Argument {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
         Argument argument = (Argument) other;
+
         return Objects.equals(getName(), argument.getName());
     }
 

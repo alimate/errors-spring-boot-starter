@@ -132,8 +132,10 @@ public class ErrorsAutoConfiguration {
         List<WebErrorHandlerPostProcessor> processors = webErrorHandlerPostProcessors != null ?
                 webErrorHandlerPostProcessors : Collections.emptyList();
 
-        return new WebErrorHandlers(messageSource, handlers, defaultWebErrorHandler, exceptionRefiner, exceptionLogger,
-                processors, fingerprintProvider, errorsProperties);
+        return new WebErrorHandlers(
+                messageSource, handlers, defaultWebErrorHandler, exceptionRefiner,
+                exceptionLogger, processors, fingerprintProvider, errorsProperties
+        );
     }
 
     /**
@@ -206,6 +208,11 @@ public class ErrorsAutoConfiguration {
         return new ResponseStatusWebErrorHandler();
     }
 
+    /**
+     * Registers a very simple UUID based {@link FingerprintProvider} in the absence of a custom provider.
+     *
+     * @return The UUID based fingerprint provider.
+     */
     @Bean
     @ConditionalOnMissingBean
     public FingerprintProvider fingerprintProvider() {

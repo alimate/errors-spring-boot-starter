@@ -1,13 +1,12 @@
 package me.alidg.errors.adapter;
 
-import me.alidg.errors.Argument;
 import me.alidg.errors.HttpError;
+import me.alidg.errors.HttpError.CodedMessage;
 import me.alidg.errors.conf.ErrorsProperties;
 import org.springframework.lang.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -20,9 +19,13 @@ import static java.util.stream.Collectors.toList;
  *         "errors": [
  *              {
  *                  "code": "the_code",
- *                  "message": "the_message"
+ *                  "message": "the_message",
+ *                  "arguments": {
+ *                      "name": "value"
+ *                  }
  *              }, ...
- *         ]
+ *         ],
+ *         "fingerprint": "value"
  *     }
  * </pre>
  *
@@ -30,8 +33,18 @@ import static java.util.stream.Collectors.toList;
  */
 public class DefaultHttpErrorAttributesAdapter implements HttpErrorAttributesAdapter {
 
+    /**
+     * Encapsulates the configuration properties to configure the errors starter.
+     */
     private final ErrorsProperties errorsProperties;
 
+    /**
+     * Constructs an instance of {@link DefaultHttpErrorAttributesAdapter} given the
+     * configuration properties.
+     *
+     * @param errorsProperties Encapsulates the configuration properties to configure the
+     *                         errors starter.
+     */
     public DefaultHttpErrorAttributesAdapter(ErrorsProperties errorsProperties) {
         this.errorsProperties = errorsProperties;
     }
@@ -64,33 +77,14 @@ public class DefaultHttpErrorAttributesAdapter implements HttpErrorAttributesAda
         return map;
     }
 
-    private Map<String, Object> toMap(HttpError.CodedMessage codedMessage) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("code", codedMessage.getCode());
-        map.put("message", codedMessage.getMessage());
+    private Map<String, Object> toMap(CodedMessage codedMessage) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("code", codedMessage.getCode());
+        error.put("message", codedMessage.getMessage());
 
-        exposeArgumentsIfNeeded(map, codedMessage);
+        if (errorsProperties.getExposeArguments() != null)
+            errorsProperties.getExposeArguments().expose(error, codedMessage.getArguments());
 
-        return map;
-    }
-
-    private void exposeArgumentsIfNeeded(Map<String, Object> map, HttpError.CodedMessage codedMessage) {
-        switch (errorsProperties.getExposeArguments()) {
-            case never:
-                return;
-
-            case always:
-                map.put("arguments", codedMessage.getArguments().stream().collect(Collectors.toMap(Argument::getName, Argument::getValue)));
-                return;
-
-            case non_empty:
-                if (!codedMessage.getArguments().isEmpty()) {
-                    map.put("arguments", codedMessage.getArguments().stream().collect(Collectors.toMap(Argument::getName, Argument::getValue)));
-                }
-                return;
-
-            default:
-                throw new IllegalStateException();
-        }
+        return error;
     }
 }
