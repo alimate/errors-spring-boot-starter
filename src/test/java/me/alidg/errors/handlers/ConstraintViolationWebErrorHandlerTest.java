@@ -100,7 +100,7 @@ public class ConstraintViolationWebErrorHandlerTest {
                         singletonMap("username.size", asList(
                                 arg("max", 10),
                                 arg("min", 6),
-                                arg("invalid", "alidg"),
+                                arg("invalid", ""),
                                 arg("property", "username")))
                 ),
                 p(
@@ -110,11 +110,11 @@ public class ConstraintViolationWebErrorHandlerTest {
                             put("username.size", asList(
                                     arg("max", 10),
                                     arg("min", 6),
-                                    arg("invalid", "alidg"),
+                                    arg("invalid", "ali"),
                                     arg("property", "username")));
                             put("age.min", asList(
                                     arg("value", 18L),
-                                    arg("invalid", 12L),
+                                    arg("invalid", 12),
                                     arg("property", "age")));
                         }}
                 ),
@@ -129,7 +129,7 @@ public class ConstraintViolationWebErrorHandlerTest {
                                     arg("property", "username")));
                             put("age.max", asList(
                                     arg("value", 30L),
-                                    arg("invalid", 35L),
+                                    arg("invalid", 35),
                                     arg("property", "age")));
                         }}
                 )

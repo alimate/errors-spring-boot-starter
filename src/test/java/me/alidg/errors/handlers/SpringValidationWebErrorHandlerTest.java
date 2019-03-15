@@ -2,6 +2,7 @@ package me.alidg.errors.handlers;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static me.alidg.Params.p;
@@ -66,7 +68,7 @@ public class SpringValidationWebErrorHandlerTest {
     @Parameters(method = "provideParamsForHandle")
     public void handle_ShouldHandleTheValidationErrorsProperly(Object toValidate,
                                                                Set<String> errorCodes,
-                                                               Map<String, List<Object>> args) {
+                                                               Map<String, List<Argument>> args) {
         BindingResult result = new BeanPropertyBindingResult(toValidate, "toValidate");
         validator.validate(toValidate, result);
 
@@ -103,40 +105,39 @@ public class SpringValidationWebErrorHandlerTest {
                 p(tbv("ali", 0, "coding"), e("age.min"),
                         singletonMap("age.min", asList(
                                 arg("value", 1L),
-                                arg("invalid", 0L),
+                                arg("invalid", 0),
                                 arg("property", "age")))),
                 p(tbv("ali", 29), e("interests.limit"),
                         singletonMap("interests.limit", asList(
                                 arg("max", 6),
                                 arg("min", 1),
-                                arg("invalid", null),
+                                arg("invalid", emptyList()),
                                 arg("property", "interests")))),
                 p(tbv("", 29, "coding"), e("name.required"),
                         singletonMap("name.required", asList(
                                 arg("invalid", ""),
                                 arg("property", "name")))),
-                p(
-                        tbv("", 200), e("name.required", "age.max", "interests.limit"),
+                p(tbv("", 200), e("name.required", "age.max", "interests.limit"),
                         m(
                                 "age.max", asList(
                                         arg("value", 100L),
-                                        arg("invalid", 200L),
+                                        arg("invalid", 200),
                                         arg("property", "age")),
                                 "interests.limit", asList(
                                         arg("max", 6),
                                         arg("min", 1),
-                                        arg("invalid", null),
+                                        arg("invalid", emptyList()),
                                         arg("property", "interests")),
                                 "name.required", asList(
                                         arg("invalid", ""),
                                         arg("property", "name"))
                         )
                 ),
-                p(
-                        tbv("ali", 29, singletonList("coding"), asList(tbvChild(""), tbvChild(""), tbvChild(""))),
-                        e("stringField.required"), singletonMap("stringField.required", asList(
+                p(tbv("ali", 29, singletonList("coding"), asList(tbvChild("given"), tbvChild(""), tbvChild("also given"))),
+                        e("stringField.required"),
+                        singletonMap("stringField.required", asList(
                                 arg("invalid", ""),
-                                arg("property", "property=tbvChildren[1].stringField"))))
+                                arg("property", "tbvChildren[1].stringField"))))
         );
     }
 

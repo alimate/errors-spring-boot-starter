@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import static java.util.Collections.emptyList;
 import static me.alidg.Params.p;
 import static me.alidg.errors.Argument.arg;
 import static me.alidg.errors.WebErrorHandlersIT.Pojo.pojo;
@@ -244,59 +245,59 @@ public class WebErrorHandlersIT {
                 p(
                         pojo("t", -1, "a"), null,
                         cm("number.min", "The min is 0",
-                                arg("value", 0L), arg("invalid", -1L), arg("property", "number"))
+                                arg("value", 0L), arg("invalid", -1), arg("property", "number"))
                 ),
                 p(
                         pojo("t", -1, "a"), Locale.GERMANY,
                         cm("number.min", "The min is 0",
-                                arg("value", 0L), arg("invalid", -1L), arg("property", "number"))
+                                arg("value", 0L), arg("invalid", -1), arg("property", "number"))
                 ),
 
                 // Invalid number: max
                 p(
                         pojo("t", 11, "a"), null,
                         cm("number.max", null,
-                                arg("value", 10L), arg("invalid", 11L), arg("property", "number"))
+                                arg("value", 10L), arg("invalid", 11), arg("property", "number"))
                 ),
                 p(
                         pojo("t", 11, "a"), Locale.GERMANY,
                         cm("number.max", null,
-                                arg("value", 10L), arg("invalid", 11L), arg("property", "number"))
+                                arg("value", 10L), arg("invalid", 11), arg("property", "number"))
                 ),
                 p(
                         pojo("t", 11, "a"), IRAN_LOCALE,
                         cm("number.max", null,
-                                arg("value", 10L), arg("invalid", 11L), arg("property", "number"))
+                                arg("value", 10L), arg("invalid", 11), arg("property", "number"))
                 ),
 
                 // Invalid range
                 p(
                         pojo("t", 0), null,
                         cm("range.limit", "Between 1 and 3",
-                                arg("max", 3), arg("min", 1), arg("invalid", null), arg("property", "range"))
+                                arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range"))
                 ),
                 p(
                         pojo("t", 0), Locale.GERMANY,
                         cm("range.limit", "Between 1 and 3",
-                                arg("max", 3), arg("min", 1), arg("invalid", null), arg("property", "range"))
+                                arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range"))
                 ),
 
                 // Mixed
                 p(
                         pojo("", 11), null,
                         cm("range.limit", "Between 1 and 3",
-                                arg("max", 3), arg("min", 1), arg("invalid", null), arg("property", "range")),
+                                arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range")),
                         cm("number.max", null,
-                                arg("value", 10L), arg("invalid", 11L), arg("property", "number")),
+                                arg("value", 10L), arg("invalid", 11), arg("property", "number")),
                         cm("text.required", "The text is required",
                                 arg("invalid", ""), arg("property", "text"))
                 ),
                 p(
                         pojo("", 11), Locale.CANADA,
                         cm("range.limit", "Between 1 and 3",
-                                arg("max", 3), arg("min", 1), arg("invalid", null), arg("property", "range")),
+                                arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range")),
                         cm("number.max", null,
-                                arg("value", 10L), arg("invalid", 11L), arg("property", "number")),
+                                arg("value", 10L), arg("invalid", 11), arg("property", "number")),
                         cm("text.required", "The text is required",
                                 arg("invalid", ""), arg("property", "text"))
                 )

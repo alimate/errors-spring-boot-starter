@@ -57,10 +57,10 @@ public final class Argument {
     }
 
     /**
-     * Two arguments are equal iff they share the same name.
+     * Two arguments are equal iff they share the same name and value.
      *
      * @param other The other one to compare.
-     * @return {@code true} if they share the same name, {@code false} otherwise.
+     * @return {@code true} if they share the same name and value, {@code false} otherwise.
      */
     @Override
     public boolean equals(Object other) {
@@ -68,7 +68,8 @@ public final class Argument {
         if (other == null || getClass() != other.getClass()) return false;
         Argument argument = (Argument) other;
 
-        return Objects.equals(getName(), argument.getName());
+        return Objects.equals(getName(), argument.getName()) &&
+                Objects.equals(getValue(), argument.getValue());
     }
 
     /**
@@ -76,6 +77,6 @@ public final class Argument {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(getName());
+        return Objects.hash(getName(), getValue());
     }
 }
