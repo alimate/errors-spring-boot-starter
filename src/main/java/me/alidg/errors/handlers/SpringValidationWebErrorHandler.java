@@ -16,10 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toMap;
 import static me.alidg.errors.Argument.arg;
 
 /**
@@ -43,11 +42,6 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
      * Basic error code for unknown binding errors.
      */
     public static final String BINDING_FAILURE = "binding.failure";
-
-    /**
-     * Collection of Bean Validation attributes to ignore and to not report as arguments.
-     */
-    private static final List<String> IGNORE_ATTRS = asList("message", "payload", "groups");
 
     /**
      * Can only handle supported exceptions mentioned above.
@@ -119,8 +113,14 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
 
     /**
      * Extracts the arguments from the validation meta data and exposes them to the outside
-     * would! Apparently, all actual arguments are starting at index 1. So If there is less
-     * than or equal to one argument, then we can assume that there is no argument to expose.
+     * world. First try to unwrap {@link ConstraintViolation} and if successful, use
+     * {@link ConstraintViolationArgumentsExtractor#extract(ConstraintViolation)}. Otherwise
+     * fallback to handling {@link ObjectError#getArguments()} with generated argument names
+     * ({@code "arg0"}, {@code "arg1"}, etc.
+     *
+     * <p>Apparently, all actual arguments in {@link ObjectError#getArguments()} are starting
+     * at index 1. So If there is less than or equal to one argument, then we can assume that
+     * there is no argument to expose.
      *
      * @param error Encapsulates the error details.
      * @return Collection of all arguments for the given {@code error} details.
@@ -129,37 +129,22 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
         List<Argument> arguments = null;
 
         try {
-            ConstraintViolation violation = error.unwrap(ConstraintViolation.class);
-            Map<String, Object> attributes = getAttributes(violation);
-            arguments = attributes
-                    .entrySet()
-                    .stream()
-                    .filter(e -> !IGNORE_ATTRS.contains(e.getKey()))
-                    .map(e -> arg(e.getKey(), e.getValue()))
-                    .sorted(comparing(Argument::getName))
-                    .collect(toList());
+            ConstraintViolation<?> violation = error.unwrap(ConstraintViolation.class);
+            return ConstraintViolationArgumentsExtractor.extract(violation);
+        } catch (Exception ignored) {}
+
+        try {
+            TypeMismatchException mismatchException = error.unwrap(TypeMismatchException.class);
+            arguments = new ArrayList<>();
+            arguments.add(arg("property_name", mismatchException.getPropertyName()));
+            arguments.add(arg("invalid_value", mismatchException.getValue()));
+            if (mismatchException.getRequiredType() != null) {
+                arguments.add(arg("required_type", mismatchException.getRequiredType().getSimpleName()));
+            }
 
         } catch (Exception ignored) {}
 
-        if (arguments == null) {
-            try {
-                TypeMismatchException mismatchException = error.unwrap(TypeMismatchException.class);
-                arguments = new ArrayList<>();
-                arguments.add(arg("property_name", mismatchException.getPropertyName()));
-                arguments.add(arg("invalid_value", mismatchException.getValue()));
-                if (mismatchException.getRequiredType() != null) {
-                    arguments.add(arg("required_type", mismatchException.getRequiredType().getSimpleName()));
-                }
-
-            } catch (Exception ignored) {}
-        }
-
         return arguments == null ? emptyList() : arguments;
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> getAttributes(ConstraintViolation violation) {
-        return violation.getConstraintDescriptor().getAttributes();
     }
 
     /**
