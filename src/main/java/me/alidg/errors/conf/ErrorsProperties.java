@@ -28,8 +28,6 @@ public class ErrorsProperties {
      */
     private boolean addFingerprint = false;
 
-    private boolean namedArguments = true;
-
     /**
      * @return {@code exposeArguments}
      * @see #exposeArguments
@@ -60,14 +58,6 @@ public class ErrorsProperties {
      */
     public void setAddFingerprint(boolean addFingerprint) {
         this.addFingerprint = addFingerprint;
-    }
-    
-    public boolean isNamedArguments() {
-        return namedArguments;
-    }
-
-    public void setNamedArguments(boolean namedArguments) {
-        this.namedArguments = namedArguments;
     }
 
     /**

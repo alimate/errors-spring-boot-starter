@@ -5,7 +5,6 @@ import junitparams.Parameters;
 import me.alidg.errors.Argument;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.springframework.context.MessageSource;
 
 import java.util.List;
@@ -32,23 +31,9 @@ public class ErrorMessageInterpolatorTest {
     private MessageSource messageSource = mock(MessageSource.class);
 
     @Test
-    public void messageInterpolation_WithPositionalArguments() {
-        List<Argument> arguments = asList(arg("max", 100), arg("min", -100));
-        ErrorMessageInterpolator interpolator = new ErrorMessageInterpolator(messageSource, false);
-
-        interpolator.interpolate("code", arguments, Locale.ROOT);
-
-        ArgumentCaptor<Object[]> argsCaptor = ArgumentCaptor.forClass(Object[].class);
-        verify(messageSource, times(1)).getMessage(eq("code"), argsCaptor.capture(), any(Locale.class));
-        verifyNoMoreInteractions(messageSource);
-
-        assertThat(arguments).extracting(Argument::getValue).containsExactly(argsCaptor.getValue());
-    }
-
-    @Test
     @Parameters(method = "provideParamsForNamedArguments")
     public void messageInterpolation_WithNamedArguments(String template, List<Argument> arguments, String expectedMessage) {
-        ErrorMessageInterpolator interpolator = new ErrorMessageInterpolator(messageSource, true);
+        ErrorMessageInterpolator interpolator = new ErrorMessageInterpolator(messageSource);
 
         when(messageSource.getMessage(eq("code"), isNull(), any(Locale.class))).thenReturn(template);
 

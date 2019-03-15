@@ -140,7 +140,7 @@ public class WebErrorHandlers {
                      @NonNull ErrorsProperties errorsProperties) {
         MessageSource ms = requireNonNull(messageSource, "We need a MessageSource implementation to message translation");
         this.errorsProperties = requireNonNull(errorsProperties);
-        this.messageInterpolator = new ErrorMessageInterpolator(ms, errorsProperties.isNamedArguments());
+        this.messageInterpolator = new ErrorMessageInterpolator(ms);
         this.webErrorHandlers = requireAtLeastOneHandler(webErrorHandlers);
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
         this.exceptionRefiner = requireNonNull(exceptionRefiner);
