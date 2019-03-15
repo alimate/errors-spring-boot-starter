@@ -102,15 +102,15 @@ public class SpringValidationWebErrorHandlerTest {
     private Object[] provideParamsForHandle() {
         return p(
                 p(tbv("ali", 0, "coding"), e("age.min"),
-                        singletonMap("age.min", singletonList(arg("arg0", 1L)))),
+                        singletonMap("age.min", singletonList(arg("value", 1L)))),
                 p(tbv("ali", 29), e("interests.limit"),
-                        singletonMap("interests.limit", asList(arg("arg0", 6), arg("arg1", 1)))),
+                        singletonMap("interests.limit", asList(arg("max", 6), arg("min", 1)))),
                 p(tbv("", 29, "coding"), e("name.required"), emptyMap()),
                 p(
                         tbv("", 200), e("name.required", "age.max", "interests.limit"),
                         m(
-                                "age.max", singletonList(arg("arg0", 100L)),
-                                "interests.limit", asList(arg("arg0", 6), arg("arg1", 1))
+                                "age.max", singletonList(arg("value", 100L)),
+                                "interests.limit", asList(arg("max", 6), arg("min", 1))
                         )
                 ),
                 p(tbv("ali", 29, singletonList("coding"), asList(tbvChild(""), tbvChild(""), tbvChild(""))), e("stringField.required"), emptyMap())

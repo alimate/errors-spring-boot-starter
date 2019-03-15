@@ -13,6 +13,7 @@ import me.alidg.errors.handlers.LastResortWebErrorHandler;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -33,6 +34,7 @@ import org.springframework.boot.test.util.ApplicationContextTestUtils;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockCookie;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -46,17 +48,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.MatrixVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -72,14 +64,8 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static me.alidg.Params.p;
-import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_COOKIE;
-import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_HEADER;
-import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_MATRIX_VARIABLE;
-import static me.alidg.errors.handlers.ServletWebErrorHandler.INVALID_OR_MISSING_BODY;
-import static me.alidg.errors.handlers.ServletWebErrorHandler.METHOD_NOT_ALLOWED;
-import static me.alidg.errors.handlers.ServletWebErrorHandler.MISSING_PARAMETER;
-import static me.alidg.errors.handlers.ServletWebErrorHandler.MISSING_PART;
-import static me.alidg.errors.handlers.ServletWebErrorHandler.NOT_SUPPORTED;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.*;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.*;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.ACCESS_DENIED;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.AUTH_REQUIRED;
 import static me.alidg.errors.mvc.ErrorsControllerAdviceIT.Dto.dto;
@@ -87,11 +73,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -272,6 +255,30 @@ public class ErrorsControllerAdviceIT {
                 .andExpect(jsonPath("errors[0].code").value(MISSING_MATRIX_VARIABLE));
     }
 
+    @Test
+    @Ignore
+    public void controllerAdvice_ShouldHandleTypeMismatchesProperly() throws Exception {
+        MockCookie cookie = new MockCookie("c", "de");
+        mvc.perform(get("/test/type-mismatch").param("number", "not a number").cookie(cookie).header("d", "cv"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("errors[0].code").value(""))
+                .andDo(print());
+    }
+
+    @Test
+    public void controllerAdvice_ShouldHandleBindingExceptionsProperly() throws Exception {
+        mvc.perform(get("/test/paged").param("page", "not a number").param("size", "size").param("sort", "value"))
+                .andExpect(status().isBadRequest())
+                .andExpect(
+                        jsonPath("errors[*].code")
+                                .value(Matchers.containsInAnyOrder(
+                                        "binding.type_mismatch.page",
+                                        "binding.type_mismatch.size",
+                                        "binding.type_mismatch.sort"
+                                ))
+                );
+    }
+
     private Object[] provideInvalidBody() {
         return p(
                 p(dto("", 10, "code"), null, cm("text.required", "The text is required")),
@@ -379,6 +386,47 @@ public class ErrorsControllerAdviceIT {
 
         @GetMapping("/matrix")
         public void matrixIsRequired(@MatrixVariable String name) {}
+
+        @GetMapping("/type-mismatch")
+        public void mismatch(@RequestParam Integer number) {}
+
+        @GetMapping("/paged")
+        public void pagedResult(Pageable pageable) {}
+    }
+
+    protected static class Pageable {
+
+        private Integer page;
+        private Integer size;
+        private Sort sort;
+
+        public Integer getPage() {
+            return page;
+        }
+
+        public void setPage(Integer page) {
+            this.page = page;
+        }
+
+        public Integer getSize() {
+            return size;
+        }
+
+        public void setSize(Integer size) {
+            this.size = size;
+        }
+
+        public Sort getSort() {
+            return sort;
+        }
+
+        public void setSort(Sort sort) {
+            this.sort = sort;
+        }
+    }
+
+    protected enum Sort {
+        ASC, DESC
     }
 
     protected static class Dto {

@@ -306,48 +306,48 @@ public class WebErrorHandlersIT {
                 // Invalid number: min
                 p(
                         pojo("t", -1, "a"), null,
-                        cm("number.min", "The min is 0", arg("arg0", 0L))
+                        cm("number.min", "The min is 0", arg("value", 0L))
                 ),
                 p(
                         pojo("t", -1, "a"), Locale.GERMANY,
-                        cm("number.min", "The min is 0", arg("arg0", 0L))
+                        cm("number.min", "The min is 0", arg("value", 0L))
                 ),
 
                 // Invalid number: max
                 p(
                         pojo("t", 11, "a"), null,
-                        cm("number.max", null, arg("arg0", 10L))
+                        cm("number.max", null, arg("value", 10L))
                 ),
                 p(
                         pojo("t", 11, "a"), Locale.GERMANY,
-                        cm("number.max", null, arg("arg0", 10L))
+                        cm("number.max", null, arg("value", 10L))
                 ),
                 p(
                         pojo("t", 11, "a"), IRAN_LOCALE,
-                        cm("number.max", null, arg("arg0", 10L))
+                        cm("number.max", null, arg("value", 10L))
                 ),
 
                 // Invalid range
                 p(
                         pojo("t", 0), null,
-                        cm("range.limit", "Between 1 and 3", arg("arg0", 3), arg("arg1", 1))
+                        cm("range.limit", "Between 1 and 3", arg("max", 3), arg("min", 1))
                 ),
                 p(
                         pojo("t", 0), Locale.GERMANY,
-                        cm("range.limit", "Between 1 and 3", arg("arg0", 3), arg("arg1", 1))
+                        cm("range.limit", "Between 1 and 3", arg("max", 3), arg("min", 1))
                 ),
 
                 // Mixed
                 p(
                         pojo("", 11), null,
-                        cm("range.limit", "Between 1 and 3", arg("arg0", 3), arg("arg1", 1)),
-                        cm("number.max", null, arg("arg0", 10L)),
+                        cm("range.limit", "Between 1 and 3", arg("max", 3), arg("min", 1)),
+                        cm("number.max", null, arg("value", 10L)),
                         cm("text.required", "The text is required")
                 ),
                 p(
                         pojo("", 11), Locale.CANADA,
-                        cm("range.limit", "Between 1 and 3", arg("arg0", 3), arg("arg1", 1)),
-                        cm("number.max", null, arg("arg0", 10L)),
+                        cm("range.limit", "Between 1 and 3", arg("max", 3), arg("min", 1)),
+                        cm("number.max", null, arg("value", 10L)),
                         cm("text.required", "The text is required")
                 )
         );

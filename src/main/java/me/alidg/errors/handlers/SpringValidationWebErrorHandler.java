@@ -3,6 +3,7 @@ package me.alidg.errors.handlers;
 import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.validation.BindException;
@@ -11,14 +12,14 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import javax.validation.ConstraintViolation;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toMap;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.*;
 import static me.alidg.errors.Argument.arg;
 
 /**
@@ -32,6 +33,21 @@ import static me.alidg.errors.Argument.arg;
  * @author Ali Dehghani
  */
 public class SpringValidationWebErrorHandler implements WebErrorHandler {
+
+    /**
+     * Basic error code for all type mismatches.
+     */
+    public static final String TYPE_MISMATCH = "binding.type_mismatch";
+
+    /**
+     * Basic error code for unknown binding errors.
+     */
+    public static final String BINDING_FAILURE = "binding.failure";
+
+    /**
+     * Collection of Bean Validation attributes to ignore and to not report as arguments.
+     */
+    private static final List<String> IGNORE_ATTRS = asList("message", "payload", "groups");
 
     /**
      * Can only handle supported exceptions mentioned above.
@@ -90,7 +106,14 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
             code = violation.getMessageTemplate();
         } catch (Exception ignored) {}
 
-        if (code == null) code = error.getDefaultMessage() == null ? "" : error.getDefaultMessage();
+        if (code == null) {
+            try {
+                TypeMismatchException exception = error.unwrap(TypeMismatchException.class);
+                code = TYPE_MISMATCH + "." + exception.getPropertyName();
+            } catch (Exception ignored) {}
+        }
+
+        if (code == null) code = BINDING_FAILURE;
         return code.replace("{", "").replace("}", "");
     }
 
@@ -103,12 +126,40 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
      * @return Collection of all arguments for the given {@code error} details.
      */
     private List<Argument> arguments(ObjectError error) {
-        Object[] args = error.getArguments();
-        if (args == null || args.length <= 1) return emptyList();
-        return IntStream.range(0, args.length - 1)
-                .boxed()
-                .map(i -> arg("arg" + i, args[i + 1]))
-                .collect(Collectors.toList());
+        List<Argument> arguments = null;
+
+        try {
+            ConstraintViolation violation = error.unwrap(ConstraintViolation.class);
+            Map<String, Object> attributes = getAttributes(violation);
+            arguments = attributes
+                    .entrySet()
+                    .stream()
+                    .filter(e -> !IGNORE_ATTRS.contains(e.getKey()))
+                    .map(e -> arg(e.getKey(), e.getValue()))
+                    .sorted(comparing(Argument::getName))
+                    .collect(toList());
+
+        } catch (Exception ignored) {}
+
+        if (arguments == null) {
+            try {
+                TypeMismatchException mismatchException = error.unwrap(TypeMismatchException.class);
+                arguments = new ArrayList<>();
+                arguments.add(arg("property_name", mismatchException.getPropertyName()));
+                arguments.add(arg("invalid_value", mismatchException.getValue()));
+                if (mismatchException.getRequiredType() != null) {
+                    arguments.add(arg("required_type", mismatchException.getRequiredType().getSimpleName()));
+                }
+
+            } catch (Exception ignored) {}
+        }
+
+        return arguments == null ? emptyList() : arguments;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getAttributes(ConstraintViolation violation) {
+        return violation.getConstraintDescriptor().getAttributes();
     }
 
     /**
@@ -120,6 +171,6 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
     private Map<String, List<Argument>> dropEmptyValues(Map<String, List<Argument>> input) {
         return input.entrySet().stream()
                 .filter(e -> e.getValue() != null && !e.getValue().isEmpty())
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v2));
     }
 }
