@@ -38,8 +38,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.http.MediaType.APPLICATION_PDF;
+import static org.springframework.http.MediaType.*;
 
 /**
  * Unit tests for {@link ServletWebErrorHandler} handler.
@@ -94,13 +93,13 @@ public class ServletWebErrorHandlerTest {
                 p(
                         new HttpMediaTypeNotAcceptableException(asList(APPLICATION_JSON, MediaType.APPLICATION_PDF)),
                         ServletWebErrorHandler.NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE,
-                        singletonMap(ServletWebErrorHandler.NOT_ACCEPTABLE, singletonList(arg("types", asList(APPLICATION_JSON, APPLICATION_PDF))))
+                        singletonMap(ServletWebErrorHandler.NOT_ACCEPTABLE, singletonList(arg("types", asList(APPLICATION_JSON_VALUE, APPLICATION_PDF_VALUE))))
                 ),
                 p(
                         new HttpMediaTypeNotSupportedException(APPLICATION_JSON, emptyList()),
                         NOT_SUPPORTED,
                         UNSUPPORTED_MEDIA_TYPE,
-                        singletonMap(NOT_SUPPORTED, singletonList(arg("contentType", APPLICATION_JSON)))
+                        singletonMap(NOT_SUPPORTED, singletonList(arg("type", APPLICATION_JSON_VALUE)))
                 ),
                 p(
                         new HttpRequestMethodNotSupportedException("POST"),
@@ -112,7 +111,7 @@ public class ServletWebErrorHandlerTest {
                         new MissingServletRequestParameterException("name", "String"),
                         MISSING_PARAMETER,
                         BAD_REQUEST,
-                        singletonMap(MISSING_PARAMETER, asList(arg("name", "name"), arg("type", "String")))
+                        singletonMap(MISSING_PARAMETER, asList(arg("name", "name"), arg("expected", "String")))
                 ),
                 p(
                         new MissingServletRequestPartException("file"),

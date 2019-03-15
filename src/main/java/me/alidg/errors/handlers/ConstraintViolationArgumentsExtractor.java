@@ -3,11 +3,10 @@ package me.alidg.errors.handlers;
 import me.alidg.errors.Argument;
 
 import javax.validation.ConstraintViolation;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static me.alidg.errors.Argument.arg;
@@ -22,15 +21,7 @@ final class ConstraintViolationArgumentsExtractor {
     /**
      * Collection of Bean Validation attributes to ignore and to not report as arguments.
      */
-    private static final Set<String> ignoredArguments;
-
-    static {
-        Set<String> s = new HashSet<>(3);
-        s.add("groups");
-        s.add("payload");
-        s.add("message");
-        ignoredArguments = Collections.unmodifiableSet(s);
-    }
+    private static final Collection<String> IGNORE_ATTRIBUTES = Arrays.asList("groups", "payload", "message");
 
     private ConstraintViolationArgumentsExtractor() {}
 
@@ -46,19 +37,14 @@ final class ConstraintViolationArgumentsExtractor {
                 .getAttributes()
                 .entrySet()
                 .stream()
-                .filter(e -> !ignoredArguments.contains(e.getKey()))
+                .filter(e -> !IGNORE_ATTRIBUTES.contains(e.getKey()))
                 .sorted(Map.Entry.comparingByKey())
                 .map(e -> arg(e.getKey(), e.getValue()))
                 .collect(Collectors.toList());
 
-        args.add(arg("invalidValue", violation.getInvalidValue()));
-        args.add(arg("propertyPath", propertyPath(violation)));
+        args.add(arg("invalid", violation.getInvalidValue()));
+        args.add(arg("property", violation.getPropertyPath().toString()));
 
         return args;
-    }
-
-    private static String propertyPath(ConstraintViolation<?> violation) {
-        String root = violation.getRootBeanClass().getSimpleName();
-        return String.join(".", root, violation.getPropertyPath().toString());
     }
 }

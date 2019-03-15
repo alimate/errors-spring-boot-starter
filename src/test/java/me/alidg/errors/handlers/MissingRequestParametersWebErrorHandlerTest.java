@@ -16,13 +16,11 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Collections.singletonList;
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static me.alidg.Params.p;
 import static me.alidg.errors.Argument.arg;
-import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_COOKIE;
-import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_HEADER;
-import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_MATRIX_VARIABLE;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -76,19 +74,19 @@ public class MissingRequestParametersWebErrorHandlerTest {
                         new MissingRequestHeaderException("Authorization", getParameter()),
                         MISSING_HEADER,
                         BAD_REQUEST,
-                        singletonMap(MISSING_HEADER, singletonList(arg("header", "Authorization")))
+                        singletonMap(MISSING_HEADER, asList(arg("name", "Authorization"), arg("expected", "boolean")))
                 ),
                 p(
                         new MissingRequestCookieException("sessionId", getParameter()),
                         MISSING_COOKIE,
                         BAD_REQUEST,
-                        singletonMap(MISSING_COOKIE, singletonList(arg("cookie", "sessionId")))
+                        singletonMap(MISSING_COOKIE, asList(arg("name", "sessionId"), arg("expected", "boolean")))
                 ),
                 p(
                         new MissingMatrixVariableException("name", getParameter()),
                         MISSING_MATRIX_VARIABLE,
                         BAD_REQUEST,
-                        singletonMap(MISSING_MATRIX_VARIABLE, singletonList(arg("variable", "name")))
+                        singletonMap(MISSING_MATRIX_VARIABLE, asList(arg("name", "name"), arg("expected", "boolean")))
                 )
         );
     }

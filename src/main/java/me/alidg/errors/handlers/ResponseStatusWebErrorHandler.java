@@ -7,18 +7,9 @@ import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.MatrixVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.WebExchangeBindException;
-import org.springframework.web.server.MediaTypeNotSupportedStatusException;
-import org.springframework.web.server.MethodNotAllowedException;
-import org.springframework.web.server.NotAcceptableStatusException;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.server.ServerWebInputException;
-import org.springframework.web.server.UnsupportedMediaTypeStatusException;
+import org.springframework.web.server.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -26,23 +17,16 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
 import static me.alidg.errors.Argument.arg;
 import static me.alidg.errors.handlers.LastResortWebErrorHandler.UNKNOWN_ERROR_CODE;
-import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_COOKIE;
-import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_HEADER;
-import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.MISSING_MATRIX_VARIABLE;
-import static me.alidg.errors.handlers.ServletWebErrorHandler.INVALID_OR_MISSING_BODY;
+import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.*;
 import static me.alidg.errors.handlers.ServletWebErrorHandler.METHOD_NOT_ALLOWED;
-import static me.alidg.errors.handlers.ServletWebErrorHandler.MISSING_PARAMETER;
-import static me.alidg.errors.handlers.ServletWebErrorHandler.MISSING_PART;
 import static me.alidg.errors.handlers.ServletWebErrorHandler.NOT_ACCEPTABLE;
-import static me.alidg.errors.handlers.ServletWebErrorHandler.NOT_SUPPORTED;
-import static me.alidg.errors.handlers.ServletWebErrorHandler.NO_HANDLER;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE;
+import static me.alidg.errors.handlers.ServletWebErrorHandler.*;
+import static org.springframework.http.HttpStatus.*;
 
 /**
  * {@link WebErrorHandler} implementation expert at handling exceptions of type
@@ -79,18 +63,18 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
     @Override
     public HandledException handle(Throwable exception) {
         if (exception instanceof MediaTypeNotSupportedStatusException) {
-            List<MediaType> mediaTypes = ((MediaTypeNotSupportedStatusException) exception).getSupportedMediaTypes();
-            return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, argMap(NOT_SUPPORTED, arg("supportedMediaTypes", mediaTypes)));
+            List<String> types = getMediaTypes(((MediaTypeNotSupportedStatusException) exception).getSupportedMediaTypes());
+            return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, argMap(NOT_SUPPORTED, arg("types", types)));
         }
 
         if (exception instanceof UnsupportedMediaTypeStatusException) {
-            List<MediaType> mediaTypes = ((UnsupportedMediaTypeStatusException) exception).getSupportedMediaTypes();
-            return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, argMap(NOT_SUPPORTED, arg("supportedMediaTypes", mediaTypes)));
+            List<String> types = getMediaTypes(((UnsupportedMediaTypeStatusException) exception).getSupportedMediaTypes());
+            return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, argMap(NOT_SUPPORTED, arg("types", types)));
         }
 
         if (exception instanceof NotAcceptableStatusException) {
-            List<MediaType> mediaTypes = ((NotAcceptableStatusException) exception).getSupportedMediaTypes();
-            return new HandledException(NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE, argMap(NOT_ACCEPTABLE, arg("supportedMediaTypes", mediaTypes)));
+            List<String> types = getMediaTypes(((NotAcceptableStatusException) exception).getSupportedMediaTypes());
+            return new HandledException(NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE, argMap(NOT_ACCEPTABLE, arg("types", types)));
         }
 
         if (exception instanceof MethodNotAllowedException) {
@@ -180,7 +164,7 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
 
         if (code != null) {
             return new HandledException(code, BAD_REQUEST,
-                    argMap(code, arg("name", parameterName), arg("type", parameter.getParameterType().getSimpleName())));
+                    argMap(code, arg("name", parameterName), arg("expected", parameter.getParameterType().getSimpleName())));
         }
 
         return null;
@@ -190,6 +174,12 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
         String name = getNameAttribute(annotation);
 
         return name.isEmpty() ? parameter.getParameterName() : name;
+    }
+
+    private List<String> getMediaTypes(List<MediaType> mediaTypes) {
+        if (mediaTypes == null) return emptyList();
+
+        return mediaTypes.stream().map(MediaType::toString).collect(toList());
     }
 
     private String getNameAttribute(Annotation annotation) {

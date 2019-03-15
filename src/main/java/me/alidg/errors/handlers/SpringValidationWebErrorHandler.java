@@ -136,10 +136,10 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
         try {
             TypeMismatchException mismatchException = error.unwrap(TypeMismatchException.class);
             arguments = new ArrayList<>();
-            arguments.add(arg("propertyName", mismatchException.getPropertyName()));
-            arguments.add(arg("invalidValue", mismatchException.getValue()));
+            arguments.add(arg("property", mismatchException.getPropertyName()));
+            arguments.add(arg("invalid", mismatchException.getValue()));
             if (mismatchException.getRequiredType() != null) {
-                arguments.add(arg("requiredType", mismatchException.getRequiredType().getSimpleName()));
+                arguments.add(arg("expected", mismatchException.getRequiredType().getSimpleName()));
             }
 
         } catch (Exception ignored) {}

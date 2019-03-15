@@ -3,14 +3,15 @@ package me.alidg.errors.handlers;
 import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
+import org.springframework.core.MethodParameter;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.MissingMatrixVariableException;
 import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static me.alidg.errors.Argument.arg;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -67,20 +68,35 @@ public class MissingRequestParametersWebErrorHandler implements WebErrorHandler 
     @NonNull
     @Override
     public HandledException handle(Throwable exception) {
-        List<Argument> arguments = null;
+        List<Argument> arguments = new ArrayList<>();
         String errorCode = "unknown_error";
 
         if (exception instanceof MissingRequestHeaderException) {
-            arguments = singletonList(arg("header", ((MissingRequestHeaderException) exception).getHeaderName()));
+            MissingRequestHeaderException headerException = (MissingRequestHeaderException) exception;
+            arguments.add(arg("name", headerException.getHeaderName()));
+            arguments.add(arg("expected", getType(headerException.getParameter())));
+
             errorCode = MISSING_HEADER;
         } else if (exception instanceof MissingRequestCookieException) {
-            arguments = singletonList(arg("cookie", ((MissingRequestCookieException) exception).getCookieName()));
+            MissingRequestCookieException cookieException = (MissingRequestCookieException) exception;
+            arguments.add(arg("name", cookieException.getCookieName()));
+            arguments.add(arg("expected", getType(cookieException.getParameter())));
+
             errorCode = MISSING_COOKIE;
         } else if (exception instanceof MissingMatrixVariableException) {
-            arguments = singletonList(arg("variable", ((MissingMatrixVariableException) exception).getVariableName()));
+            MissingMatrixVariableException variableException = (MissingMatrixVariableException) exception;
+            arguments.add(arg("name", variableException.getVariableName()));
+            arguments.add(arg("expected", getType(variableException.getParameter())));
+
             errorCode = MISSING_MATRIX_VARIABLE;
         }
 
         return new HandledException(errorCode, BAD_REQUEST, singletonMap(errorCode, arguments));
+    }
+
+    private String getType(MethodParameter parameter) {
+        if (parameter == null) return null;
+
+        return parameter.getParameterType().getSimpleName();
     }
 }

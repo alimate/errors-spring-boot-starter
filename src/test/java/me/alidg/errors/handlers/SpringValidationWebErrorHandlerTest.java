@@ -103,40 +103,40 @@ public class SpringValidationWebErrorHandlerTest {
                 p(tbv("ali", 0, "coding"), e("age.min"),
                         singletonMap("age.min", asList(
                                 arg("value", 1L),
-                                arg("invalidValue", 0L),
-                                arg("propertyPath", "TBV.age")))),
+                                arg("invalid", 0L),
+                                arg("property", "age")))),
                 p(tbv("ali", 29), e("interests.limit"),
                         singletonMap("interests.limit", asList(
                                 arg("max", 6),
                                 arg("min", 1),
-                                arg("invalidValue", null),
-                                arg("propertyPath", "TBV.interests")))),
+                                arg("invalid", null),
+                                arg("property", "interests")))),
                 p(tbv("", 29, "coding"), e("name.required"),
                         singletonMap("name.required", asList(
-                                arg("invalidValue", ""),
-                                arg("propertyPath", "TBV.name")))),
+                                arg("invalid", ""),
+                                arg("property", "name")))),
                 p(
                         tbv("", 200), e("name.required", "age.max", "interests.limit"),
                         m(
                                 "age.max", asList(
                                         arg("value", 100L),
-                                        arg("invalidValue", 200L),
-                                        arg("propertyPath", "TBV.age")),
+                                        arg("invalid", 200L),
+                                        arg("property", "age")),
                                 "interests.limit", asList(
                                         arg("max", 6),
                                         arg("min", 1),
-                                        arg("invalidValue", null),
-                                        arg("propertyPath", "TBV.interests")),
+                                        arg("invalid", null),
+                                        arg("property", "interests")),
                                 "name.required", asList(
-                                        arg("invalidValue", ""),
-                                        arg("propertyPath", "TBV.name"))
+                                        arg("invalid", ""),
+                                        arg("property", "name"))
                         )
                 ),
                 p(
                         tbv("ali", 29, singletonList("coding"), asList(tbvChild(""), tbvChild(""), tbvChild(""))),
                         e("stringField.required"), singletonMap("stringField.required", asList(
-                                arg("invalidValue", ""),
-                                arg("propertyPath", "propertyPath=TBV.tbvChildren[1].stringField"))))
+                                arg("invalid", ""),
+                                arg("property", "property=tbvChildren[1].stringField"))))
         );
     }
 
