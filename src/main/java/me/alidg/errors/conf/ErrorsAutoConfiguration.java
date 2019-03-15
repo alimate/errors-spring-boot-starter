@@ -212,6 +212,11 @@ public class ErrorsAutoConfiguration {
         return new ResponseStatusWebErrorHandler();
     }
 
+    /**
+     * Registers an empty {@link ExceptionRefiner} in the absence of a custom refiner.
+     *
+     * @return A no-op exception refiner.
+     */
     @Bean
     @ConditionalOnBean(WebErrorHandlers.class)
     @ConditionalOnMissingBean
@@ -219,6 +224,11 @@ public class ErrorsAutoConfiguration {
         return new ExceptionRefiner.NoOp();
     }
 
+    /**
+     * Registers an empty {@link ExceptionLogger} in the absence of a custom logger.
+     *
+     * @return A no-op exception logger.
+     */
     @Bean
     @ConditionalOnBean(WebErrorHandlers.class)
     @ConditionalOnMissingBean

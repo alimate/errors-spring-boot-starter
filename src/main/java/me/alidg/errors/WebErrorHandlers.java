@@ -99,6 +99,12 @@ public class WebErrorHandlers {
     /**
      * Backward-compatible constructor with defaults for {@link #webErrorHandlerPostProcessors}
      *
+     * @param messageSource          The code to message translator.
+     * @param webErrorHandlers       Collection of {@link WebErrorHandler} implementations.
+     * @param defaultWebErrorHandler Fallback web error handler.
+     * @param exceptionRefiner       Possibly can refine exceptions before handling them.
+     * @param exceptionLogger        Logs exceptions.
+     *
      * @deprecated Use {@link #builder(MessageSource)} instead.
      */
     @Deprecated

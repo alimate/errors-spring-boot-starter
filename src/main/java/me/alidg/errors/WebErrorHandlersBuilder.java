@@ -15,6 +15,8 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Builder for {@link WebErrorHandlers} instance.
+ *
+ * @author zarebski.m
  */
 public final class WebErrorHandlersBuilder {
     private final MessageSource messageSource;
