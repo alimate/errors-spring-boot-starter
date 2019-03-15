@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static me.alidg.Params.p;
 import static me.alidg.errors.Argument.arg;
@@ -89,27 +88,49 @@ public class ConstraintViolationWebErrorHandlerTest {
                 p(
                         v(new Person("alidg", 19)),
                         setOf("username.size"),
-                        singletonMap("username.size", asList(arg("max", 10), arg("min", 6)))
+                        singletonMap("username.size", asList(
+                                arg("max", 10),
+                                arg("min", 6),
+                                arg("invalidValue", "alidg"),
+                                arg("propertyPath", "Person.username")))
                 ),
                 p(
                         v(new Person("", 19)),
                         setOf("username.blank", "username.size"),
-                        singletonMap("username.size", asList(arg("max", 10), arg("min", 6)))
+                        singletonMap("username.size", asList(
+                                arg("max", 10),
+                                arg("min", 6),
+                                arg("invalidValue", "alidg"),
+                                arg("propertyPath", "Person.username")))
                 ),
                 p(
                         v(new Person("ali", 12)),
                         setOf("username.size", "age.min"),
                         new HashMap<String, List<?>>() {{
-                            put("username.size", asList(arg("max", 10), arg("min", 6)));
-                            put("age.min", singletonList(arg("value", 18L)));
+                            put("username.size", asList(
+                                    arg("max", 10),
+                                    arg("min", 6),
+                                    arg("invalidValue", "alidg"),
+                                    arg("propertyPath", "Person.username")));
+                            put("age.min", asList(
+                                    arg("value", 18L),
+                                    arg("invalidValue", 12L),
+                                    arg("propertyPath", "Person.age")));
                         }}
                 ),
                 p(
                         v(new Person("ali", 35)),
                         setOf("username.size", "age.max"),
                         new HashMap<String, List<?>>() {{
-                            put("username.size", asList(arg("max", 10), arg("min", 6)));
-                            put("age.max", singletonList(arg("value", 30L)));
+                            put("username.size", asList(
+                                    arg("max", 10),
+                                    arg("min", 6),
+                                    arg("invalidValue", "ali"),
+                                    arg("propertyPath", "Person.username")));
+                            put("age.max", asList(
+                                    arg("value", 30L),
+                                    arg("invalidValue", 35L),
+                                    arg("propertyPath", "Person.age")));
                         }}
                 )
         );

@@ -42,7 +42,7 @@ final class ConstraintViolationArgumentsExtractor {
      * @return To be exposed arguments for the given violation.
      */
     static List<Argument> extract(ConstraintViolation<?> violation) {
-        return violation.getConstraintDescriptor()
+        List<Argument> args = violation.getConstraintDescriptor()
                 .getAttributes()
                 .entrySet()
                 .stream()
@@ -50,5 +50,15 @@ final class ConstraintViolationArgumentsExtractor {
                 .sorted(Map.Entry.comparingByKey())
                 .map(e -> arg(e.getKey(), e.getValue()))
                 .collect(Collectors.toList());
+
+        args.add(arg("invalidValue", violation.getInvalidValue()));
+        args.add(arg("propertyPath", propertyPath(violation)));
+
+        return args;
+    }
+
+    private static String propertyPath(ConstraintViolation<?> violation) {
+        String root = violation.getRootBeanClass().getSimpleName();
+        return String.join(".", root, violation.getPropertyPath().toString());
     }
 }

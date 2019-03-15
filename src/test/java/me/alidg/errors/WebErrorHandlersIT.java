@@ -226,63 +226,79 @@ public class WebErrorHandlersIT {
                 // Invalid text
                 p(
                         pojo("", 10, "a"), null,
-                        cm("text.required", "The text is required")
+                        cm("text.required", "The text is required",
+                                arg("invalidValue", ""), arg("propertyPath", "Pojo.text"))
                 ),
                 p(
                         pojo("", 10, "a"), Locale.CANADA,
-                        cm("text.required", "The text is required")
+                        cm("text.required", "The text is required",
+                                arg("invalidValue", ""), arg("propertyPath", "Pojo.text"))
                 ),
                 p(
                         pojo("", 10, "a"), IRAN_LOCALE,
-                        cm("text.required", "متن اجباری است")
+                        cm("text.required", "متن اجباری است",
+                                arg("invalidValue", ""), arg("propertyPath", "Pojo.text"))
                 ),
 
                 // Invalid number: min
                 p(
                         pojo("t", -1, "a"), null,
-                        cm("number.min", "The min is 0", arg("value", 0L))
+                        cm("number.min", "The min is 0",
+                                arg("value", 0L), arg("invalidValue", -1L), arg("propertyPath", "Pojo.number"))
                 ),
                 p(
                         pojo("t", -1, "a"), Locale.GERMANY,
-                        cm("number.min", "The min is 0", arg("value", 0L))
+                        cm("number.min", "The min is 0",
+                                arg("value", 0L), arg("invalidValue", -1L), arg("propertyPath", "Pojo.number"))
                 ),
 
                 // Invalid number: max
                 p(
                         pojo("t", 11, "a"), null,
-                        cm("number.max", null, arg("value", 10L))
+                        cm("number.max", null,
+                                arg("value", 10L), arg("invalidValue", 11L), arg("propertyPath", "Pojo.number"))
                 ),
                 p(
                         pojo("t", 11, "a"), Locale.GERMANY,
-                        cm("number.max", null, arg("value", 10L))
+                        cm("number.max", null,
+                                arg("value", 10L), arg("invalidValue", 11L), arg("propertyPath", "Pojo.number"))
                 ),
                 p(
                         pojo("t", 11, "a"), IRAN_LOCALE,
-                        cm("number.max", null, arg("value", 10L))
+                        cm("number.max", null,
+                                arg("value", 10L), arg("invalidValue", 11L), arg("propertyPath", "Pojo.number"))
                 ),
 
                 // Invalid range
                 p(
                         pojo("t", 0), null,
-                        cm("range.limit", "Between 1 and 3", arg("max", 3), arg("min", 1))
+                        cm("range.limit", "Between 1 and 3",
+                                arg("max", 3), arg("min", 1), arg("invalidValue", null), arg("propertyPath", "Pojo.range"))
                 ),
                 p(
                         pojo("t", 0), Locale.GERMANY,
-                        cm("range.limit", "Between 1 and 3", arg("max", 3), arg("min", 1))
+                        cm("range.limit", "Between 1 and 3",
+                                arg("max", 3), arg("min", 1), arg("invalidValue", null), arg("propertyPath", "Pojo.range"))
                 ),
 
                 // Mixed
                 p(
                         pojo("", 11), null,
-                        cm("range.limit", "Between 1 and 3", arg("max", 3), arg("min", 1)),
-                        cm("number.max", null, arg("value", 10L)),
-                        cm("text.required", "The text is required")
+                        cm("range.limit", "Between 1 and 3",
+                                arg("max", 3), arg("min", 1), arg("invalidValue", null), arg("propertyPath", "Pojo.range")),
+                        cm("number.max", null,
+                                arg("value", 10L), arg("invalidValue", 11L), arg("propertyPath", "Pojo.number")),
+                        cm("text.required", "The text is required",
+                                arg("invalidValue", ""), arg("propertyPath", "Pojo.text"))
                 ),
                 p(
                         pojo("", 11), Locale.CANADA,
-                        cm("range.limit", "Between 1 and 3", arg("max", 3), arg("min", 1)),
-                        cm("number.max", null, arg("value", 10L)),
-                        cm("text.required", "The text is required")
+                        cm("range.limit", "Between 1 and 3",
+                                arg("max", 3), arg("min", 1), arg("invalidValue", null), arg("propertyPath", "Pojo.range")),
+                        cm("number.max", null,
+                                arg("value", 10L), arg("invalidValue", 11L), arg("propertyPath", "Pojo.number")),
+                        cm("text.required", "The text is required",
+                                arg("invalidValue", ""), arg("propertyPath", "Pojo.text"))
                 )
         );
     }
