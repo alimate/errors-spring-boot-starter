@@ -10,6 +10,7 @@ import org.springframework.lang.NonNull;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -87,31 +88,32 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
         members.sort(byExposedIndex);
 
         return members.stream()
-                .map(e -> getValue(e, exception))
+                .map(e -> getArgument(e, exception))
                 .collect(toList());
     }
 
     /**
      * Given an element annotated with {@link ExposeAsArg}
      *
-     * @param element The field or method we're going to extract its value.
+     * @param element   The field or method we're going to extract its value.
      * @param exception The containing exception that those fields or methods are declared in.
      * @return The field value or method return value.
      */
-    private Argument getValue(AnnotatedElement element, Throwable exception) {
+    private Argument getArgument(AnnotatedElement element, Throwable exception) {
         try {
             if (element instanceof Field) {
                 Field f = (Field) element;
                 f.setAccessible(true);
 
-                return arg(f.getName(), f.get(exception));
+                return arg(getExposedName(f), f.get(exception));
             } else if (element instanceof Method) {
                 Method m = (Method) element;
                 m.setAccessible(true);
 
-                return arg(m.getName(), m.invoke(exception));
+                return arg(getExposedName(m), m.invoke(exception));
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         return null;
     }
@@ -139,6 +141,23 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
         return Stream.of(exception.getClass().getMethods())
                 .filter(m -> annotationIsPresent(m) && hasReturnType(m) && hasNoParameters(m))
                 .collect(toList());
+    }
+
+    /**
+     * Returns the to-be-exposed name. If the {@link ExposeAsArg#exposedName()} is not blank, then
+     * it would be the exposed name. Otherwise, we use the {@link Member#getName()} as that name.
+     *
+     * @param member The exception member.
+     * @param <T>    The member type.
+     * @return The to-be-exposed name.
+     */
+    private <T extends AnnotatedElement & Member> String getExposedName(T member) {
+        ExposeAsArg annotation = member.getAnnotation(ExposeAsArg.class);
+        if (annotation != null && !annotation.exposedName().trim().isEmpty()) {
+            return annotation.exposedName();
+        }
+
+        return member.getName();
     }
 
     private boolean hasNoParameters(Method m) {

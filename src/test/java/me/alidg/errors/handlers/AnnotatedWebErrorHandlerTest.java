@@ -68,13 +68,13 @@ public class AnnotatedWebErrorHandlerTest {
         return p(
                 p(new Annotated("f", "s"), "annotated", BAD_REQUEST, asList(
                         arg("staticExposure", "42"),
-                        arg("someValue", "f"),
-                        arg("getOther", "s"))),
+                        arg("some_value", "f"),
+                        arg("other", "s"))),
                 p(new Inherited(), "annotated", BAD_REQUEST, asList(
                         arg("staticExposure", "42"),
                         null,
                         arg("random", "random"),
-                        arg("getOther", "s"))),
+                        arg("other", "s"))),
                 p(new NoExposedArgs(), "no_exposed", BAD_REQUEST, Collections.emptyList())
         );
     }
@@ -89,7 +89,7 @@ public class AnnotatedWebErrorHandlerTest {
     @ExceptionMapping(statusCode = BAD_REQUEST, errorCode = "annotated")
     private class Annotated extends RuntimeException {
 
-        @ExposeAsArg(-1) private final String someValue;
+        @ExposeAsArg(value = -1, exposedName = "some_value") private final String someValue;
         private final String other;
 
         private Annotated(String someValue, String other) {
@@ -110,7 +110,7 @@ public class AnnotatedWebErrorHandlerTest {
             return "42";
         }
 
-        @ExposeAsArg(100)
+        @ExposeAsArg(value = 100, exposedName = "other")
         public String getOther() {
             return other;
         }

@@ -46,4 +46,11 @@ public @interface ExposeAsArg {
      * @return The argument index.
      */
     int value();
+
+    /**
+     * If the arguments are meant to be exposed, then overrides the to-be-exposed name.
+     *
+     * @return The to-be-exposed name.
+     */
+    String exposedName() default "";
 }
