@@ -89,7 +89,7 @@ public class AnnotatedWebErrorHandlerTest {
     @ExceptionMapping(statusCode = BAD_REQUEST, errorCode = "annotated")
     private class Annotated extends RuntimeException {
 
-        @ExposeAsArg(value = -1, exposedName = "some_value") private final String someValue;
+        @ExposeAsArg(value = -1, name = "some_value") private final String someValue;
         private final String other;
 
         private Annotated(String someValue, String other) {
@@ -110,7 +110,7 @@ public class AnnotatedWebErrorHandlerTest {
             return "42";
         }
 
-        @ExposeAsArg(value = 100, exposedName = "other")
+        @ExposeAsArg(value = 100, name = "other")
         public String getOther() {
             return other;
         }

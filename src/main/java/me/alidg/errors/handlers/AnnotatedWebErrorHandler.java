@@ -144,7 +144,7 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
     }
 
     /**
-     * Returns the to-be-exposed name. If the {@link ExposeAsArg#exposedName()} is not blank, then
+     * Returns the to-be-exposed name. If the {@link ExposeAsArg#name()} is not blank, then
      * it would be the exposed name. Otherwise, we use the {@link Member#getName()} as that name.
      *
      * @param member The exception member.
@@ -153,8 +153,8 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
      */
     private <T extends AnnotatedElement & Member> String getExposedName(T member) {
         ExposeAsArg annotation = member.getAnnotation(ExposeAsArg.class);
-        if (annotation != null && !annotation.exposedName().trim().isEmpty()) {
-            return annotation.exposedName();
+        if (annotation != null && !annotation.name().trim().isEmpty()) {
+            return annotation.name();
         }
 
         return member.getName();

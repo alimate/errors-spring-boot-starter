@@ -52,5 +52,5 @@ public @interface ExposeAsArg {
      *
      * @return The to-be-exposed name.
      */
-    String exposedName() default "";
+    String name() default "";
 }

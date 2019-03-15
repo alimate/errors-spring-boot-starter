@@ -214,6 +214,17 @@ Property `errors.expose-arguments` takes 3 possible values:
  - `ALWAYS` - the `"arguments"` element is always present in payload, even when the error has no arguments.
    In that case empty map will be provided: `"arguments": {}`.
 
+Arguments annotated with `@ExposeAsArg` will be named by annotated field or method name:
+```java
+@ExposeAsArg(0)
+private final String argName; // will be exposed as "argName"
+```
+This can be changed by `name` parameter:
+```java
+@ExposeAsArg(value = 0, name = "customName")
+private final String argName; // will be exposed as "customName"
+```
+
 ### Validation and Binding Errors
 Validation errors can be processed as you might expect. For example, if a client passed an empty JSON to a controller method
 like:
