@@ -29,7 +29,8 @@ public class HttpError {
     /**
      * Unique fingerprint of the error.
      */
-    @Nullable private String fingerprint;
+    @Nullable
+    private String fingerprint;
 
     /**
      * Encapsulates the current and probably failed HTTP request. It's either a
@@ -37,22 +38,25 @@ public class HttpError {
      * or {@link org.springframework.web.reactive.function.server.ServerRequest} for reactive
      * stack requests.
      */
-    @Nullable private Object request;
+    @Nullable
+    private Object request;
 
     /**
      * Encapsulates the original exception raised while processing the HTTP request.
      */
-    @Nullable private Throwable originalException;
+    @Nullable
+    private Throwable originalException;
 
     /**
      * Encapsulates the possible refined exception, if any.
      */
-    @Nullable private Throwable refinedException;
+    @Nullable
+    private Throwable refinedException;
 
     /**
      * Constructing a HTTP error instance.
      *
-     * @param errors Collection of codes/messages combinations.
+     * @param errors     Collection of codes/messages combinations.
      * @param httpStatus The expected status code.
      */
     public HttpError(List<CodedMessage> errors, HttpStatus httpStatus) {
@@ -151,6 +155,7 @@ public class HttpError {
      * Represents an error code paired with its appropriate error message and exception arguments.
      */
     public static class CodedMessage {
+
         /**
          * The error code.
          */
@@ -167,14 +172,16 @@ public class HttpError {
         private final List<Argument> arguments;
 
         /**
-         * @param code The error code.
-         * @param message The error message.
+         * Constructs a code-message pair along with possible arguments.
+         *
+         * @param code      The error code.
+         * @param message   The error message.
          * @param arguments Exception arguments.
          */
         public CodedMessage(@NonNull String code, String message, @NonNull List<Argument> arguments) {
-            this.code = Objects.requireNonNull(code);
+            this.code = Objects.requireNonNull(code, "The error code is required");
             this.message = message;
-            this.arguments = Objects.requireNonNull(arguments);
+            this.arguments = Objects.requireNonNull(arguments, "Arguments can not be null");
         }
 
         /**

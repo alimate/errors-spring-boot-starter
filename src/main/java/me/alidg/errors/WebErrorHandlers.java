@@ -223,6 +223,7 @@ public class WebErrorHandlers {
         try {
             Object[] args = arguments.stream().map(Argument::getValue).toArray(Object[]::new);
             String message = messageSource.getMessage(code, args, locale);
+
             return new CodedMessage(code, message, arguments);
         } catch (Exception e) {
             return new CodedMessage(code, null, arguments);

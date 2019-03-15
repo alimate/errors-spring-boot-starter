@@ -68,9 +68,8 @@ public class HandledException {
      *
      * @param errorCodes The corresponding error codes for the handled exception.
      * @param statusCode The corresponding status code for the handled exception.
-     * @param arguments Arguments to be exposed from the handled exception to the outside world.
-     *
-     * @throws NullPointerException When one of the required parameters is null.
+     * @param arguments  Arguments to be exposed from the handled exception to the outside world.
+     * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException At least one error code should be provided.
      */
     public HandledException(@NonNull Set<String> errorCodes,
@@ -86,11 +85,10 @@ public class HandledException {
      * Initialize a handled exception with an error code, a HTTP status code and an
      * optional collection of arguments.
      *
-     * @param errorCode The corresponding error code for the handled exception.
+     * @param errorCode  The corresponding error code for the handled exception.
      * @param statusCode The corresponding status code for the handled exception.
-     * @param arguments Arguments to be exposed from the handled exception to the outside world.
-     *
-     * @throws NullPointerException When one of the required parameters is null.
+     * @param arguments  Arguments to be exposed from the handled exception to the outside world.
+     * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException At least one error code should be provided.
      */
     public HandledException(@NonNull String errorCode,
