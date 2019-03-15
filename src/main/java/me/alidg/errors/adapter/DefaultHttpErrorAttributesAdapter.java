@@ -82,8 +82,7 @@ public class DefaultHttpErrorAttributesAdapter implements HttpErrorAttributesAda
         error.put("code", codedMessage.getCode());
         error.put("message", codedMessage.getMessage());
 
-        if (errorsProperties.getExposeArguments() != null)
-            errorsProperties.getExposeArguments().expose(error, codedMessage.getArguments());
+        errorsProperties.getExposeArguments().expose(error, codedMessage.getArguments());
 
         return error;
     }

@@ -2,6 +2,7 @@ package me.alidg.errors.conf;
 
 import me.alidg.errors.Argument;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ public class ErrorsProperties {
     /**
      * Determines how we're gonna expose the arguments for each error code.
      */
+    @NonNull
     private ArgumentExposure exposeArguments = ArgumentExposure.NEVER;
 
     /**

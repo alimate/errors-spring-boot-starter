@@ -208,10 +208,10 @@ With arguments exposed you might get the following response payload:
 ```
 
 Property `errors.expose-arguments` takes 3 possible values:
- - `never` - named arguments will never be exposed. This is the default setting.
- - `non_empty` - named arguments will be exposed only in case there are any. If error has no arguments,
+ - `NEVER` - named arguments will never be exposed. This is the default setting.
+ - `NON_EMPTY` - named arguments will be exposed only in case there are any. If error has no arguments,
    result payload will not have `"arguments"` element.
- - `always` - the `"arguments"` element is always present in payload, even when the error has no arguments.
+ - `ALWAYS` - the `"arguments"` element is always present in payload, even when the error has no arguments.
    In that case empty map will be provided: `"arguments": {}`.
 
 ### Validation and Binding Errors
@@ -531,9 +531,9 @@ public class UserControllerIT {
 Additional configuration of this starter can be provided by configuration properties - the Spring Boot way.
 All configuration properties start with `errors`. Below is a list of supported properties:
 
-|            Property              |             Values             | Default value |
-|:--------------------------------:|:------------------------------:|:-------------:|
-| `errors.expose-arguments` | `never`, `non_empty`, `always` |    `never`    |
+|         Property          |             Values             | Default value |
+|:-------------------------:|:------------------------------:|:-------------:|
+| `errors.expose-arguments` | `NEVER`, `NON_EMPTY`, `ALWAYS` |    `NEVER`    |
 | `errors.add-fingerprint`  |        `true`, `false`         |    `false`    |
 
 Check `ErrorsProperties` implementation for more details.
