@@ -54,6 +54,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
@@ -308,6 +309,8 @@ public class ErrorsControllerAdviceIT {
 
     private Object[] provideInvalidBody() {
         return p(
+                p(Collections.emptyMap(), null, cm("text.required", "The text is required")),
+                p(dto(null, 10, "code"), null, cm("text.required", "The text is required")),
                 p(dto("", 10, "code"), null, cm("text.required", "The text is required")),
                 p(dto("", 10, "code"), new Locale("fa", "IR"), cm("text.required", "متن اجباری است")),
                 p(dto("text", -1, "code"), null, cm("number.min", "The min is 0")),

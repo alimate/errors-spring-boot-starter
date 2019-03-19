@@ -4,10 +4,10 @@ import me.alidg.errors.Argument;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.NonNull;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.stream.Collectors.toMap;
 
 /**
  * Configuration properties to configure the error handling mechanism.
@@ -78,10 +78,7 @@ public class ErrorsProperties {
             @Override
             public void expose(Map<String, Object> error, List<Argument> arguments) {
                 if (!arguments.isEmpty()) {
-                    error.put(
-                            "arguments",
-                            arguments.stream().collect(toMap(Argument::getName, Argument::getValue, (v1, v2) -> v1))
-                    );
+                    error.put("arguments", argumentsMap(arguments));
                 }
             }
         },
@@ -93,12 +90,20 @@ public class ErrorsProperties {
 
             @Override
             public void expose(Map<String, Object> error, List<Argument> arguments) {
-                error.put(
-                        "arguments",
-                        arguments.stream().collect(toMap(Argument::getName, Argument::getValue, (v1, v2) -> v1))
-                );
+                error.put("arguments", argumentsMap(arguments));
             }
         };
+
+        private static Map<String, Object> argumentsMap(List<Argument> arguments) {
+            if (arguments == null) return Collections.emptyMap();
+
+            Map<String, Object> argumentMap = new HashMap<>();
+            for (Argument argument : arguments) {
+                argumentMap.put(argument.getName(), argument.getValue());
+            }
+
+            return argumentMap;
+        }
 
         /**
          * Exposes the given {@code arguments} into the given {@code error} representation
