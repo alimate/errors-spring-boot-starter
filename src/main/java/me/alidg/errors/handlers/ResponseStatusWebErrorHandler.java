@@ -15,10 +15,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static me.alidg.errors.Argument.arg;
 import static me.alidg.errors.handlers.LastResortWebErrorHandler.UNKNOWN_ERROR_CODE;
 import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.*;
@@ -62,19 +63,19 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
     @Override
     public HandledException handle(Throwable exception) {
         if (exception instanceof MediaTypeNotSupportedStatusException) {
-            List<String> types = getMediaTypes(((MediaTypeNotSupportedStatusException) exception).getSupportedMediaTypes());
+            Set<String> types = getMediaTypes(((MediaTypeNotSupportedStatusException) exception).getSupportedMediaTypes());
             Map<String, List<Argument>> args = types.isEmpty() ? emptyMap() : argMap(NOT_SUPPORTED, arg("types", types));
             return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, args);
         }
 
         if (exception instanceof UnsupportedMediaTypeStatusException) {
-            List<String> types = getMediaTypes(((UnsupportedMediaTypeStatusException) exception).getSupportedMediaTypes());
+            Set<String> types = getMediaTypes(((UnsupportedMediaTypeStatusException) exception).getSupportedMediaTypes());
             Map<String, List<Argument>> args = types.isEmpty() ? emptyMap() : argMap(NOT_SUPPORTED, arg("types", types));
             return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, args);
         }
 
         if (exception instanceof NotAcceptableStatusException) {
-            List<String> types = getMediaTypes(((NotAcceptableStatusException) exception).getSupportedMediaTypes());
+            Set<String> types = getMediaTypes(((NotAcceptableStatusException) exception).getSupportedMediaTypes());
             Map<String, List<Argument>> args = types.isEmpty() ? emptyMap() : argMap(NOT_ACCEPTABLE, arg("types", types));
             return new HandledException(NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE, args);
         }
@@ -178,10 +179,10 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
         return name.isEmpty() ? parameter.getParameterName() : name;
     }
 
-    private List<String> getMediaTypes(List<MediaType> mediaTypes) {
-        if (mediaTypes == null) return emptyList();
+    private Set<String> getMediaTypes(List<MediaType> mediaTypes) {
+        if (mediaTypes == null) return emptySet();
 
-        return mediaTypes.stream().map(MediaType::toString).collect(toList());
+        return mediaTypes.stream().map(MediaType::toString).collect(toSet());
     }
 
     private String getNameAttribute(Annotation annotation) {

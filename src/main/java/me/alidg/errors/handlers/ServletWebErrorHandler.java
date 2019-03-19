@@ -17,10 +17,11 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import javax.servlet.ServletException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static me.alidg.errors.Argument.arg;
 
 /**
@@ -99,7 +100,7 @@ public class ServletWebErrorHandler implements WebErrorHandler {
             return new HandledException(INVALID_OR_MISSING_BODY, HttpStatus.BAD_REQUEST, null);
 
         if (exception instanceof HttpMediaTypeNotAcceptableException) {
-            List<String> types = getMediaTypes(((HttpMediaTypeNotAcceptableException) exception).getSupportedMediaTypes());
+            Set<String> types = getMediaTypes(((HttpMediaTypeNotAcceptableException) exception).getSupportedMediaTypes());
             Map<String, List<Argument>> args = types.isEmpty() ?
                     emptyMap() : singletonMap(NOT_ACCEPTABLE, singletonList(arg("types", types)));
 
@@ -152,9 +153,9 @@ public class ServletWebErrorHandler implements WebErrorHandler {
         return new HandledException("unknown_error", HttpStatus.INTERNAL_SERVER_ERROR, null);
     }
 
-    private List<String> getMediaTypes(List<MediaType> mediaTypes) {
-        if (mediaTypes == null) return emptyList();
+    private Set<String> getMediaTypes(List<MediaType> mediaTypes) {
+        if (mediaTypes == null) return emptySet();
 
-        return mediaTypes.stream().map(MediaType::toString).collect(toList());
+        return mediaTypes.stream().map(MediaType::toString).collect(toSet());
     }
 }
