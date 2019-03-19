@@ -190,9 +190,9 @@ Then the `username` property from the `UserAlreadyExistsException` would be avai
 return type. The `HandledException` class also accepts the *to-be-exposed* arguments in its constructor.
 
 #### Exposing Named Arguments
-By default error arguments are used in message interpolation only. It is also possible to additionally  get those
-arguments in error response by defining configuration property `errors.expose-arguments`.
-With arguments exposed you might get the following response payload:
+By default error arguments will be used in message interpolation only. It is also possible to additionally get those
+arguments in error response by defining the configuration property `errors.expose-arguments`.
+When enabled, you might get the following response payload:
 ```json
 {
   "errors": [
@@ -207,7 +207,7 @@ With arguments exposed you might get the following response payload:
 }
 ```
 
-Property `errors.expose-arguments` takes 3 possible values:
+The `errors.expose-arguments` property takes 3 possible values:
  - `NEVER` - named arguments will never be exposed. This is the default setting.
  - `NON_EMPTY` - named arguments will be exposed only in case there are any. If error has no arguments,
    result payload will not have `"arguments"` element.
@@ -219,7 +219,7 @@ Arguments annotated with `@ExposeAsArg` will be named by annotated field or meth
 @ExposeAsArg(0)
 private final String argName; // will be exposed as "argName"
 ```
-This can be changed by `name` parameter:
+This can be changed by the `name` parameter:
 ```java
 @ExposeAsArg(value = 0, name = "customName")
 private final String argName; // will be exposed as "customName"
@@ -398,7 +398,7 @@ By default, errors would manifest themselves in the HTTP response bodies with th
 There is also an option to generate error `fingerprint`. Fingerprint is a unique hash of error
 event which might be used as a correlation ID of error presented to user, and reported in
 application backend (e.g. in detailed log message). To generate error fingerprints, add
-configuration property `errors.add-fingerprint=true`.
+the configuration property `errors.add-fingerprint=true`.
 
 We provide two fingerprint providers implementations:
  - `UuidFingerprintProvider` which generates a random UUID regardless of the handled exception.
