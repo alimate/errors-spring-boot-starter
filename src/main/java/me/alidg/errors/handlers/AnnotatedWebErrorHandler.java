@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonMap;
@@ -87,8 +88,10 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
         members.addAll(getExposedMethods(exception));
         members.sort(byExposedIndex);
 
-        return members.stream()
+        return members
+                .stream()
                 .map(e -> getArgument(e, exception))
+                .filter(Objects::nonNull)
                 .collect(toList());
     }
 
@@ -112,8 +115,7 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
 
                 return arg(getExposedName(m), m.invoke(exception));
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
 
         return null;
     }

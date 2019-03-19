@@ -72,7 +72,6 @@ public class AnnotatedWebErrorHandlerTest {
                         arg("other", "s"))),
                 p(new Inherited(), "annotated", BAD_REQUEST, asList(
                         arg("staticExposure", "42"),
-                        null,
                         arg("random", "random"),
                         arg("other", "s"))),
                 p(new NoExposedArgs(), "no_exposed", BAD_REQUEST, Collections.emptyList())
