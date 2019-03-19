@@ -104,7 +104,6 @@ public class WebErrorHandlers {
      * @param defaultWebErrorHandler Fallback web error handler.
      * @param exceptionRefiner       Possibly can refine exceptions before handling them.
      * @param exceptionLogger        Logs exceptions.
-     *
      * @deprecated Use {@link #builder(MessageSource)} instead.
      */
     @Deprecated
@@ -124,6 +123,8 @@ public class WebErrorHandlers {
      * non-empty collection of {@link WebErrorHandler} implementations and an optional fallback
      * error handler.
      *
+     * <p>This constructor is meant to be called by {@link WebErrorHandlersBuilder#build()} method.
+     *
      * @param messageSource                 The code to message translator.
      * @param webErrorHandlers              Collection of {@link WebErrorHandler} implementations.
      * @param defaultWebErrorHandler        Fallback web error handler.
@@ -132,7 +133,6 @@ public class WebErrorHandlers {
      * @param webErrorHandlerPostProcessors Executes additional actions on HttpError.
      * @param fingerprintProvider           Calculates fingerprint of error message.
      * @param errorsProperties              Configuration properties bean.
-     *
      * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException When the collection of implementations is empty.
      */
@@ -144,9 +144,9 @@ public class WebErrorHandlers {
                      @NonNull List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
                      @NonNull FingerprintProvider fingerprintProvider,
                      @NonNull ErrorsProperties errorsProperties) {
-        MessageSource ms = requireNonNull(messageSource, "We need a MessageSource implementation to message translation");
+        requireNonNull(messageSource, "We need a MessageSource implementation to message translation");
         this.errorsProperties = requireNonNull(errorsProperties);
-        this.messageInterpolator = new ErrorMessageInterpolator(ms);
+        this.messageInterpolator = new ErrorMessageInterpolator(messageSource);
         this.webErrorHandlers = requireAtLeastOneHandler(webErrorHandlers);
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
         this.exceptionRefiner = requireNonNull(exceptionRefiner);
@@ -170,10 +170,10 @@ public class WebErrorHandlers {
      * falls back to a default handler and then tries to handle the exception using the chosen
      * handler. Then would convert the {@link HandledException} to its corresponding {@link HttpError}.
      *
-     * @param originalException   The originalException to handle.
-     * @param httpRequest The current HTTP request.
-     * @param locale      Will be used to target a specific locale while translating the codes to error
-     *                    messages.
+     * @param originalException The originalException to handle.
+     * @param httpRequest       The current HTTP request.
+     * @param locale            Will be used to target a specific locale while translating the codes to error
+     *                          messages.
      * @return An {@link HttpError} instance containing both error and message combinations and also,
      * the intended HTTP Status Code.
      */

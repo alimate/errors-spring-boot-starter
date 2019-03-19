@@ -145,9 +145,10 @@ public class ErrorsControllerAdviceIT {
 
     @Test
     @Parameters(method = "provideInvalidBody")
-    public void controllerAdvice_ShouldHandleValidationErrorsProperly(Object body,
-                                                                      Locale locale,
-                                                                      CodedMessage... expectedErrors) throws Exception {
+    public void controllerAdvice_ShouldHandleValidationErrorsProperly(
+            Object body,
+            Locale locale,
+            CodedMessage... expectedErrors) throws Exception {
 
         ObjectMapper mapper = new ObjectMapper();
         String data = mapper.writeValueAsString(body);
@@ -160,7 +161,6 @@ public class ErrorsControllerAdviceIT {
                 .andExpect(jsonPath("errors[*].message").value(containsInAnyOrder(messages)))
                 .andExpect(jsonPath("$.fingerprint").exists())
                 .andExpect(jsonPath("$.errors[0].arguments").exists());
-
     }
 
     @Test
@@ -276,7 +276,6 @@ public class ErrorsControllerAdviceIT {
                 .andExpect(jsonPath("$.fingerprint").exists())
                 .andExpect(jsonPath("$.errors[0].arguments.name").value("name"))
                 .andExpect(jsonPath("$.errors[0].arguments.expected").value("String"));
-
     }
 
     @Test
@@ -354,8 +353,9 @@ public class ErrorsControllerAdviceIT {
         private final AccessDeniedHandler accessDeniedHandler;
         private final AuthenticationEntryPoint authenticationEntryPoint;
 
-        public WebConfig(AccessDeniedHandler accessDeniedHandler,
-                         AuthenticationEntryPoint authenticationEntryPoint) {
+        public WebConfig(
+                AccessDeniedHandler accessDeniedHandler,
+                AuthenticationEntryPoint authenticationEntryPoint) {
             this.accessDeniedHandler = accessDeniedHandler;
             this.authenticationEntryPoint = authenticationEntryPoint;
         }
@@ -366,8 +366,8 @@ public class ErrorsControllerAdviceIT {
                     .anonymous().disable()
                     .csrf().disable()
                     .exceptionHandling()
-                        .accessDeniedHandler(accessDeniedHandler)
-                        .authenticationEntryPoint(authenticationEntryPoint);
+                    .accessDeniedHandler(accessDeniedHandler)
+                    .authenticationEntryPoint(authenticationEntryPoint);
         }
     }
 
