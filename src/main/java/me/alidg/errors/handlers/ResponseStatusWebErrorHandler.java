@@ -17,8 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonMap;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 import static me.alidg.errors.Argument.arg;
 import static me.alidg.errors.handlers.LastResortWebErrorHandler.UNKNOWN_ERROR_CODE;
@@ -64,17 +63,20 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
     public HandledException handle(Throwable exception) {
         if (exception instanceof MediaTypeNotSupportedStatusException) {
             List<String> types = getMediaTypes(((MediaTypeNotSupportedStatusException) exception).getSupportedMediaTypes());
-            return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, argMap(NOT_SUPPORTED, arg("types", types)));
+            Map<String, List<Argument>> args = types.isEmpty() ? emptyMap() : argMap(NOT_SUPPORTED, arg("types", types));
+            return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, args);
         }
 
         if (exception instanceof UnsupportedMediaTypeStatusException) {
             List<String> types = getMediaTypes(((UnsupportedMediaTypeStatusException) exception).getSupportedMediaTypes());
-            return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, argMap(NOT_SUPPORTED, arg("types", types)));
+            Map<String, List<Argument>> args = types.isEmpty() ? emptyMap() : argMap(NOT_SUPPORTED, arg("types", types));
+            return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, args);
         }
 
         if (exception instanceof NotAcceptableStatusException) {
             List<String> types = getMediaTypes(((NotAcceptableStatusException) exception).getSupportedMediaTypes());
-            return new HandledException(NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE, argMap(NOT_ACCEPTABLE, arg("types", types)));
+            Map<String, List<Argument>> args = types.isEmpty() ? emptyMap() : argMap(NOT_ACCEPTABLE, arg("types", types));
+            return new HandledException(NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE, args);
         }
 
         if (exception instanceof MethodNotAllowedException) {
