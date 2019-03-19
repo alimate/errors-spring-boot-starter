@@ -16,6 +16,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import javax.servlet.ServletException;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
@@ -99,9 +100,10 @@ public class ServletWebErrorHandler implements WebErrorHandler {
 
         if (exception instanceof HttpMediaTypeNotAcceptableException) {
             List<String> types = getMediaTypes(((HttpMediaTypeNotAcceptableException) exception).getSupportedMediaTypes());
+            Map<String, List<Argument>> args = types.isEmpty() ?
+                    emptyMap() : singletonMap(NOT_ACCEPTABLE, singletonList(arg("types", types)));
 
-            return new HandledException(NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE,
-                    singletonMap(NOT_ACCEPTABLE, singletonList(arg("types", types))));
+            return new HandledException(NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE, args);
         }
 
         if (exception instanceof HttpMediaTypeNotSupportedException) {
@@ -109,7 +111,8 @@ public class ServletWebErrorHandler implements WebErrorHandler {
 
             List<Argument> arguments = null;
             if (contentType != null) arguments = singletonList(arg("type", contentType.toString()));
-            return new HandledException(NOT_SUPPORTED, HttpStatus.UNSUPPORTED_MEDIA_TYPE, singletonMap(NOT_SUPPORTED, arguments));
+            return new HandledException(NOT_SUPPORTED, HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                    arguments == null ? emptyMap() : singletonMap(NOT_SUPPORTED, arguments));
         }
 
         if (exception instanceof HttpRequestMethodNotSupportedException) {
