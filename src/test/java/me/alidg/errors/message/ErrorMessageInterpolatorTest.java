@@ -16,14 +16,8 @@ import static java.util.Collections.singletonList;
 import static me.alidg.Params.p;
 import static me.alidg.errors.Argument.arg;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @RunWith(JUnitParamsRunner.class)
 public class ErrorMessageInterpolatorTest {
@@ -57,6 +51,8 @@ public class ErrorMessageInterpolatorTest {
                 args("arg1={min}, arg2=\\{max}", asList(arg("max", 100), arg("min", -100)), "arg1=-100, arg2={max}"),
                 args("arg1={arg1}", asList(arg("arg1", "resolved"), arg("arg2", "skipped")), "arg1=resolved"),
                 args("arg1={arg}, arg2={unresolved}", singletonList(arg("arg", "resolved")), "arg1=resolved, arg2={unresolved}"),
+                args("arg1={0}, arg2={1}", singletonList(arg("arg", "resolved")), "arg1=resolved, arg2={1}"),
+                args("arg1={0.0}", singletonList(arg("arg", "arg")), "arg1={0.0}"),
                 args("arg1={arg1}, arg2={arg2}, arg1again={arg1}", asList(arg("arg1", 111), arg("arg2", 222)), "arg1=111, arg2=222, arg1again=111")
         );
     }
