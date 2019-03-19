@@ -17,6 +17,7 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import javax.servlet.ServletException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -93,7 +94,7 @@ public class ServletWebErrorHandlerTest {
                 p(
                         new HttpMediaTypeNotAcceptableException(asList(APPLICATION_JSON, MediaType.APPLICATION_PDF)),
                         ServletWebErrorHandler.NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE,
-                        singletonMap(ServletWebErrorHandler.NOT_ACCEPTABLE, singletonList(arg("types", asList(APPLICATION_JSON_VALUE, APPLICATION_PDF_VALUE))))
+                        singletonMap(ServletWebErrorHandler.NOT_ACCEPTABLE, singletonList(arg("types", new HashSet<>(asList(APPLICATION_JSON_VALUE, APPLICATION_PDF_VALUE)))))
                 ),
                 p(
                         new HttpMediaTypeNotSupportedException(APPLICATION_JSON, emptyList()),
