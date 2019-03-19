@@ -82,7 +82,7 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
         Map<String, List<Argument>> args = violationException
                 .getConstraintViolations()
                 .stream()
-                .collect(toMap(this::errorCode, ConstraintViolationArgumentsExtractor::extract));
+                .collect(toMap(this::errorCode, ConstraintViolationArgumentsExtractor::extract, (v1, v2) -> v1));
         args.entrySet().removeIf(e -> e.getValue().isEmpty());
         return args;
     }
