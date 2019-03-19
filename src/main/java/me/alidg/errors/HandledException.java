@@ -49,8 +49,9 @@ public class HandledException {
      *     }
      * </pre>
      * If the given interest list wasn't valid, then this map would contain an entry with the
-     * {@code interests.range_limit} as the key and {@code List(1, 7)} as the values. Later on
-     * we can use those exposed values in our message, for example, the following error template:
+     * {@code interests.range_limit} as the key and {@code List(Argument(min, 1), Argument(max, 7))}
+     * as the values. Later on we can use those exposed values in our message, for example,
+     * the following error template:
      * <pre>
      *     You should define between {0} and {1} interests.
      * </pre>
@@ -59,7 +60,7 @@ public class HandledException {
      *     You should define between 1 and 7 interests.
      * </pre>
      */
-    private final Map<String, List<?>> arguments;
+    private final Map<String, List<Argument>> arguments;
 
     /**
      * Initialize a handled exception with a set of error codes, a HTTP status code and an
@@ -67,14 +68,13 @@ public class HandledException {
      *
      * @param errorCodes The corresponding error codes for the handled exception.
      * @param statusCode The corresponding status code for the handled exception.
-     * @param arguments Arguments to be exposed from the handled exception to the outside world.
-     *
-     * @throws NullPointerException When one of the required parameters is null.
+     * @param arguments  Arguments to be exposed from the handled exception to the outside world.
+     * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException At least one error code should be provided.
      */
     public HandledException(@NonNull Set<String> errorCodes,
                             @NonNull HttpStatus statusCode,
-                            @Nullable Map<String, List<?>> arguments) {
+                            @Nullable Map<String, List<Argument>> arguments) {
         enforcePreconditions(errorCodes, statusCode);
         this.errorCodes = errorCodes;
         this.statusCode = statusCode;
@@ -85,16 +85,15 @@ public class HandledException {
      * Initialize a handled exception with an error code, a HTTP status code and an
      * optional collection of arguments.
      *
-     * @param errorCode The corresponding error code for the handled exception.
+     * @param errorCode  The corresponding error code for the handled exception.
      * @param statusCode The corresponding status code for the handled exception.
-     * @param arguments Arguments to be exposed from the handled exception to the outside world.
-     *
-     * @throws NullPointerException When one of the required parameters is null.
+     * @param arguments  Arguments to be exposed from the handled exception to the outside world.
+     * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException At least one error code should be provided.
      */
     public HandledException(@NonNull String errorCode,
                             @NonNull HttpStatus statusCode,
-                            @Nullable Map<String, List<?>> arguments) {
+                            @Nullable Map<String, List<Argument>> arguments) {
         this(singleton(errorCode), statusCode, arguments);
     }
 
@@ -121,7 +120,7 @@ public class HandledException {
      * @see #arguments
      */
     @NonNull
-    public Map<String, List<?>> getArguments() {
+    public Map<String, List<Argument>> getArguments() {
         return arguments;
     }
 

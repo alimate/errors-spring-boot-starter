@@ -1,6 +1,8 @@
 package me.alidg.errors;
 
 import me.alidg.errors.HttpError.CodedMessage;
+import me.alidg.errors.conf.ErrorsProperties;
+import me.alidg.errors.fingerprint.UuidFingerprintProvider;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,18 +89,25 @@ public class WebErrorHandlers {
     /**
      * To generate unique fingerprint of error message.
      */
-    @Nullable
+    @NonNull
     private final FingerprintProvider fingerprintProvider;
 
     /**
-     * Backward-compatible constructor with defaults for {@link #webErrorHandlerPostProcessors}
-     * and {@link #fingerprintProvider}.
+     * Encapsulates the configuration properties to configure the error starter.
+     */
+    @NonNull
+    private final ErrorsProperties errorsProperties;
+
+    /**
+     * Backward-compatible constructor with defaults for {@link #webErrorHandlerPostProcessors},
+     * {@link #fingerprintProvider}, and {@link #errorsProperties}.
      *
      * @param messageSource          The code to message translator.
      * @param implementations        Collection of {@link WebErrorHandler} implementations.
      * @param defaultWebErrorHandler Fallback web error handler.
      * @param exceptionRefiner       Possibly can refine exceptions before handling them.
      * @param exceptionLogger        Logs exceptions.
+     *
      * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException When the collection of implementations is empty.
      */
@@ -107,8 +116,8 @@ public class WebErrorHandlers {
                             @Nullable WebErrorHandler defaultWebErrorHandler,
                             @Nullable ExceptionRefiner exceptionRefiner,
                             @Nullable ExceptionLogger exceptionLogger) {
-        this(messageSource, implementations, defaultWebErrorHandler, exceptionRefiner,
-                exceptionLogger, Collections.emptyList(), null);
+        this(messageSource, implementations, defaultWebErrorHandler, exceptionRefiner, exceptionLogger,
+                Collections.emptyList(), new UuidFingerprintProvider(), new ErrorsProperties());
     }
 
     /**
@@ -123,6 +132,8 @@ public class WebErrorHandlers {
      * @param exceptionLogger               Logs exceptions.
      * @param webErrorHandlerPostProcessors Executes additional actions on HttpError.
      * @param fingerprintProvider           Calculates fingerprint of error message.
+     * @param errorsProperties              Configuration properties bean.
+     *
      * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException When the collection of implementations is empty.
      */
@@ -132,15 +143,17 @@ public class WebErrorHandlers {
                             @Nullable ExceptionRefiner exceptionRefiner,
                             @Nullable ExceptionLogger exceptionLogger,
                             @NonNull List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
-                            @Nullable FingerprintProvider fingerprintProvider) {
+                            @NonNull FingerprintProvider fingerprintProvider,
+                            @NonNull ErrorsProperties errorsProperties) {
         enforcePreconditions(messageSource, implementations);
-        this.messageSource = messageSource;
-        this.implementations = implementations;
+        this.messageSource = requireNonNull(messageSource, "Message source is required");
+        this.implementations = requireNonNull(implementations, "Web error handlers are is required");
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
         this.exceptionRefiner = exceptionRefiner;
         this.exceptionLogger = exceptionLogger;
-        this.webErrorHandlerPostProcessors = webErrorHandlerPostProcessors;
-        this.fingerprintProvider = fingerprintProvider;
+        this.webErrorHandlerPostProcessors = requireNonNull(webErrorHandlerPostProcessors, "Postprocessor can not be null");
+        this.fingerprintProvider = requireNonNull(fingerprintProvider, "Fingerprint provider is required");
+        this.errorsProperties = requireNonNull(errorsProperties, "Error Properties is required");
     }
 
     /**
@@ -182,7 +195,7 @@ public class WebErrorHandlers {
         httpError.setRefinedException(refined);
         httpError.setRequest(httpRequest);
 
-        if (fingerprintProvider != null) {
+        if (errorsProperties.isAddFingerprint()) {
             httpError.setFingerprint(fingerprintProvider.generate(httpError));
         }
 
@@ -206,12 +219,14 @@ public class WebErrorHandlers {
             throw new IllegalArgumentException("We need at least one error handler");
     }
 
-    private CodedMessage withMessage(String code, Object[] args, Locale locale) {
+    private CodedMessage withMessage(String code, List<Argument> arguments, Locale locale) {
         try {
+            Object[] args = arguments.stream().map(Argument::getValue).toArray(Object[]::new);
             String message = messageSource.getMessage(code, args, locale);
-            return new CodedMessage(code, message);
+
+            return new CodedMessage(code, message, arguments);
         } catch (Exception e) {
-            return new CodedMessage(code, null);
+            return new CodedMessage(code, null, arguments);
         }
     }
 
@@ -231,7 +246,7 @@ public class WebErrorHandlers {
         return toInspect.getClass().getName();
     }
 
-    private Object[] getArgumentsFor(HandledException handled, String errorCode) {
-        return handled.getArguments().getOrDefault(errorCode, emptyList()).toArray();
+    private List<Argument> getArgumentsFor(HandledException handled, String errorCode) {
+        return handled.getArguments().getOrDefault(errorCode, emptyList());
     }
 }

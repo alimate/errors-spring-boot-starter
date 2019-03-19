@@ -56,10 +56,12 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static me.alidg.Params.p;
 import static me.alidg.errors.handlers.LastResortWebErrorHandler.UNKNOWN_ERROR_CODE;
 import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.*;
@@ -67,6 +69,7 @@ import static me.alidg.errors.handlers.ServletWebErrorHandler.*;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.ACCESS_DENIED;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.AUTH_REQUIRED;
 import static me.alidg.errors.reactive.ReactiveIT.Dto.dto;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -92,6 +95,8 @@ public class ReactiveIT {
 
     @Before
     public void setUp() {
+        System.setProperty("errors.expose-arguments", "non_empty");
+        System.setProperty("errors.add-fingerprint", "false");
         String port = "--server.port=0";
         String messages = "--spring.messages.basename=test_messages";
         SpringApplication application = new SpringApplication(WebFluxConfig.class);
@@ -108,6 +113,8 @@ public class ReactiveIT {
 
     @After
     public void tearDown() {
+        System.clearProperty("errors.expose-arguments");
+        System.clearProperty("errors.add-fingerprint");
         ApplicationContextTestUtils.closeAll(context);
     }
 
@@ -116,7 +123,9 @@ public class ReactiveIT {
         client.mutateWith(csrf()).delete().uri("/test").exchange()
                 .expectStatus().is5xxServerError()
                 .expectBody()
-                    .jsonPath("$.errors[0].code").isEqualTo(UNKNOWN_ERROR_CODE);
+                    .jsonPath("$.errors[0].code").isEqualTo(UNKNOWN_ERROR_CODE)
+                    .jsonPath("$.fingerprint").doesNotExist()
+                    .jsonPath("$.errors[0].arguments").doesNotExist();
 
         verify(logger()).log(any());
     }
@@ -127,7 +136,11 @@ public class ReactiveIT {
                 .expectStatus().isEqualTo(UNPROCESSABLE_ENTITY)
                 .expectBody()
                     .jsonPath("$.errors[0].code").isEqualTo("invalid_params")
-                    .jsonPath("$.errors[0].message").isEqualTo("Params are: a, c and 10");
+                    .jsonPath("$.errors[0].message").isEqualTo("Params are: a, c and 10")
+                    .jsonPath("$.fingerprint").doesNotExist()
+                    .jsonPath("$.errors[0].arguments.a").isEqualTo("a")
+                    .jsonPath("$.errors[0].arguments.c").isEqualTo("c")
+                    .jsonPath("$.errors[0].arguments.f").isEqualTo("10");
 
         verify(logger()).log(any(ReactiveIT.InvalidParamsException.class));
     }
@@ -152,7 +165,8 @@ public class ReactiveIT {
                 .expectStatus().isBadRequest()
                 .expectBody()
                     .jsonPath("errors[*].code").value(Matchers.containsInAnyOrder(codes))
-                    .jsonPath("errors[*].message").value(Matchers.containsInAnyOrder(messages));
+                    .jsonPath("errors[*].message").value(Matchers.containsInAnyOrder(messages))
+                    .jsonPath("$.fingerprint").doesNotExist();
 
         verify(logger()).log(any());
     }
@@ -161,7 +175,10 @@ public class ReactiveIT {
     public void errorAttributes_ShouldHandleHandlerNotFoundSituations() {
         client.get().uri("/should_not_be_found").exchange()
                 .expectStatus().isNotFound()
-                .expectBody().jsonPath("errors[0].code").isEqualTo(NO_HANDLER);
+                .expectBody()
+                    .jsonPath("errors[0].code").isEqualTo(NO_HANDLER)
+                    .jsonPath("$.fingerprint").doesNotExist()
+                    .jsonPath("$.errors[0].arguments").doesNotExist();
 
         verify(logger()).log(any());
     }
@@ -170,7 +187,10 @@ public class ReactiveIT {
     public void errorAttributes_ShouldHandleMissingBodiesProperly() {
         client.mutateWith(csrf()).post().uri("/test").contentType(APPLICATION_JSON_UTF8).exchange()
                 .expectStatus().isBadRequest()
-                .expectBody().jsonPath("errors[0].code").isEqualTo(INVALID_OR_MISSING_BODY);
+                .expectBody()
+                    .jsonPath("errors[0].code").isEqualTo(INVALID_OR_MISSING_BODY)
+                    .jsonPath("$.fingerprint").doesNotExist()
+                    .jsonPath("$.errors[0].arguments").doesNotExist();
 
         verify(logger()).log(any());
     }
@@ -179,7 +199,10 @@ public class ReactiveIT {
     public void errorAttributes_ShouldHandleInvalidBodiesProperly() {
         client.mutateWith(csrf()).post().uri("/test").contentType(APPLICATION_JSON_UTF8).syncBody("gibberish").exchange()
                 .expectStatus().isBadRequest()
-                .expectBody().jsonPath("errors[0].code").isEqualTo(INVALID_OR_MISSING_BODY);
+                .expectBody()
+                    .jsonPath("errors[0].code").isEqualTo(INVALID_OR_MISSING_BODY)
+                    .jsonPath("$.fingerprint").doesNotExist()
+                    .jsonPath("$.errors[0].arguments").doesNotExist();
 
         verify(logger()).log(any());
     }
@@ -188,7 +211,10 @@ public class ReactiveIT {
     public void errorAttributes_ShouldHandleMissingContentTypesProperly() {
         client.mutateWith(csrf()).post().uri("/test").syncBody("gibberish").exchange()
                 .expectStatus().isEqualTo(UNSUPPORTED_MEDIA_TYPE)
-                .expectBody().jsonPath("errors[0].code").isEqualTo(NOT_SUPPORTED);
+                .expectBody()
+                    .jsonPath("errors[0].code").isEqualTo(NOT_SUPPORTED)
+                    .jsonPath("$.fingerprint").doesNotExist()
+                    .jsonPath("$.errors[0].arguments").exists();
 
         verify(logger()).log(any());
     }
@@ -216,7 +242,9 @@ public class ReactiveIT {
                 .expectStatus().isEqualTo(METHOD_NOT_ALLOWED)
                 .expectBody()
                     .jsonPath("errors[0].code").isEqualTo(ServletWebErrorHandler.METHOD_NOT_ALLOWED)
-                    .jsonPath("errors[0].message").isEqualTo("PUT method is not supported");
+                    .jsonPath("errors[0].message").isEqualTo("PUT method is not supported")
+                    .jsonPath("$.fingerprint").doesNotExist()
+                    .jsonPath("$.errors[0].arguments.method").isEqualTo("PUT");
 
         verify(logger()).log(any());
     }
@@ -227,7 +255,10 @@ public class ReactiveIT {
                 .expectStatus().isBadRequest()
                 .expectBody()
                     .jsonPath("errors[0].code").isEqualTo(MISSING_PARAMETER)
-                    .jsonPath("errors[0].message").isEqualTo("Parameter name of type String is required");
+                    .jsonPath("errors[0].message").isEqualTo("Parameter name of type String is required")
+                    .jsonPath("$.fingerprint").doesNotExist()
+                    .jsonPath("$.errors[0].arguments.name").isEqualTo("name")
+                    .jsonPath("$.errors[0].arguments.expected").isEqualTo("String");
 
         verify(logger()).log(any());
     }
@@ -239,7 +270,9 @@ public class ReactiveIT {
                 .expectStatus().isBadRequest()
                 .expectBody()
                     .jsonPath("errors[0].code").isEqualTo(MISSING_PART)
-                    .jsonPath("errors[0].message").isEqualTo("file part is required");
+                    .jsonPath("errors[0].message").isEqualTo("file part is required")
+                    .jsonPath("$.fingerprint").doesNotExist()
+                    .jsonPath("$.errors[0].arguments.name").isEqualTo("file");
 
         verify(logger()).log(any());
     }
@@ -248,7 +281,10 @@ public class ReactiveIT {
     public void errorAttributes_ShouldHandleHandleUnauthorizedErrorsProperly() {
         client.get().uri("/test/protected").exchange()
                 .expectStatus().isUnauthorized()
-                .expectBody().jsonPath("errors[0].code").isEqualTo(AUTH_REQUIRED);
+                .expectBody()
+                    .jsonPath("errors[0].code").isEqualTo(AUTH_REQUIRED)
+                    .jsonPath("$.fingerprint").doesNotExist()
+                    .jsonPath("$.errors[0].arguments").doesNotExist();
 
         verify(logger()).log(any());
     }
@@ -259,7 +295,10 @@ public class ReactiveIT {
                 .mutateWith(mockUser())
                 .post().uri("/test/protected").exchange()
                 .expectStatus().isForbidden()
-                .expectBody().jsonPath("errors[0].code").isEqualTo(ACCESS_DENIED);
+                .expectBody()
+                    .jsonPath("errors[0].code").isEqualTo(ACCESS_DENIED)
+                    .jsonPath("$.fingerprint").doesNotExist()
+                    .jsonPath("$.errors[0].arguments").doesNotExist();
 
         verify(logger()).log(any());
     }
@@ -268,7 +307,11 @@ public class ReactiveIT {
     public void errorAttributes_ShouldHandleMissingHeadersProperly() {
         client.get().uri("/test/header").exchange()
                 .expectStatus().isBadRequest()
-                .expectBody().jsonPath("errors[0].code").isEqualTo(MISSING_HEADER);
+                .expectBody()
+                    .jsonPath("errors[0].code").isEqualTo(MISSING_HEADER)
+                    .jsonPath("$.fingerprint").doesNotExist()
+                    .jsonPath("$.errors[0].arguments.name").isEqualTo("name")
+                    .jsonPath("$.errors[0].arguments.expected").isEqualTo("String");
 
         verify(logger()).log(any());
     }
@@ -277,18 +320,40 @@ public class ReactiveIT {
     public void errorAttributes_ShouldHandleMissingCookiesProperly() {
         client.get().uri("/test/cookie").exchange()
                 .expectStatus().isBadRequest()
-                .expectBody().jsonPath("errors[0].code").isEqualTo(MISSING_COOKIE);
+                .expectBody()
+                    .jsonPath("errors[0].code").isEqualTo(MISSING_COOKIE)
+                    .jsonPath("$.fingerprint").doesNotExist()
+                    .jsonPath("$.errors[0].arguments.name").isEqualTo("name")
+                    .jsonPath("$.errors[0].arguments.expected").isEqualTo("String");
 
         verify(logger()).log(any());
     }
 
     @Test
-    public void controllerAdvice_ShouldHandleMissingMatrixVarsProperly() {
+    public void errorAttributes_ShouldHandleMissingMatrixVarsProperly() {
         client.get().uri("/test/matrix").exchange()
                 .expectStatus().isBadRequest()
-                .expectBody().jsonPath("errors[0].code").isEqualTo(MISSING_MATRIX_VARIABLE);
+                .expectBody()
+                    .jsonPath("errors[0].code").isEqualTo(MISSING_MATRIX_VARIABLE)
+                    .jsonPath("$.fingerprint").doesNotExist()
+                    .jsonPath("$.errors[0].arguments.name").isEqualTo("name")
+                    .jsonPath("$.errors[0].arguments.expected").isEqualTo("String");
 
         verify(logger()).log(any());
+    }
+
+    @Test
+    public void errorAttributes_ShouldHandleBindingExceptionsProperly() {
+        client.get().uri("/test/paged?page=nan&size=na&sort=invalid")
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("errors[*].code").value(containsInAnyOrder(
+                        "binding.type_mismatch.page", "binding.type_mismatch.size", "binding.type_mismatch.sort"))
+                .jsonPath("$.fingerprint").doesNotExist()
+                .jsonPath("$.errors[*].arguments.property").value(containsInAnyOrder("page", "size", "sort"))
+                .jsonPath("$.errors[*].arguments.expected").value(containsInAnyOrder("Integer", "Integer", "Sort"))
+                .jsonPath("$.errors[*].arguments.invalid").value(containsInAnyOrder("nan", "na", "invalid"));
     }
 
     @RestController
@@ -344,6 +409,9 @@ public class ReactiveIT {
         public Mono<Void> matrixIsRequired(@MatrixVariable String name) {
             return Mono.empty();
         }
+
+        @GetMapping("/paged")
+        public void pagedResult(Pageable pageable) {}
     }
 
     protected static class Dto {
@@ -392,6 +460,41 @@ public class ReactiveIT {
         static ReactiveIT.Dto dto(String text, int number, String... range) {
             return new ReactiveIT.Dto(text, number, range);
         }
+    }
+
+    protected static class Pageable {
+
+        private Integer page;
+        private Integer size;
+        private Sort sort;
+
+        public Integer getPage() {
+            return page;
+        }
+
+        public void setPage(Integer page) {
+            this.page = page;
+        }
+
+        public Integer getSize() {
+            return size;
+        }
+
+        public void setSize(Integer size) {
+            this.size = size;
+        }
+
+        public Sort getSort() {
+            return sort;
+        }
+
+        public void setSort(Sort sort) {
+            this.sort = sort;
+        }
+    }
+
+    protected enum Sort {
+        ASC, DESC
     }
 
     private MultiValueMap<String, HttpEntity<?>> generateBody() {
@@ -470,6 +573,8 @@ public class ReactiveIT {
 
     private Object[] provideInvalidBody() {
         return p(
+                p(Collections.emptyMap(), null, cm("text.required", "The text is required")),
+                p(dto(null, 10, "code"), null, cm("text.required", "The text is required")),
                 p(dto("", 10, "code"), null, cm("text.required", "The text is required")),
                 //p(dto("", 10, "code"), new Locale("fa", "IR"), cm("text.required", "متن اجباری است")),
                 p(dto("text", -1, "code"), null, cm("number.min", "The min is 0")),
@@ -485,6 +590,6 @@ public class ReactiveIT {
     }
 
     private CodedMessage cm(String code, String message) {
-        return new CodedMessage(code, message);
+        return new CodedMessage(code, message, emptyList());
     }
 }

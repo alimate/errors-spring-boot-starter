@@ -42,7 +42,7 @@ public enum LastResortWebErrorHandler implements WebErrorHandler {
      * arguments.
      *
      * @param exception The exception to handle.
-     * @return 500 Internal Error with {@code unknown_error} as the error code.
+     * @return 500 Internal Error with {@code unknown_error} as the error code and no arguments.
      */
     @Override
     public HandledException handle(Throwable exception) {

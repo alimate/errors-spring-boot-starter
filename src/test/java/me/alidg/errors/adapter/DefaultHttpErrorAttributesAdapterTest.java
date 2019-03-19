@@ -1,15 +1,24 @@
 package me.alidg.errors.adapter;
 
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+import me.alidg.errors.Argument;
 import me.alidg.errors.HttpError;
+import me.alidg.errors.conf.ErrorsProperties;
+import me.alidg.errors.conf.ErrorsProperties.ArgumentExposure;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.http.HttpStatus;
 
-import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+import static me.alidg.Params.p;
+import static me.alidg.errors.Argument.arg;
 import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
@@ -18,38 +27,72 @@ import static org.assertj.core.api.Java6Assertions.assertThat;
  *
  * @author Ali Dehghani
  */
+@RunWith(JUnitParamsRunner.class)
 public class DefaultHttpErrorAttributesAdapterTest {
-
-    /**
-     * Subject under test.
-     */
-    private final HttpErrorAttributesAdapter adapter = new DefaultHttpErrorAttributesAdapter();
 
     @Test
     @SuppressWarnings("unchecked")
     public void adapt_ShouldAdaptTheHttpErrorToAMapProperly() {
-        HttpError.CodedMessage first = new HttpError.CodedMessage("f", null);
-        HttpError.CodedMessage sec = new HttpError.CodedMessage("s", "a message");
+        ErrorsProperties errorsProperties = new ErrorsProperties();
+        errorsProperties.setExposeArguments(ArgumentExposure.NON_EMPTY);
+        HttpErrorAttributesAdapter adapter = new DefaultHttpErrorAttributesAdapter(errorsProperties);
+
+        HttpError.CodedMessage first = new HttpError.CodedMessage("f", null, emptyList());
+        HttpError.CodedMessage sec = new HttpError.CodedMessage("s", "a message", singletonList(arg("param", 123)));
 
         HttpError httpError = new HttpError(asList(first, sec), HttpStatus.BAD_REQUEST);
+        assertThat(httpError.toString()).isNotNull();
 
         Map<String, Object> adapted = adapter.adapt(httpError);
 
-        List<Map<String, String>> errors = (List<Map<String, String>>) adapted.get("errors");
+        List<Map<String, Object>> errors = (List<Map<String, Object>>) adapted.get("errors");
         assertThat(errors).isNotNull();
-        assertThat(errors.get(0)).containsOnlyKeys("code", "message");
-        assertThat(errors.get(0)).containsValues("f", null);
-        assertThat(errors.get(1)).containsOnlyKeys("code", "message");
-        assertThat(errors.get(1)).containsValues("s", "a message");
+        assertThat(errors.get(0)).containsOnly(entry("code", "f"), entry("message", null));
+        assertThat(errors.get(1)).containsOnly(entry("code", "s"), entry("message", "a message"), entry("arguments", singletonMap("param", 123)));
     }
 
     @Test
     public void adapt_ShouldAdaptFingerprintToAMapProperly() {
-        HttpError httpError = new HttpError(Collections.emptyList(), HttpStatus.BAD_REQUEST);
+        HttpErrorAttributesAdapter adapter = new DefaultHttpErrorAttributesAdapter(new ErrorsProperties());
+
+        HttpError httpError = new HttpError(emptyList(), HttpStatus.BAD_REQUEST);
         httpError.setFingerprint("fingerprint");
 
         Map<String, Object> adapted = adapter.adapt(httpError);
 
         assertThat(adapted).contains(entry("fingerprint", "fingerprint"));
+    }
+
+    @Test
+    @Parameters(method = "provideExposureParams")
+    @SuppressWarnings("unchecked")
+    public void adapt_ShouldAdaptTheHttpErrorWithArgumentsToAMapProperly(
+            ArgumentExposure exposure,
+            List<Argument> arguments,
+            boolean parametersFieldPresent) {
+        ErrorsProperties errorsProperties = new ErrorsProperties();
+        errorsProperties.setExposeArguments(exposure);
+        HttpErrorAttributesAdapter adapter = new DefaultHttpErrorAttributesAdapter(errorsProperties);
+
+        HttpError.CodedMessage codedMessage = new HttpError.CodedMessage("c", "msg", arguments);
+
+        HttpError httpError = new HttpError(singletonList(codedMessage), HttpStatus.BAD_REQUEST);
+
+        Map<String, Object> adapted = adapter.adapt(httpError);
+
+        List<Map<String, Object>> errors = (List<Map<String, Object>>) adapted.get("errors");
+
+        assertThat(errors.get(0).containsKey("arguments")).isEqualTo(parametersFieldPresent);
+    }
+
+    private Object[] provideExposureParams() {
+        return p(
+                p(ArgumentExposure.NEVER, emptyList(), false),
+                p(ArgumentExposure.NEVER, singletonList(arg("name", "value")), false),
+                p(ArgumentExposure.NON_EMPTY, emptyList(), false),
+                p(ArgumentExposure.NON_EMPTY, singletonList(arg("name", "value")), true),
+                p(ArgumentExposure.ALWAYS, emptyList(), true),
+                p(ArgumentExposure.ALWAYS, singletonList(arg("name", "value")), true)
+        );
     }
 }

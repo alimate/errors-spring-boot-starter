@@ -1,6 +1,8 @@
 package me.alidg.errors.adapter;
 
 import me.alidg.errors.HttpError;
+import me.alidg.errors.HttpError.CodedMessage;
+import me.alidg.errors.conf.ErrorsProperties;
 import org.springframework.lang.NonNull;
 
 import java.util.HashMap;
@@ -17,15 +19,35 @@ import static java.util.stream.Collectors.toList;
  *         "errors": [
  *              {
  *                  "code": "the_code",
- *                  "message": "the_message"
+ *                  "message": "the_message",
+ *                  "arguments": {
+ *                      "name": "value"
+ *                  }
  *              }, ...
- *         ]
+ *         ],
+ *         "fingerprint": "value"
  *     }
  * </pre>
  *
  * @author Ali Dehghani
  */
 public class DefaultHttpErrorAttributesAdapter implements HttpErrorAttributesAdapter {
+
+    /**
+     * Encapsulates the configuration properties to configure the errors starter.
+     */
+    private final ErrorsProperties errorsProperties;
+
+    /**
+     * Constructs an instance of {@link DefaultHttpErrorAttributesAdapter} given the
+     * configuration properties.
+     *
+     * @param errorsProperties Encapsulates the configuration properties to configure the
+     *                         errors starter.
+     */
+    public DefaultHttpErrorAttributesAdapter(ErrorsProperties errorsProperties) {
+        this.errorsProperties = errorsProperties;
+    }
 
     /**
      * Converts the given {@link HttpError} to a {@link Map}.
@@ -55,11 +77,13 @@ public class DefaultHttpErrorAttributesAdapter implements HttpErrorAttributesAda
         return map;
     }
 
-    private Map<String, String> toMap(HttpError.CodedMessage codedMessage) {
-        Map<String, String> map = new HashMap<>();
-        map.put("code", codedMessage.getCode());
-        map.put("message", codedMessage.getMessage());
+    private Map<String, Object> toMap(CodedMessage codedMessage) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("code", codedMessage.getCode());
+        error.put("message", codedMessage.getMessage());
 
-        return map;
+        errorsProperties.getExposeArguments().expose(error, codedMessage.getArguments());
+
+        return error;
     }
 }

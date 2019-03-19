@@ -10,7 +10,6 @@ import me.alidg.errors.conf.ErrorsAutoConfiguration;
 import me.alidg.errors.conf.ServletErrorsAutoConfiguration;
 import me.alidg.errors.conf.ServletSecurityErrorsAutoConfiguration;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,10 +54,12 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static me.alidg.Params.p;
 import static me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler.*;
@@ -68,6 +69,7 @@ import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.AUTH_REQUIR
 import static me.alidg.errors.mvc.ErrorsControllerAdviceIT.Dto.dto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -89,14 +91,19 @@ public class ErrorsControllerAdviceIT {
 
     @Before
     public void setUp() {
+        System.setProperty("errors.expose-arguments", "always");
+        System.setProperty("errors.add-fingerprint", "true");
         String port = "--server.port=0";
         String messages = "--spring.messages.basename=test_messages";
-        context = (ConfigurableWebApplicationContext) new SpringApplication(WebConfig.class).run(port, messages);
+        context = (ConfigurableWebApplicationContext) new SpringApplication(WebConfig.class)
+                .run(port, messages);
         mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
     }
 
     @After
     public void tearDown() {
+        System.clearProperty("errors.expose-arguments");
+        System.clearProperty("errors.add-fingerprint");
         ApplicationContextTestUtils.closeAll(context);
     }
 
@@ -119,7 +126,9 @@ public class ErrorsControllerAdviceIT {
     public void controllerAdvice_ShouldBeAbleToHandleUnknownErrors() throws Exception {
         mvc.perform(delete("/test"))
                 .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.errors[0].code").value(LastResortWebErrorHandler.UNKNOWN_ERROR_CODE));
+                .andExpect(jsonPath("$.errors[0].code").value(LastResortWebErrorHandler.UNKNOWN_ERROR_CODE))
+                .andExpect(jsonPath("$.fingerprint").exists())
+                .andExpect(jsonPath("$.errors[0].arguments").isEmpty());
     }
 
     @Test
@@ -127,7 +136,11 @@ public class ErrorsControllerAdviceIT {
         mvc.perform(get("/test"))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errors[0].code").value("invalid_params"))
-                .andExpect(jsonPath("$.errors[0].message").value("Params are: a, c and 10"));
+                .andExpect(jsonPath("$.errors[0].message").value("Params are: a, c and 10"))
+                .andExpect(jsonPath("$.fingerprint").exists())
+                .andExpect(jsonPath("$.errors[0].arguments.a").value("a"))
+                .andExpect(jsonPath("$.errors[0].arguments.c").value("c"))
+                .andExpect(jsonPath("$.errors[0].arguments.f").value("10"));
     }
 
     @Test
@@ -143,8 +156,10 @@ public class ErrorsControllerAdviceIT {
         Object[] messages = Stream.of(expectedErrors).map(CodedMessage::getMessage).toArray();
         mvc.perform(post("/test").locale(locale).contentType("application/json").content(data))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("errors[*].code").value(Matchers.containsInAnyOrder(codes)))
-                .andExpect(jsonPath("errors[*].message").value(Matchers.containsInAnyOrder(messages)));
+                .andExpect(jsonPath("errors[*].code").value(containsInAnyOrder(codes)))
+                .andExpect(jsonPath("errors[*].message").value(containsInAnyOrder(messages)))
+                .andExpect(jsonPath("$.fingerprint").exists())
+                .andExpect(jsonPath("$.errors[0].arguments").exists());
 
     }
 
@@ -158,14 +173,18 @@ public class ErrorsControllerAdviceIT {
     public void controllerAdvice_ShouldHandleMissingBodiesProperly() throws Exception {
         mvc.perform(post("/test").contentType("application/json"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("errors[0].code").value(INVALID_OR_MISSING_BODY));
+                .andExpect(jsonPath("errors[0].code").value(INVALID_OR_MISSING_BODY))
+                .andExpect(jsonPath("$.fingerprint").exists())
+                .andExpect(jsonPath("$.errors[0].arguments").isEmpty());
     }
 
     @Test
     public void controllerAdvice_ShouldHandleInvalidBodiesProperly() throws Exception {
         mvc.perform(post("/test").contentType("application/json").content("gibberish"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("errors[0].code").value(INVALID_OR_MISSING_BODY));
+                .andExpect(jsonPath("errors[0].code").value(INVALID_OR_MISSING_BODY))
+                .andExpect(jsonPath("$.fingerprint").exists())
+                .andExpect(jsonPath("$.errors[0].arguments").isEmpty());
     }
 
     @Test
@@ -194,7 +213,9 @@ public class ErrorsControllerAdviceIT {
         mvc.perform(put("/test"))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("errors[0].code").value(METHOD_NOT_ALLOWED))
-                .andExpect(jsonPath("errors[0].message").value("PUT method is not supported"));
+                .andExpect(jsonPath("errors[0].message").value("PUT method is not supported"))
+                .andExpect(jsonPath("$.fingerprint").exists())
+                .andExpect(jsonPath("errors[0].arguments.method").value("PUT"));
     }
 
     @Test
@@ -202,7 +223,10 @@ public class ErrorsControllerAdviceIT {
         mvc.perform(get("/test/param"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors[0].code").value(MISSING_PARAMETER))
-                .andExpect(jsonPath("errors[0].message").value("Parameter name of type String is required"));
+                .andExpect(jsonPath("errors[0].message").value("Parameter name of type String is required"))
+                .andExpect(jsonPath("$.fingerprint").exists())
+                .andExpect(jsonPath("errors[0].arguments.name").value("name"))
+                .andExpect(jsonPath("errors[0].arguments.expected").value("String"));
     }
 
     @Test
@@ -210,14 +234,17 @@ public class ErrorsControllerAdviceIT {
         mvc.perform(multipart("/test/part"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("errors[0].code").value(MISSING_PART))
-                .andExpect(jsonPath("errors[0].message").value("file part is required"));
+                .andExpect(jsonPath("errors[0].message").value("file part is required"))
+                .andExpect(jsonPath("$.fingerprint").exists())
+                .andExpect(jsonPath("$.errors[0].arguments.name").value("file"));
     }
 
     @Test
     public void errorController_ShouldHandleHandleUnauthorizedErrorsProperly() throws Exception {
         mvc.perform(get("/test/protected"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("errors[0].code").value(AUTH_REQUIRED));
+                .andExpect(jsonPath("errors[0].code").value(AUTH_REQUIRED))
+                .andExpect(jsonPath("$.fingerprint").exists());
     }
 
     @Test
@@ -227,32 +254,63 @@ public class ErrorsControllerAdviceIT {
 
         mvc.perform(post("/test/protected").with(authentication(authentication)))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("errors[0].code").value(ACCESS_DENIED));
+                .andExpect(jsonPath("errors[0].code").value(ACCESS_DENIED))
+                .andExpect(jsonPath("$.fingerprint").exists());
     }
 
     @Test
     public void controllerAdvice_ShouldHandleMissingHeadersProperly() throws Exception {
         mvc.perform(get("/test/header"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("errors[0].code").value(MISSING_HEADER));
+                .andExpect(jsonPath("errors[0].code").value(MISSING_HEADER))
+                .andExpect(jsonPath("$.fingerprint").exists())
+                .andExpect(jsonPath("$.errors[0].arguments.name").value("name"))
+                .andExpect(jsonPath("$.errors[0].arguments.expected").value("String"));
     }
 
     @Test
     public void controllerAdvice_ShouldHandleMissingCookiesProperly() throws Exception {
         mvc.perform(get("/test/cookie"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("errors[0].code").value(MISSING_COOKIE));
+                .andExpect(jsonPath("errors[0].code").value(MISSING_COOKIE))
+                .andExpect(jsonPath("$.fingerprint").exists())
+                .andExpect(jsonPath("$.errors[0].arguments.name").value("name"))
+                .andExpect(jsonPath("$.errors[0].arguments.expected").value("String"));
+
     }
 
     @Test
     public void controllerAdvice_ShouldHandleMissingMatrixVarsProperly() throws Exception {
         mvc.perform(get("/test/matrix"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("errors[0].code").value(MISSING_MATRIX_VARIABLE));
+                .andExpect(jsonPath("errors[0].code").value(MISSING_MATRIX_VARIABLE))
+                .andExpect(jsonPath("$.fingerprint").exists())
+                .andExpect(jsonPath("$.errors[0].arguments.name").value("name"))
+                .andExpect(jsonPath("$.errors[0].arguments.expected").value("String"));
+    }
+
+    @Test
+    public void controllerAdvice_ShouldHandleBindingExceptionsProperly() throws Exception {
+        mvc.perform(get("/test/paged").param("page", "nan").param("size", "size").param("sort", "value"))
+                .andExpect(status().isBadRequest())
+                .andExpect(
+                        jsonPath("errors[*].code")
+                                .value(containsInAnyOrder(
+                                        "binding.type_mismatch.page",
+                                        "binding.type_mismatch.size",
+                                        "binding.type_mismatch.sort"
+                                ))
+                )
+                .andExpect(jsonPath("$.fingerprint").exists())
+                .andExpect(jsonPath("$.errors[*].arguments.property").value(containsInAnyOrder("page", "size", "sort")))
+                .andExpect(jsonPath("$.errors[*].arguments.expected").value(containsInAnyOrder("Integer", "Integer", "Sort")))
+                .andExpect(jsonPath("$.errors[*].arguments.invalid").value(containsInAnyOrder("nan", "size", "value")));
     }
 
     private Object[] provideInvalidBody() {
         return p(
+                p(Collections.emptyMap(), null, cm("text.required", "The text is required")),
+                p(dto(null, 10, "code"), null, cm("text.required", "The text is required")),
                 p(dto("", 10, "code"), null, cm("text.required", "The text is required")),
                 p(dto("", 10, "code"), new Locale("fa", "IR"), cm("text.required", "متن اجباری است")),
                 p(dto("text", -1, "code"), null, cm("number.min", "The min is 0")),
@@ -268,7 +326,7 @@ public class ErrorsControllerAdviceIT {
     }
 
     private CodedMessage cm(String code, String message) {
-        return new CodedMessage(code, message);
+        return new CodedMessage(code, message, emptyList());
     }
 
     @EnableWebMvc
@@ -358,6 +416,47 @@ public class ErrorsControllerAdviceIT {
 
         @GetMapping("/matrix")
         public void matrixIsRequired(@MatrixVariable String name) {}
+
+        @GetMapping("/type-mismatch")
+        public void mismatch(@RequestParam Integer number) {}
+
+        @GetMapping("/paged")
+        public void pagedResult(Pageable pageable) {}
+    }
+
+    protected static class Pageable {
+
+        private Integer page;
+        private Integer size;
+        private Sort sort;
+
+        public Integer getPage() {
+            return page;
+        }
+
+        public void setPage(Integer page) {
+            this.page = page;
+        }
+
+        public Integer getSize() {
+            return size;
+        }
+
+        public void setSize(Integer size) {
+            this.size = size;
+        }
+
+        public Sort getSort() {
+            return sort;
+        }
+
+        public void setSort(Sort sort) {
+            this.sort = sort;
+        }
+    }
+
+    protected enum Sort {
+        ASC, DESC
     }
 
     protected static class Dto {

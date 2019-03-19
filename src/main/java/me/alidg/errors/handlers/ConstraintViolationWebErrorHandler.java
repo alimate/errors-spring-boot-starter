@@ -1,5 +1,6 @@
 package me.alidg.errors.handlers;
 
+import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.http.HttpStatus;
@@ -7,10 +8,12 @@ import org.springframework.http.HttpStatus;
 import javax.annotation.Nonnull;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * A {@link WebErrorHandler} implementation responsible for handling {@link ConstraintViolationException}s
@@ -52,7 +55,7 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
     public HandledException handle(Throwable exception) {
         ConstraintViolationException violationException = (ConstraintViolationException) exception;
         Set<String> errorCodes = extractErrorCodes(violationException);
-        Map<String, List<?>> arguments = extractArguments(violationException);
+        Map<String, List<Argument>> arguments = extractArguments(violationException);
 
         return new HandledException(errorCodes, HttpStatus.BAD_REQUEST, arguments);
     }
@@ -75,12 +78,13 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
      * @param violationException The exception to extract the arguments from.
      * @return To-be-exposed arguments.
      */
-    private Map<String, List<?>> extractArguments(ConstraintViolationException violationException) {
-        return violationException
+    private Map<String, List<Argument>> extractArguments(ConstraintViolationException violationException) {
+        Map<String, List<Argument>> args = violationException
                 .getConstraintViolations()
                 .stream()
-                .filter(this::hasAnyArguments)
-                .collect(toMap(this::errorCode, this::filterAndSortArguments));
+                .collect(toMap(this::errorCode, ConstraintViolationArgumentsExtractor::extract, (v1, v2) -> v1));
+        args.entrySet().removeIf(e -> e.getValue().isEmpty());
+        return args;
     }
 
     /**
@@ -95,47 +99,6 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
                 .stream()
                 .map(this::errorCode)
                 .collect(toSet());
-    }
-
-    /**
-     * Checks if the given violation has at least one attribute besides the three mandatory attributes.
-     *
-     * @param violation The violation to inspect.
-     * @return {@code true} if the given violation has at least one exposable attribute, {@code false} otherwise.
-     */
-    private boolean hasAnyArguments(ConstraintViolation<?> violation) {
-        List<String> nonArguments = asList("groups", "payload", "message");
-
-        return violation
-                .getConstraintDescriptor()
-                .getAttributes()
-                .keySet()
-                .stream()
-                .anyMatch(v -> !nonArguments.contains(v));
-    }
-
-    /**
-     * Remove mandatory annotation attributes and sort the remaining ones by their key and return their
-     * corresponding values as to-be-exposed arguments.
-     *
-     * @param violation The violation to extract the arguments from.
-     * @return To be exposed arguments for the given violation.
-     */
-    @SuppressWarnings("unchecked")
-    private List<?> filterAndSortArguments(ConstraintViolation violation) {
-        Map<String, Object> attributes = new HashMap<>(violation.getConstraintDescriptor().getAttributes());
-        attributes.remove("groups");
-        attributes.remove("payload");
-        attributes.remove("message");
-
-        if (attributes.isEmpty()) return Collections.emptyList();
-
-        return attributes
-                .entrySet()
-                .stream()
-                .sorted(Map.Entry.comparingByKey())
-                .map(Map.Entry::getValue)
-                .collect(toList());
     }
 
     private String errorCode(ConstraintViolation<?> violation) {

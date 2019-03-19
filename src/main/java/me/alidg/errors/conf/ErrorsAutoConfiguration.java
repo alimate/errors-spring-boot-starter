@@ -2,13 +2,20 @@ package me.alidg.errors.conf;
 
 import me.alidg.errors.ExceptionLogger;
 import me.alidg.errors.ExceptionRefiner;
-import me.alidg.errors.WebErrorHandlerPostProcessor;
 import me.alidg.errors.FingerprintProvider;
 import me.alidg.errors.WebErrorHandler;
+import me.alidg.errors.WebErrorHandlerPostProcessor;
 import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.adapter.DefaultHttpErrorAttributesAdapter;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
-import me.alidg.errors.handlers.*;
+import me.alidg.errors.fingerprint.UuidFingerprintProvider;
+import me.alidg.errors.handlers.AnnotatedWebErrorHandler;
+import me.alidg.errors.handlers.ConstraintViolationWebErrorHandler;
+import me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler;
+import me.alidg.errors.handlers.ResponseStatusWebErrorHandler;
+import me.alidg.errors.handlers.ServletWebErrorHandler;
+import me.alidg.errors.handlers.SpringSecurityWebErrorHandler;
+import me.alidg.errors.handlers.SpringValidationWebErrorHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -18,6 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
@@ -28,7 +36,12 @@ import org.springframework.web.context.WebApplicationContext;
 
 import javax.validation.MessageInterpolator;
 import javax.validation.Validator;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 
 import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET;
 
@@ -64,6 +77,7 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
  */
 @ConditionalOnWebApplication
 @AutoConfigureAfter({MessageSourceAutoConfiguration.class, WebMvcAutoConfiguration.class})
+@EnableConfigurationProperties(ErrorsProperties.class)
 public class ErrorsAutoConfiguration {
 
     /**
@@ -88,6 +102,7 @@ public class ErrorsAutoConfiguration {
      * @param exceptionLogger               To log exceptions.
      * @param webErrorHandlerPostProcessors Post processors to execute after we handled the exception.
      * @param fingerprintProvider           To generate unique fingerprints for handled exceptions.
+     * @param errorsProperties              Configuration properties bean.
      * @param context                       To tell Servlet or Reactive stacks apart.
      * @return The expected {@link WebErrorHandlers}.
      */
@@ -99,7 +114,8 @@ public class ErrorsAutoConfiguration {
                                              @Autowired(required = false) ExceptionRefiner exceptionRefiner,
                                              @Autowired(required = false) ExceptionLogger exceptionLogger,
                                              @Autowired(required = false) List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
-                                             @Autowired(required = false) FingerprintProvider fingerprintProvider,
+                                             FingerprintProvider fingerprintProvider,
+                                             ErrorsProperties errorsProperties,
                                              ApplicationContext context) {
 
         List<WebErrorHandler> handlers = new ArrayList<>(BUILT_IN_HANDLERS);
@@ -116,8 +132,10 @@ public class ErrorsAutoConfiguration {
         List<WebErrorHandlerPostProcessor> processors = webErrorHandlerPostProcessors != null ?
                 webErrorHandlerPostProcessors : Collections.emptyList();
 
-        return new WebErrorHandlers(messageSource, handlers, defaultWebErrorHandler, exceptionRefiner, exceptionLogger,
-                processors, fingerprintProvider);
+        return new WebErrorHandlers(
+                messageSource, handlers, defaultWebErrorHandler, exceptionRefiner,
+                exceptionLogger, processors, fingerprintProvider, errorsProperties
+        );
     }
 
     /**
@@ -139,13 +157,15 @@ public class ErrorsAutoConfiguration {
      * implementation of {@link HttpErrorAttributesAdapter} as a bean, to adapt our
      * {@link me.alidg.errors.HttpError} to Spring's {@link ErrorAttributes} abstraction.
      *
+     * @param errorsProperties Configuration properties bean.
+     *
      * @return The to-be-registered {@link HttpErrorAttributesAdapter}.
      */
     @Bean
     @ConditionalOnBean(WebErrorHandlers.class)
     @ConditionalOnMissingBean(HttpErrorAttributesAdapter.class)
-    public HttpErrorAttributesAdapter httpErrorAttributesAdapter() {
-        return new DefaultHttpErrorAttributesAdapter();
+    public HttpErrorAttributesAdapter httpErrorAttributesAdapter(ErrorsProperties errorsProperties) {
+        return new DefaultHttpErrorAttributesAdapter(errorsProperties);
     }
 
     /**
@@ -186,6 +206,17 @@ public class ErrorsAutoConfiguration {
     @ConditionalOnClass(name = "org.springframework.web.server.ResponseStatusException")
     public ResponseStatusWebErrorHandler responseStatusWebErrorHandler() {
         return new ResponseStatusWebErrorHandler();
+    }
+
+    /**
+     * Registers a very simple UUID based {@link FingerprintProvider} in the absence of a custom provider.
+     *
+     * @return The UUID based fingerprint provider.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public FingerprintProvider fingerprintProvider() {
+        return new UuidFingerprintProvider();
     }
 
     /**

@@ -2,6 +2,7 @@ package me.alidg.errors.handlers;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,11 +20,18 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static me.alidg.Params.p;
+import static me.alidg.errors.Argument.arg;
 import static me.alidg.errors.handlers.SpringValidationWebErrorHandlerTest.TBV.tbv;
 import static me.alidg.errors.handlers.SpringValidationWebErrorHandlerTest.TBVchild.tbvChild;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,7 +68,7 @@ public class SpringValidationWebErrorHandlerTest {
     @Parameters(method = "provideParamsForHandle")
     public void handle_ShouldHandleTheValidationErrorsProperly(Object toValidate,
                                                                Set<String> errorCodes,
-                                                               Map<String, List<Object>> args) {
+                                                               Map<String, List<Argument>> args) {
         BindingResult result = new BeanPropertyBindingResult(toValidate, "toValidate");
         validator.validate(toValidate, result);
 
@@ -94,14 +102,42 @@ public class SpringValidationWebErrorHandlerTest {
 
     private Object[] provideParamsForHandle() {
         return p(
-                p(tbv("ali", 0, "coding"), e("age.min"), singletonMap("age.min", singletonList(1L))),
-                p(tbv("ali", 29), e("interests.limit"), singletonMap("interests.limit", asList(6, 1))),
-                p(tbv("", 29, "coding"), e("name.required"), emptyMap()),
-                p(
-                        tbv("", 200), e("name.required", "age.max", "interests.limit"),
-                        m("age.max", singletonList(100L), "interests.limit", asList(6, 1))
+                p(tbv("ali", 0, "coding"), e("age.min"),
+                        singletonMap("age.min", asList(
+                                arg("value", 1L),
+                                arg("invalid", 0),
+                                arg("property", "age")))),
+                p(tbv("ali", 29), e("interests.limit"),
+                        singletonMap("interests.limit", asList(
+                                arg("max", 6),
+                                arg("min", 1),
+                                arg("invalid", emptyList()),
+                                arg("property", "interests")))),
+                p(tbv("", 29, "coding"), e("name.required"),
+                        singletonMap("name.required", asList(
+                                arg("invalid", ""),
+                                arg("property", "name")))),
+                p(tbv("", 200), e("name.required", "age.max", "interests.limit"),
+                        m(
+                                "age.max", asList(
+                                        arg("value", 100L),
+                                        arg("invalid", 200),
+                                        arg("property", "age")),
+                                "interests.limit", asList(
+                                        arg("max", 6),
+                                        arg("min", 1),
+                                        arg("invalid", emptyList()),
+                                        arg("property", "interests")),
+                                "name.required", asList(
+                                        arg("invalid", ""),
+                                        arg("property", "name"))
+                        )
                 ),
-                p(tbv("ali", 29, asList("coding"), asList(tbvChild(""), tbvChild(""), tbvChild(""))), e("stringField.required"), emptyMap())
+                p(tbv("ali", 29, singletonList("coding"), asList(tbvChild("given"), tbvChild(""), tbvChild("also given"))),
+                        e("stringField.required"),
+                        singletonMap("stringField.required", asList(
+                                arg("invalid", ""),
+                                arg("property", "tbvChildren[1].stringField"))))
         );
     }
 
@@ -109,11 +145,11 @@ public class SpringValidationWebErrorHandlerTest {
         return new HashSet<>(asList(errorCodes));
     }
 
-    private Map<String, Object> m(String k1, List<Object> v1, String k2, List<Object> v2) {
+    private Map<String, Object> m(String k1, List<Object> v1, String k2, List<Object> v2, String k3, List<Object> v3) {
         Map<String, Object> map = new HashMap<>();
         map.put(k1, v1);
         map.put(k2, v2);
-
+        map.put(k3, v3);
         return map;
     }
 

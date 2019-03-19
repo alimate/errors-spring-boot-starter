@@ -6,7 +6,6 @@ import me.alidg.errors.HttpError.CodedMessage;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
 import me.alidg.errors.conf.ErrorsAutoConfiguration;
-import me.alidg.errors.fingerprint.Md5FingerprintProvider;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,7 +34,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import static java.util.Collections.emptyList;
 import static me.alidg.Params.p;
+import static me.alidg.errors.Argument.arg;
 import static me.alidg.errors.WebErrorHandlersIT.Pojo.pojo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -94,12 +95,14 @@ public class WebErrorHandlersIT {
             // Without locale
             HttpError error = errorHandlers.handle(exception, null, null);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-            assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42"));
+            assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42",
+                    arg("min", 10), arg("max", 12), arg("theAnswer", "42"), arg("notUsed", "123")));
 
             // With locale
             error = errorHandlers.handle(exception, null, Locale.CANADA);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
-            assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42"));
+            assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42",
+                    arg("min", 10), arg("max", 12), arg("theAnswer", "42"), arg("notUsed", "123")));
 
             verifyPostProcessorsHasBeenCalled(ctx);
         });
@@ -184,7 +187,7 @@ public class WebErrorHandlersIT {
 
     @Test
     public void errorFingerprint_ShouldBeCalculatedWhenConfigured() {
-        contextRunner.withUserConfiguration(FingerprintConfig.class).run(ctx -> {
+        contextRunner.withPropertyValues("errors.add-fingerprint=true").run(ctx -> {
             WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
 
             HttpError error = errorHandlers.handle(new SomeException(10, 12), null, null);
@@ -196,7 +199,7 @@ public class WebErrorHandlersIT {
 
     @Test
     public void errorFingerprint_ShouldBeUnique() {
-        contextRunner.withUserConfiguration(FingerprintConfig.class).run(ctx -> {
+        contextRunner.withPropertyValues("errors.add-fingerprint=true").run(ctx -> {
             WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
 
             Exception e1 = new SomeException(1, 2);
@@ -222,31 +225,81 @@ public class WebErrorHandlersIT {
     private Object[] provideValidationParams() {
         return p(
                 // Invalid text
-                p(pojo("", 10, "a"), null, cm("text.required", "The text is required")),
-                p(pojo("", 10, "a"), Locale.CANADA, cm("text.required", "The text is required")),
-                p(pojo("", 10, "a"), IRAN_LOCALE, cm("text.required", "متن اجباری است")),
+                p(
+                        pojo("", 10, "a"), null,
+                        cm("text.required", "The text is required",
+                                arg("invalid", ""), arg("property", "text"))
+                ),
+                p(
+                        pojo("", 10, "a"), Locale.CANADA,
+                        cm("text.required", "The text is required",
+                                arg("invalid", ""), arg("property", "text"))
+                ),
+                p(
+                        pojo("", 10, "a"), IRAN_LOCALE,
+                        cm("text.required", "متن اجباری است",
+                                arg("invalid", ""), arg("property", "text"))
+                ),
 
                 // Invalid number: min
-                p(pojo("t", -1, "a"), null, cm("number.min", "The min is 0")),
-                p(pojo("t", -1, "a"), Locale.GERMANY, cm("number.min", "The min is 0")),
+                p(
+                        pojo("t", -1, "a"), null,
+                        cm("number.min", "The min is 0",
+                                arg("value", 0L), arg("invalid", -1), arg("property", "number"))
+                ),
+                p(
+                        pojo("t", -1, "a"), Locale.GERMANY,
+                        cm("number.min", "The min is 0",
+                                arg("value", 0L), arg("invalid", -1), arg("property", "number"))
+                ),
 
                 // Invalid number: max
-                p(pojo("t", 11, "a"), null, cm("number.max", null)),
-                p(pojo("t", 11, "a"), Locale.GERMANY, cm("number.max", null)),
-                p(pojo("t", 11, "a"), IRAN_LOCALE, cm("number.max", null)),
+                p(
+                        pojo("t", 11, "a"), null,
+                        cm("number.max", null,
+                                arg("value", 10L), arg("invalid", 11), arg("property", "number"))
+                ),
+                p(
+                        pojo("t", 11, "a"), Locale.GERMANY,
+                        cm("number.max", null,
+                                arg("value", 10L), arg("invalid", 11), arg("property", "number"))
+                ),
+                p(
+                        pojo("t", 11, "a"), IRAN_LOCALE,
+                        cm("number.max", null,
+                                arg("value", 10L), arg("invalid", 11), arg("property", "number"))
+                ),
 
                 // Invalid range
-                p(pojo("t", 0), null, cm("range.limit", "Between 1 and 3")),
-                p(pojo("t", 0), Locale.GERMANY, cm("range.limit", "Between 1 and 3")),
+                p(
+                        pojo("t", 0), null,
+                        cm("range.limit", "Between 1 and 3",
+                                arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range"))
+                ),
+                p(
+                        pojo("t", 0), Locale.GERMANY,
+                        cm("range.limit", "Between 1 and 3",
+                                arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range"))
+                ),
 
                 // Mixed
                 p(
-                        pojo("", 11), null, cm("range.limit", "Between 1 and 3"),
-                        cm("number.max", null), cm("text.required", "The text is required")
+                        pojo("", 11), null,
+                        cm("range.limit", "Between 1 and 3",
+                                arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range")),
+                        cm("number.max", null,
+                                arg("value", 10L), arg("invalid", 11), arg("property", "number")),
+                        cm("text.required", "The text is required",
+                                arg("invalid", ""), arg("property", "text"))
                 ),
                 p(
-                        pojo("", 11), Locale.CANADA, cm("range.limit", "Between 1 and 3"),
-                        cm("number.max", null), cm("text.required", "The text is required")
+                        pojo("", 11), Locale.CANADA,
+                        cm("range.limit", "Between 1 and 3",
+                                arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range")),
+                        cm("number.max", null,
+                                arg("value", 10L), arg("invalid", 11), arg("property", "number")),
+                        cm("text.required", "The text is required",
+                                arg("invalid", ""), arg("property", "text"))
                 )
         );
     }
@@ -256,7 +309,8 @@ public class WebErrorHandlersIT {
                 p(
                         new SymptomException(new SomeException(10, 11)),
                         HttpStatus.UNPROCESSABLE_ENTITY,
-                        cm("invalid_params", "Params are: 10, 11 and 42")
+                        cm("invalid_params", "Params are: 10, 11 and 42",
+                                arg("min", 10), arg("max", 11), arg("theAnswer", "42"), arg("notUsed", "123"))
                 ),
                 p(
                         new SymptomException(null), HttpStatus.INTERNAL_SERVER_ERROR, cm("unknown_error", null)
@@ -274,8 +328,8 @@ public class WebErrorHandlersIT {
         );
     }
 
-    private CodedMessage cm(String code, String message) {
-        return new CodedMessage(code, message);
+    private CodedMessage cm(String code, String message, Argument... arguments) {
+        return new CodedMessage(code, message, Arrays.asList(arguments));
     }
 
     static class Pojo {
@@ -360,14 +414,6 @@ public class WebErrorHandlersIT {
         @Bean
         public ExceptionRefiner exceptionRefiner() {
             return exception -> exception instanceof SymptomException ? exception.getCause() : exception;
-        }
-    }
-
-    @TestConfiguration
-    static class FingerprintConfig {
-        @Bean
-        FingerprintProvider provider() {
-            return new Md5FingerprintProvider();
         }
     }
 
