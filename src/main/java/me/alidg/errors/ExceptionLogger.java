@@ -24,12 +24,23 @@ public interface ExceptionLogger {
     void log(@Nullable Throwable exception);
 
     /**
-     * Exception logger that does nothing.
+     * A NoOp implementation for {@link ExceptionLogger}s.
+     *
+     * @author zarebski-m
      */
-    final class NoOp implements ExceptionLogger {
+    enum NoOp implements ExceptionLogger {
+
+        /**
+         * The singleton instance.
+         */
+        INSTANCE;
+
+        /**
+         * Does nothing special!
+         *
+         * @param exception The exception to log.
+         */
         @Override
-        public void log(Throwable exception) {
-            // do nothing
-        }
+        public void log(Throwable exception) {}
     }
 }

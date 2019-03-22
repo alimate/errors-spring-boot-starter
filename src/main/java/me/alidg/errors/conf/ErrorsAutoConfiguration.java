@@ -230,10 +230,10 @@ public class ErrorsAutoConfiguration {
      * @return A no-op exception logger.
      */
     @Bean
-    @ConditionalOnBean(WebErrorHandlers.class)
     @ConditionalOnMissingBean
-    ExceptionLogger exceptionLogger() {
-        return new ExceptionLogger.NoOp();
+    @ConditionalOnBean(WebErrorHandlers.class)
+    public ExceptionLogger exceptionLogger() {
+        return ExceptionLogger.NoOp.INSTANCE;
     }
 
     /**

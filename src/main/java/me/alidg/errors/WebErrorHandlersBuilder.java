@@ -55,7 +55,7 @@ public final class WebErrorHandlersBuilder {
     /**
      * Defines a way to logs exceptions before handling them.
      */
-    private ExceptionLogger exceptionLogger = new ExceptionLogger.NoOp();
+    private ExceptionLogger exceptionLogger = ExceptionLogger.NoOp.INSTANCE;
 
     /**
      * Responsible for calculating error fingerprints for handled exceptions.
