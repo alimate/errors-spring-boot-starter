@@ -17,7 +17,6 @@ public class ErrorMessageInterpolator {
     private final MessageSource messageSource;
 
     /**
-     *
      * @param messageSource Source of message templates.
      */
     public ErrorMessageInterpolator(@NonNull MessageSource messageSource) {
@@ -27,10 +26,9 @@ public class ErrorMessageInterpolator {
     /**
      * Interpolate message template read from {@link #messageSource}.
      *
-     * @param code Error code a.k.a. message template key from {@link #messageSource}.
+     * @param code      Error code a.k.a. message template key from {@link #messageSource}.
      * @param arguments Error arguments to interpolate/substitute in message template.
-     * @param locale Locale.
-     *
+     * @param locale    Locale.
      * @return String with resolved arguments.
      */
     @Nullable

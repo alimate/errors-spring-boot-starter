@@ -155,14 +155,15 @@ public class WebErrorHandlers {
         this.fingerprintProvider = requireNonNull(fingerprintProvider);
     }
 
+    /**
+     * A nexus to the {@link WebErrorHandlersBuilder} API.
+     *
+     * @param messageSource The abstraction responsible for converting error codes to messages.
+     * @return A {@link WebErrorHandlersBuilder} in its initial state.
+     * @throws NullPointerException When the given message source is missing.
+     */
     public static WebErrorHandlersBuilder builder(@NonNull MessageSource messageSource) {
         return new WebErrorHandlersBuilder(messageSource);
-    }
-
-    private static <T> List<T> requireAtLeastOneHandler(List<T> handlers) {
-        if (requireNonNull(handlers, "Collection of error handlers is required").isEmpty())
-            throw new IllegalArgumentException("We need at least one error handler");
-        return handlers;
     }
 
     /**
@@ -208,6 +209,13 @@ public class WebErrorHandlers {
         webErrorHandlerPostProcessors.forEach(p -> p.process(httpError));
 
         return httpError;
+    }
+
+    private static <T> List<T> requireAtLeastOneHandler(List<T> handlers) {
+        if (requireNonNull(handlers, "Collection of error handlers is required").isEmpty())
+            throw new IllegalArgumentException("We need at least one error handler");
+
+        return handlers;
     }
 
     private Throwable refineIfNeeded(Throwable exception) {

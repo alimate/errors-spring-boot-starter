@@ -137,7 +137,7 @@ public class ErrorsAutoConfiguration {
                 .withFingerprintProvider(fingerprintProvider);
 
         if (defaultWebErrorHandler != null) builder.withDefaultWebErrorHandler(defaultWebErrorHandler);
-        if (webErrorHandlerPostProcessors != null) builder.withErrorActionExecutors(webErrorHandlerPostProcessors);
+        if (webErrorHandlerPostProcessors != null) builder.withPostProcessors(webErrorHandlerPostProcessors);
 
         return builder.build();
     }
