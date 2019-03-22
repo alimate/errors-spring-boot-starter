@@ -113,7 +113,7 @@ public class WebErrorHandlers {
                             @Nullable ExceptionRefiner exceptionRefiner,
                             @Nullable ExceptionLogger exceptionLogger) {
         this(messageSource, webErrorHandlers, defaultWebErrorHandler,
-                exceptionRefiner != null ? exceptionRefiner : new ExceptionRefiner.NoOp(),
+                exceptionRefiner != null ? exceptionRefiner : ExceptionRefiner.NoOp.INSTANCE,
                 exceptionLogger != null ? exceptionLogger : ExceptionLogger.NoOp.INSTANCE,
                 Collections.emptyList(), new UuidFingerprintProvider(), new ErrorsProperties());
     }

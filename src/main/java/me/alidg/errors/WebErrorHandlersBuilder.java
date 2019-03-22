@@ -50,7 +50,7 @@ public final class WebErrorHandlersBuilder {
     /**
      * Enables us to refine exceptions before kicking off the exception handling procedure.
      */
-    private ExceptionRefiner exceptionRefiner = new ExceptionRefiner.NoOp();
+    private ExceptionRefiner exceptionRefiner = ExceptionRefiner.NoOp.INSTANCE;
 
     /**
      * Defines a way to logs exceptions before handling them.

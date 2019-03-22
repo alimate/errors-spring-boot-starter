@@ -76,8 +76,8 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
  * @see me.alidg.errors.handlers.LastResortWebErrorHandler
  */
 @ConditionalOnWebApplication
-@AutoConfigureAfter({MessageSourceAutoConfiguration.class, WebMvcAutoConfiguration.class})
 @EnableConfigurationProperties(ErrorsProperties.class)
+@AutoConfigureAfter({MessageSourceAutoConfiguration.class, WebMvcAutoConfiguration.class})
 public class ErrorsAutoConfiguration {
 
     /**
@@ -129,7 +129,8 @@ public class ErrorsAutoConfiguration {
             handlers.addAll(customHandlers);
         }
 
-        WebErrorHandlersBuilder builder = WebErrorHandlers.builder(messageSource)
+        WebErrorHandlersBuilder builder = WebErrorHandlers
+                .builder(messageSource)
                 .withErrorsProperties(errorsProperties)
                 .withErrorHandlers(handlers)
                 .withExceptionRefiner(exceptionRefiner)
@@ -218,10 +219,10 @@ public class ErrorsAutoConfiguration {
      * @return A no-op exception refiner.
      */
     @Bean
-    @ConditionalOnBean(WebErrorHandlers.class)
     @ConditionalOnMissingBean
-    ExceptionRefiner exceptionRefiner() {
-        return new ExceptionRefiner.NoOp();
+    @ConditionalOnBean(WebErrorHandlers.class)
+    public ExceptionRefiner exceptionRefiner() {
+        return ExceptionRefiner.NoOp.INSTANCE;
     }
 
     /**
@@ -242,8 +243,8 @@ public class ErrorsAutoConfiguration {
      * @return The UUID based fingerprint provider.
      */
     @Bean
-    @ConditionalOnBean(WebErrorHandlers.class)
     @ConditionalOnMissingBean
+    @ConditionalOnBean(WebErrorHandlers.class)
     public FingerprintProvider fingerprintProvider() {
         return new UuidFingerprintProvider();
     }
