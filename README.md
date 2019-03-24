@@ -232,13 +232,13 @@ You can also use argument names as placeholders:
 ```properties
 password.length=Password must have length between {min} and {max}
 ```
-Named arguments interpolation works out of the box, regardless of value of `errors.expose-arguments` property.
+Named arguments interpolation works out of the box, regardless of the `errors.expose-arguments` value.
 You can mix both approaches, but it is not recommended.
 
 If there is a value in the message that *should not* be interpolated, escape the first `{` character with a backslash:
 
 ```properties
-password.length=Password \{min} is {min} and \{max} is {max}
+password.length=Password \\{min} is {min} and \\{max} is {max}
 ```
 After interpolation, this message would read: `Password {min} is 6 and {max} is 20`.
 
