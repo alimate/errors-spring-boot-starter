@@ -21,8 +21,8 @@ import static org.mockito.Mockito.mock;
 @RunWith(JUnitParamsRunner.class)
 public class WebErrorHandlersTest {
 
-    @SuppressWarnings("deprecation")
     @Test
+    @SuppressWarnings("deprecation")
     @Parameters(method = "paramsForConstructor")
     public void constructor_ShouldEnforceItsPreconditions(MessageSource messageSource,
                                                           List<WebErrorHandler> handlers,
