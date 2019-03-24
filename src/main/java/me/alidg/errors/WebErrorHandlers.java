@@ -4,7 +4,7 @@ import me.alidg.errors.HttpError.CodedMessage;
 import me.alidg.errors.conf.ErrorsProperties;
 import me.alidg.errors.fingerprint.UuidFingerprintProvider;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
-import me.alidg.errors.message.ErrorMessageInterpolator;
+import me.alidg.errors.message.TemplateAwareMessageSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -93,8 +93,11 @@ public class WebErrorHandlers {
     @NonNull
     private final ErrorsProperties errorsProperties;
 
+    /**
+     * Responsible for resolving error messages from error codes.
+     */
     @NonNull
-    private final ErrorMessageInterpolator messageInterpolator;
+    private final TemplateAwareMessageSource messageSource;
 
     /**
      * Backward-compatible constructor with defaults for {@link #webErrorHandlerPostProcessors}
@@ -146,7 +149,7 @@ public class WebErrorHandlers {
                      @NonNull ErrorsProperties errorsProperties) {
         requireNonNull(messageSource, "We need a MessageSource implementation to message translation");
         this.errorsProperties = requireNonNull(errorsProperties);
-        this.messageInterpolator = new ErrorMessageInterpolator(messageSource);
+        this.messageSource = new TemplateAwareMessageSource(messageSource);
         this.webErrorHandlers = requireAtLeastOneHandler(webErrorHandlers);
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
         this.exceptionRefiner = requireNonNull(exceptionRefiner);
@@ -224,6 +227,7 @@ public class WebErrorHandlers {
             log.debug("The caught exception got refined", refined);
             return refined;
         }
+
         return exception;
     }
 
@@ -237,7 +241,7 @@ public class WebErrorHandlers {
 
     private CodedMessage withMessage(String code, List<Argument> arguments, Locale locale) {
         try {
-            String message = messageInterpolator.interpolate(code, arguments, locale);
+            String message = messageSource.interpolate(code, arguments, locale);
 
             return new CodedMessage(code, message, arguments);
         } catch (Exception e) {
