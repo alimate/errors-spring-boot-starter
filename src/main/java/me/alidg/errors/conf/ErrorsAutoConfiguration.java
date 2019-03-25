@@ -6,6 +6,7 @@ import me.alidg.errors.FingerprintProvider;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlerPostProcessor;
 import me.alidg.errors.WebErrorHandlers;
+import me.alidg.errors.WebErrorHandlersBuilder;
 import me.alidg.errors.adapter.DefaultHttpErrorAttributesAdapter;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
 import me.alidg.errors.fingerprint.UuidFingerprintProvider;
@@ -38,7 +39,6 @@ import javax.validation.MessageInterpolator;
 import javax.validation.Validator;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -76,8 +76,8 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
  * @see me.alidg.errors.handlers.LastResortWebErrorHandler
  */
 @ConditionalOnWebApplication
-@AutoConfigureAfter({MessageSourceAutoConfiguration.class, WebMvcAutoConfiguration.class})
 @EnableConfigurationProperties(ErrorsProperties.class)
+@AutoConfigureAfter({MessageSourceAutoConfiguration.class, WebMvcAutoConfiguration.class})
 public class ErrorsAutoConfiguration {
 
     /**
@@ -111,8 +111,8 @@ public class ErrorsAutoConfiguration {
     public WebErrorHandlers webErrorHandlers(MessageSource messageSource,
                                              @Autowired(required = false) List<WebErrorHandler> customHandlers,
                                              @Qualifier("defaultWebErrorHandler") @Autowired(required = false) WebErrorHandler defaultWebErrorHandler,
-                                             @Autowired(required = false) ExceptionRefiner exceptionRefiner,
-                                             @Autowired(required = false) ExceptionLogger exceptionLogger,
+                                             ExceptionRefiner exceptionRefiner,
+                                             ExceptionLogger exceptionLogger,
                                              @Autowired(required = false) List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
                                              FingerprintProvider fingerprintProvider,
                                              ErrorsProperties errorsProperties,
@@ -129,13 +129,18 @@ public class ErrorsAutoConfiguration {
             handlers.addAll(customHandlers);
         }
 
-        List<WebErrorHandlerPostProcessor> processors = webErrorHandlerPostProcessors != null ?
-                webErrorHandlerPostProcessors : Collections.emptyList();
+        WebErrorHandlersBuilder builder = WebErrorHandlers
+                .builder(messageSource)
+                .withErrorsProperties(errorsProperties)
+                .withErrorHandlers(handlers)
+                .withExceptionRefiner(exceptionRefiner)
+                .withExceptionLogger(exceptionLogger)
+                .withFingerprintProvider(fingerprintProvider);
 
-        return new WebErrorHandlers(
-                messageSource, handlers, defaultWebErrorHandler, exceptionRefiner,
-                exceptionLogger, processors, fingerprintProvider, errorsProperties
-        );
+        if (defaultWebErrorHandler != null) builder.withDefaultWebErrorHandler(defaultWebErrorHandler);
+        if (webErrorHandlerPostProcessors != null) builder.withPostProcessors(webErrorHandlerPostProcessors);
+
+        return builder.build();
     }
 
     /**
@@ -209,12 +214,37 @@ public class ErrorsAutoConfiguration {
     }
 
     /**
+     * Registers an empty {@link ExceptionRefiner} in the absence of a custom refiner.
+     *
+     * @return A no-op exception refiner.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnBean(WebErrorHandlers.class)
+    public ExceptionRefiner exceptionRefiner() {
+        return ExceptionRefiner.NoOp.INSTANCE;
+    }
+
+    /**
+     * Registers an empty {@link ExceptionLogger} in the absence of a custom logger.
+     *
+     * @return A no-op exception logger.
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnBean(WebErrorHandlers.class)
+    public ExceptionLogger exceptionLogger() {
+        return ExceptionLogger.NoOp.INSTANCE;
+    }
+
+    /**
      * Registers a very simple UUID based {@link FingerprintProvider} in the absence of a custom provider.
      *
      * @return The UUID based fingerprint provider.
      */
     @Bean
     @ConditionalOnMissingBean
+    @ConditionalOnBean(WebErrorHandlers.class)
     public FingerprintProvider fingerprintProvider() {
         return new UuidFingerprintProvider();
     }

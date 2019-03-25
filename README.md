@@ -12,6 +12,7 @@ A Bootiful, consistent and opinionated approach to handle all sorts of exception
     + [Error Message](#error-message)
     + [Exposing Arguments](#exposing-arguments)
       + [Exposing Named Arguments](#exposing-named-arguments)
+      + [Named Arguments Interpolation](#named-arguments-interpolation)
     + [Validation and Binding Errors](#validation-and-binding-errors)
     + [Custom Exceptions](#custom-exceptions)
     + [Spring MVC](#spring-mvc)
@@ -213,6 +214,33 @@ The `errors.expose-arguments` property takes 3 possible values:
    result payload will not have `"arguments"` element.
  - `ALWAYS` - the `"arguments"` element is always present in payload, even when the error has no arguments.
    In that case empty map will be provided: `"arguments": {}`.
+
+#### Named Arguments Interpolation
+You can use either positional or named argument placeholders in message templates. Given:
+```java
+@Size(min = 6, max = 20, message = "password.length")
+private final String password;
+```
+You can create message template in `messages.properties` with positional arguments:
+```properties
+password.length=Password must have length between {1} and {0}
+```
+Arguments are sorted by name. Since lexicographically `max` < `min`, placeholder `{0}` will be substituted
+with argument `max`, and `{1}` will have value of argument `min`.
+
+You can also use argument names as placeholders:
+```properties
+password.length=Password must have length between {min} and {max}
+```
+Named arguments interpolation works out of the box, regardless of the `errors.expose-arguments` value.
+You can mix both approaches, but it is not recommended.
+
+If there is a value in the message that *should not* be interpolated, escape the first `{` character with a backslash:
+
+```properties
+password.length=Password \\{min} is {min} and \\{max} is {max}
+```
+After interpolation, this message would read: `Password {min} is 6 and {max} is 20`.
 
 Arguments annotated with `@ExposeAsArg` will be named by annotated field or method name:
 ```java

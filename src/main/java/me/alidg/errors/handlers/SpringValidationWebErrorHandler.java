@@ -126,8 +126,6 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
      * @return Collection of all arguments for the given {@code error} details.
      */
     private List<Argument> arguments(ObjectError error) {
-        List<Argument> arguments = null;
-
         try {
             ConstraintViolation<?> violation = error.unwrap(ConstraintViolation.class);
             return ConstraintViolationArgumentsExtractor.extract(violation);
@@ -135,16 +133,16 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
 
         try {
             TypeMismatchException mismatchException = error.unwrap(TypeMismatchException.class);
-            arguments = new ArrayList<>();
+            List<Argument> arguments = new ArrayList<>();
             arguments.add(arg("property", mismatchException.getPropertyName()));
             arguments.add(arg("invalid", mismatchException.getValue()));
             if (mismatchException.getRequiredType() != null) {
                 arguments.add(arg("expected", mismatchException.getRequiredType().getSimpleName()));
             }
-
+            return arguments;
         } catch (Exception ignored) {}
 
-        return arguments == null ? emptyList() : arguments;
+        return emptyList();
     }
 
     /**

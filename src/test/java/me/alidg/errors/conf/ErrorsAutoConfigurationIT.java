@@ -8,7 +8,14 @@ import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.adapter.DefaultHttpErrorAttributesAdapter;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
 import me.alidg.errors.conf.ErrorsProperties.ArgumentExposure;
-import me.alidg.errors.handlers.*;
+import me.alidg.errors.handlers.AnnotatedWebErrorHandler;
+import me.alidg.errors.handlers.ConstraintViolationWebErrorHandler;
+import me.alidg.errors.handlers.LastResortWebErrorHandler;
+import me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler;
+import me.alidg.errors.handlers.ResponseStatusWebErrorHandler;
+import me.alidg.errors.handlers.ServletWebErrorHandler;
+import me.alidg.errors.handlers.SpringSecurityWebErrorHandler;
+import me.alidg.errors.handlers.SpringValidationWebErrorHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -24,7 +31,6 @@ import org.springframework.lang.NonNull;
 import java.lang.reflect.Field;
 import java.util.List;
 
-import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static me.alidg.Params.p;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -215,7 +221,7 @@ public class ErrorsAutoConfigurationIT {
     @SuppressWarnings("unchecked")
     private List<WebErrorHandler> getImplementations(WebErrorHandlers webErrorHandlers) {
         try {
-            Field field = webErrorHandlers.getClass().getDeclaredField("implementations");
+            Field field = webErrorHandlers.getClass().getDeclaredField("webErrorHandlers");
             field.setAccessible(true);
             return (List<WebErrorHandler>) field.get(webErrorHandlers);
         } catch (Exception e) {
@@ -239,7 +245,10 @@ public class ErrorsAutoConfigurationIT {
 
         @Bean
         public WebErrorHandlers webErrorHandlers(MessageSource messageSource) {
-            return new WebErrorHandlers(messageSource, singletonList(new First()), new Sec(), null, null);
+            return WebErrorHandlers.builder(messageSource)
+                    .withErrorHandlers(new First())
+                    .withDefaultWebErrorHandler(new Sec())
+                    .build();
         }
     }
 

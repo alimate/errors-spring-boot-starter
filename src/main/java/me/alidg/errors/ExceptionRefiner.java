@@ -22,4 +22,28 @@ public interface ExceptionRefiner {
      * @return The refined exception.
      */
     @Nullable Throwable refine(@Nullable Throwable exception);
+
+    /**
+     * A NoOp implementation for the {@link ExceptionRefiner}.
+     *
+     * @author zarebski-m
+     */
+    enum NoOp implements ExceptionRefiner {
+
+        /**
+         * The singleton instance.
+         */
+        INSTANCE;
+
+        /**
+         * Does nothing special.
+         *
+         * @param exception The exception to refine.
+         * @return null, always.
+         */
+        @Override
+        public Throwable refine(Throwable exception) {
+            return null;
+        }
+    }
 }
