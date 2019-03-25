@@ -4,8 +4,8 @@ import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.http.HttpStatus;
+import org.springframework.lang.NonNull;
 
-import javax.annotation.Nonnull;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.List;
@@ -50,7 +50,7 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
      * @param exception The exception to handle.
      * @return The handled exception
      */
-    @Nonnull
+    @NonNull
     @Override
     public HandledException handle(Throwable exception) {
         ConstraintViolationException violationException = (ConstraintViolationException) exception;
