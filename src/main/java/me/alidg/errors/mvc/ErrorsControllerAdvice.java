@@ -40,10 +40,8 @@ public abstract class ErrorsControllerAdvice {
      */
     public ErrorsControllerAdvice(WebErrorHandlers errorHandlers,
                                   HttpErrorAttributesAdapter httpErrorAttributesAdapter) {
-        requireNonNull(errorHandlers, "Error handlers is required");
-        requireNonNull(httpErrorAttributesAdapter, "Adapter is required");
-        this.httpErrorAttributesAdapter = httpErrorAttributesAdapter;
-        this.errorHandlers = errorHandlers;
+        this.errorHandlers = requireNonNull(errorHandlers, "Error handlers is required");
+        this.httpErrorAttributesAdapter = requireNonNull(httpErrorAttributesAdapter, "Adapter is required");
     }
 
     /**

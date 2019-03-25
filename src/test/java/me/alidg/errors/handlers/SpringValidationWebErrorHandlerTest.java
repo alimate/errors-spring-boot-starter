@@ -7,10 +7,7 @@ import me.alidg.errors.HandledException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.BindException;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.Validator;
+import org.springframework.validation.*;
 import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
@@ -20,22 +17,18 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
+import static java.util.Collections.*;
 import static me.alidg.Params.p;
 import static me.alidg.errors.Argument.arg;
+import static me.alidg.errors.handlers.SpringValidationWebErrorHandler.BINDING_FAILURE;
 import static me.alidg.errors.handlers.SpringValidationWebErrorHandlerTest.TBV.tbv;
 import static me.alidg.errors.handlers.SpringValidationWebErrorHandlerTest.TBVchild.tbvChild;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link SpringValidationWebErrorHandler} exception handler.
@@ -89,6 +82,18 @@ public class SpringValidationWebErrorHandlerTest {
         assertThat(handled.getErrorCodes()).containsAll(errorCodes);
         assertThat(handled.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(handled.getArguments()).isEqualTo(args);
+    }
+
+    @Test
+    public void handle_ForUnknownBindingErrorsShouldReturnBindingFailureErrorCode() {
+        BindingResult bindingResult = mock(BindingResult.class);
+        when(bindingResult.getAllErrors()).thenReturn(singletonList(new FieldError("", "", "")));
+        BindException exception = new BindException(bindingResult);
+
+        HandledException handledException = handler.handle(exception);
+        assertThat(handledException.getArguments()).isEmpty();
+        assertThat(handledException.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(handledException.getErrorCodes()).containsOnly(BINDING_FAILURE);
     }
 
     private Object[] provideParamsForCanHandle() {

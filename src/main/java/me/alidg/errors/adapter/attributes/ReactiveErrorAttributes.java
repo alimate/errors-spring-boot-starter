@@ -41,12 +41,8 @@ public class ReactiveErrorAttributes extends DefaultErrorAttributes {
     public ReactiveErrorAttributes(WebErrorHandlers webErrorHandlers,
                                    HttpErrorAttributesAdapter httpErrorAttributesAdapter) {
         super(true);
-
-        requireNonNull(webErrorHandlers, "Web error handlers is required");
-        requireNonNull(httpErrorAttributesAdapter, "Adapter is required");
-
-        this.webErrorHandlers = webErrorHandlers;
-        this.httpErrorAttributesAdapter = httpErrorAttributesAdapter;
+        this.webErrorHandlers = requireNonNull(webErrorHandlers, "Web error handlers is required");;
+        this.httpErrorAttributesAdapter =  requireNonNull(httpErrorAttributesAdapter, "Adapter is required");;
     }
 
     /**
