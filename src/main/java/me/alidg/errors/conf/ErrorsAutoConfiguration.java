@@ -109,11 +109,11 @@ public class ErrorsAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public WebErrorHandlers webErrorHandlers(MessageSource messageSource,
-                                             List<WebErrorHandler> customHandlers,
+                                             @Autowired(required = false) List<WebErrorHandler> customHandlers,
                                              @Qualifier("defaultWebErrorHandler") @Autowired(required = false) WebErrorHandler defaultWebErrorHandler,
                                              ExceptionRefiner exceptionRefiner,
                                              ExceptionLogger exceptionLogger,
-                                             List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
+                                             @Autowired(required = false) List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
                                              FingerprintProvider fingerprintProvider,
                                              ErrorsProperties errorsProperties,
                                              ApplicationContext context) {
