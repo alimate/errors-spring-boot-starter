@@ -146,7 +146,7 @@ public class ServletWebErrorHandler implements WebErrorHandler {
             String url = ((NoHandlerFoundException) exception).getRequestURL();
 
             return new HandledException(NO_HANDLER, HttpStatus.NOT_FOUND,
-                    singletonMap(NO_HANDLER, singletonList(arg("url", url)))
+                    singletonMap(NO_HANDLER, singletonList(arg("path", url)))
             );
         }
 

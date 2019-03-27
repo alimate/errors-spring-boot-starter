@@ -1,6 +1,7 @@
 package me.alidg.errors.adapter.attributes;
 
 import me.alidg.errors.annotation.ExceptionMapping;
+import me.alidg.errors.annotation.ExposeAsArg;
 
 import java.util.Map;
 
@@ -23,7 +24,17 @@ class Exceptions {
     private static final class ForbiddenException extends RuntimeException {}
 
     @ExceptionMapping(statusCode = NOT_FOUND, errorCode = NO_HANDLER)
-    private static final class HandlerNotFoundException extends RuntimeException {}
+    private static final class HandlerNotFoundException extends RuntimeException {
+
+        /**
+         * The to-be-exposed path.
+         */
+        @ExposeAsArg(0) private final String path;
+
+        private HandlerNotFoundException(String path) {
+            this.path = path;
+        }
+    }
 
     /**
      * Given a classic set of error attributes, it will determines the to-be-handled
@@ -39,10 +50,15 @@ class Exceptions {
             case 403:
                 return new ForbiddenException();
             case 404:
-                return new HandlerNotFoundException();
+                return new HandlerNotFoundException(getPath(attributes));
             default:
                 return new IllegalStateException("The exception is null: " + attributes);
         }
+    }
+
+    private static String getPath(Map<String, Object> attributes) {
+        Object path = attributes.get("path");
+        return path == null ? "unknown" : path.toString();
     }
 
     /**

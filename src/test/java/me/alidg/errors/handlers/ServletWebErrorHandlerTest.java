@@ -124,7 +124,7 @@ public class ServletWebErrorHandlerTest {
                         new NoHandlerFoundException("POST", "/test", null),
                         NO_HANDLER,
                         NOT_FOUND,
-                        singletonMap(NO_HANDLER, singletonList(arg("url", "/test")))
+                        singletonMap(NO_HANDLER, singletonList(arg("path", "/test")))
                 ),
                 p(new ServletException(), "unknown_error", INTERNAL_SERVER_ERROR, emptyMap())
         );

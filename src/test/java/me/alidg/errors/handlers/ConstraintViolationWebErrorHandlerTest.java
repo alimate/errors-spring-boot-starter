@@ -17,12 +17,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -75,64 +70,64 @@ public class ConstraintViolationWebErrorHandlerTest {
         Set<ConstraintViolation<?>> violations = singleton(mock(ConstraintViolation.class));
 
         return p(
-                p(null, false),
-                p(new RuntimeException(), false),
-                p(new ConstraintViolationException(null), false),
-                p(new ConstraintViolationException(Collections.emptySet()), false),
-                p(new ConstraintViolationException(violations), true)
+            p(null, false),
+            p(new RuntimeException(), false),
+            p(new ConstraintViolationException(null), false),
+            p(new ConstraintViolationException(Collections.emptySet()), false),
+            p(new ConstraintViolationException(violations), true)
         );
     }
 
     private Object[] provideParamsForHandle() {
         return p(
-                p(
-                        v(new Person("alidg", 19)),
-                        setOf("username.size"),
-                        singletonMap("username.size", asList(
-                                arg("max", 10),
-                                arg("min", 6),
-                                arg("invalid", "alidg"),
-                                arg("property", "username")))
-                ),
-                p(
-                        v(new Person("", 19)),
-                        setOf("username.blank", "username.size"),
-                        singletonMap("username.size", asList(
-                                arg("max", 10),
-                                arg("min", 6),
-                                arg("invalid", ""),
-                                arg("property", "username")))
-                ),
-                p(
-                        v(new Person("ali", 12)),
-                        setOf("username.size", "age.min"),
-                        new HashMap<String, List<?>>() {{
-                            put("username.size", asList(
-                                    arg("max", 10),
-                                    arg("min", 6),
-                                    arg("invalid", "ali"),
-                                    arg("property", "username")));
-                            put("age.min", asList(
-                                    arg("value", 18L),
-                                    arg("invalid", 12),
-                                    arg("property", "age")));
-                        }}
-                ),
-                p(
-                        v(new Person("ali", 35)),
-                        setOf("username.size", "age.max"),
-                        new HashMap<String, List<?>>() {{
-                            put("username.size", asList(
-                                    arg("max", 10),
-                                    arg("min", 6),
-                                    arg("invalid", "ali"),
-                                    arg("property", "username")));
-                            put("age.max", asList(
-                                    arg("value", 30L),
-                                    arg("invalid", 35),
-                                    arg("property", "age")));
-                        }}
-                )
+            p(
+                v(new Person("alidg", 19)),
+                setOf("username.size"),
+                singletonMap("username.size", asList(
+                    arg("max", 10),
+                    arg("min", 6),
+                    arg("invalid", "alidg"),
+                    arg("property", "username")))
+            ),
+            p(
+                v(new Person("", 19)),
+                setOf("username.blank", "username.size"),
+                singletonMap("username.size", asList(
+                    arg("max", 10),
+                    arg("min", 6),
+                    arg("invalid", ""),
+                    arg("property", "username")))
+            ),
+            p(
+                v(new Person("ali", 12)),
+                setOf("username.size", "age.min"),
+                new HashMap<String, List<?>>() {{
+                    put("username.size", asList(
+                        arg("max", 10),
+                        arg("min", 6),
+                        arg("invalid", "ali"),
+                        arg("property", "username")));
+                    put("age.min", asList(
+                        arg("value", 18L),
+                        arg("invalid", 12),
+                        arg("property", "age")));
+                }}
+            ),
+            p(
+                v(new Person("ali", 35)),
+                setOf("username.size", "age.max"),
+                new HashMap<String, List<?>>() {{
+                    put("username.size", asList(
+                        arg("max", 10),
+                        arg("min", 6),
+                        arg("invalid", "ali"),
+                        arg("property", "username")));
+                    put("age.max", asList(
+                        arg("value", 30L),
+                        arg("invalid", 35),
+                        arg("property", "age")));
+                }}
+            )
         );
     }
 
