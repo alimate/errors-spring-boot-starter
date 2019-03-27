@@ -64,6 +64,25 @@ or Gradle:
 compile "me.alidg:errors-spring-boot-starter:1.3.0"
 ```
 
+If you like to stay at the cutting edge, use our `1.4.0-SNAPSHOT` version. Of course you should define the following 
+snapshot repository:
+```xml
+<repositories>
+    <repository>
+        <id>Sonatype</id>
+        <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+</repositories>
+```
+or:
+```groovy
+repositories {
+    maven {
+      url 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
+}
+```
+
 ### Prerequisites
 The main dependency is JDK 8+. Tested with:
  - JDK 8, JDK 9, JDK 10 and JDK 11 on Linux.
