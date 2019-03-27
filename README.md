@@ -1,4 +1,4 @@
-# Spring Boot Errors [![Build Status](https://travis-ci.org/alimate/errors-spring-boot-starter.svg?branch=master)](https://travis-ci.org/alimate/errors-spring-boot-starter) [![codecov](https://codecov.io/gh/alimate/errors-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/alimate/errors-spring-boot-starter) [![Maven Central](https://img.shields.io/maven-central/v/me.alidg/errors-spring-boot-starter.svg)](https://search.maven.org/search?q=g:me.alidg%20AND%20a:errors-spring-boot-starter) [![Javadocs](http://www.javadoc.io/badge/me.alidg/errors-spring-boot-starter.svg)](http://www.javadoc.io/doc/me.alidg/errors-spring-boot-starter)
+# Spring Boot Errors [![Build Status](https://travis-ci.org/alimate/errors-spring-boot-starter.svg?branch=master)](https://travis-ci.org/alimate/errors-spring-boot-starter) [![codecov](https://codecov.io/gh/alimate/errors-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/alimate/errors-spring-boot-starter) [![Maven Central](https://img.shields.io/maven-central/v/me.alidg/errors-spring-boot-starter.svg)](https://search.maven.org/search?q=g:me.alidg%20AND%20a:errors-spring-boot-starter) [![Javadocs](http://www.javadoc.io/badge/me.alidg/errors-spring-boot-starter.svg)](http://www.javadoc.io/doc/me.alidg/errors-spring-boot-starter) [![Sonatype](https://img.shields.io/static/v1.svg?label=snapshot&message=v1.4.0&color=blueviolet)](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=me.alidg&a=errors-spring-boot-starter&v=1.4.0-SNAPSHOT&e=jar) 
 A Bootiful, consistent and opinionated approach to handle all sorts of exceptions.
 
 ## Table of Contents
@@ -62,6 +62,25 @@ Download the [latest JAR](https://search.maven.org/remotecontent?filepath=me/ali
 or Gradle:
 ```
 compile "me.alidg:errors-spring-boot-starter:1.3.0"
+```
+
+If you like to stay at the cutting edge, use our `1.4.0-SNAPSHOT` version. Of course you should define the following 
+snapshot repository:
+```xml
+<repositories>
+    <repository>
+        <id>Sonatype</id>
+        <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+</repositories>
+```
+or:
+```groovy
+repositories {
+    maven {
+      url 'https://oss.sonatype.org/content/repositories/snapshots/'
+    }
+}
 ```
 
 ### Prerequisites
