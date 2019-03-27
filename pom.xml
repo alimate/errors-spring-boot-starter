@@ -30,6 +30,11 @@
             <organization>alimate</organization>
             <organizationUrl>https://alidg.me</organizationUrl>
         </developer>
+        <developer>
+            <id>zarebski-m</id>
+            <name>Marcin Zarębski</name>
+            <email>zarebski.m@gmail.com</email>
+        </developer>
     </developers>
 
     <scm>
