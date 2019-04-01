@@ -582,7 +582,7 @@ public class UserControllerIT {
     }
 }
 ```
-For `WebFluxTest`s the test support is almost the same as the Servlet stack:
+For `WebFluxTest`s, the test support is almost the same as the Servlet stack:
 ```java
 @AutoConfigureErrors
 @RunWith(SpringRunner.class)
