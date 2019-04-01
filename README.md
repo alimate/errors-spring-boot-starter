@@ -27,7 +27,7 @@ A Bootiful, consistent and opinionated approach to handle all sorts of exception
     + [Logging Exceptions](#logging-exceptions)
     + [Post Processing Handled Exceptions](#post-processing-handled-exceptions)
     + [Registering Custom Handlers](#registering-custom-handlers)
-    + [Enabling Web MVC Test Support](#enabling-web-mvc-test-support)
+    + [Test Support](#test-support)
   * [Appendix](#appendix)
     + [Configuration](#configuration)
   * [License](#license)
@@ -563,7 +563,7 @@ If you're going to register multiple handlers, you can change their priority usi
 handlers would be registered after built-in exception handlers (Validation, `ExceptionMapping`, etc.). If you don't like
 this idea, provide a custom *Bean* of type `WebErrorHandlers` and the default one would be discarded.
 
-### Enabling Web MVC Test Support
+### Test Support
 In order to enable our test support for `WebMvcTest`s, just add the `@AutoConfigureErrors` annotation to your test
 class. That's how a `WebMvcTest` would look like with errors support enabled:
 ```java
@@ -579,6 +579,27 @@ public class UserControllerIT {
         mvc.perform(post("/users").content("{}"))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errors[0].code").value("username.required"));    
+    }
+}
+```
+For `WebFluxTest`s the test support is almost the same as the Servlet stack:
+```java
+@AutoConfigureErrors
+@RunWith(SpringRunner.class)
+@WebFluxTest(UserController.class)
+@ImportAutoConfiguration(ErrorWebFluxAutoConfiguration.class) // Drop this if you're using Spring Boot 2.1.4+
+public class UserControllerIT {
+
+    @Autowired private WebTestClient client;
+
+    @Test
+    public void createUser_ShouldReturnBadRequestForInvalidBodies() {
+        client.post()
+                .uri("/users")
+                .syncBody("{}").header(CONTENT_TYPE, APPLICATION_JSON_UTF8_VALUE)
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody().jsonPath("$.errors[0].code").isEqualTo("username.required");
     }
 }
 ```
