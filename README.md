@@ -234,7 +234,7 @@ The `errors.expose-arguments` property takes 3 possible values:
  - `ALWAYS` - the `"arguments"` element is always present in payload, even when the error has no arguments.
    In that case empty map will be provided: `"arguments": {}`.
    
-Checkout [here](EXPOSED-ARGS-md) for more detail on how we expose arguments for different exception categories.
+Checkout [here](EXPOSED-ARGS.md) for more detail on how we expose arguments for different exception categories.
 
 #### Named Arguments Interpolation
 You can use either positional or named argument placeholders in message templates. Given:
