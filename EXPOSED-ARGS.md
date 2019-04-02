@@ -64,7 +64,7 @@ And for very simple annotations like `@NotBlank`:
 We've tried our best to handle web related exceptions consistently across both Servlet and Reactive stack.
 
 #### Missing Request Params, Headers and Cookies
-For any missing header, request param or cookie param, the starter exposes thew following:
+For any missing header, request param or cookie param, the starter exposes the following:
 
 | Description   | Named Argument | Positional Index |    Value   |
 |:-------------:|:--------------:|:----------------:|:----------:|
@@ -96,9 +96,9 @@ For `Unsupported Media Type`s in the Servlet stack, we only expose the invalid m
 For `Unsupported Media Type`s in the Reactive stack, we only expose all supported media types as the `types` argument.
 
 ## Annotated Exceptions
-For exception annotate with our `@ExceptionMapping` annotation, we only expose fields or no-arg methods annotated with the
+For exceptions annotated with our `@ExceptionMapping` annotation, we only expose fields or no-arg methods annotated with the
 `@ExposeAsArg` annotation. The positional argument is determined by the `value` attribute of the `ExposeAsArg`. Also, the
-named argument is the field or method name unless we provide non-blank value for the `name` attribute.
+named argument is the field or method name unless we provide a non-blank value using the `name` attribute.
 
 For example, for the following exception:
 ```java
