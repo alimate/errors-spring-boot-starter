@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
@@ -30,7 +31,6 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.boot.test.util.ApplicationContextTestUtils;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.TestingAuthenticationToken;
@@ -331,7 +331,7 @@ public class ErrorsControllerAdviceIT {
     @EnableWebMvc
     @EnableWebSecurity
     @TestConfiguration
-    @Import({
+    @ImportAutoConfiguration({
             ErrorsAutoConfiguration.class,
             WebMvcAutoConfiguration.class,
             JacksonAutoConfiguration.class,

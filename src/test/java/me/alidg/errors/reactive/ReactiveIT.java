@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
@@ -32,7 +33,6 @@ import org.springframework.boot.test.util.ApplicationContextTestUtils;
 import org.springframework.boot.web.reactive.context.ConfigurableReactiveWebApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
@@ -511,7 +511,7 @@ public class ReactiveIT {
     @EnableWebFlux
     @TestConfiguration
     @EnableWebFluxSecurity
-    @Import({
+    @ImportAutoConfiguration({
             ErrorsAutoConfiguration.class,
             JacksonAutoConfiguration.class,
             WebFluxAutoConfiguration.class,

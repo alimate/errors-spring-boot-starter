@@ -1,46 +1,27 @@
 package me.alidg.errors.conf;
 
-import me.alidg.errors.ExceptionLogger;
-import me.alidg.errors.ExceptionRefiner;
-import me.alidg.errors.FingerprintProvider;
-import me.alidg.errors.WebErrorHandler;
-import me.alidg.errors.WebErrorHandlerPostProcessor;
-import me.alidg.errors.WebErrorHandlers;
-import me.alidg.errors.WebErrorHandlersBuilder;
+import me.alidg.errors.*;
 import me.alidg.errors.adapter.DefaultHttpErrorAttributesAdapter;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
 import me.alidg.errors.fingerprint.UuidFingerprintProvider;
-import me.alidg.errors.handlers.AnnotatedWebErrorHandler;
-import me.alidg.errors.handlers.ConstraintViolationWebErrorHandler;
-import me.alidg.errors.handlers.MissingRequestParametersWebErrorHandler;
-import me.alidg.errors.handlers.ResponseStatusWebErrorHandler;
-import me.alidg.errors.handlers.ServletWebErrorHandler;
-import me.alidg.errors.handlers.SpringSecurityWebErrorHandler;
-import me.alidg.errors.handlers.SpringValidationWebErrorHandler;
+import me.alidg.errors.handlers.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.context.WebApplicationContext;
 
-import javax.validation.MessageInterpolator;
-import javax.validation.Validator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET;
@@ -77,7 +58,6 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
  */
 @ConditionalOnWebApplication
 @EnableConfigurationProperties(ErrorsProperties.class)
-@AutoConfigureAfter({MessageSourceAutoConfiguration.class, WebMvcAutoConfiguration.class})
 public class ErrorsAutoConfiguration {
 
     /**
@@ -141,20 +121,6 @@ public class ErrorsAutoConfiguration {
         if (webErrorHandlerPostProcessors != null) builder.withPostProcessors(webErrorHandlerPostProcessors);
 
         return builder.build();
-    }
-
-    /**
-     * Registers a new validator that does not interpolate messages.
-     *
-     * @return The custom validator.
-     */
-    @Bean({"mvcValidator", "defaultValidator"})
-    @ConditionalOnBean(WebErrorHandlers.class)
-    public Validator validator() {
-        LocalValidatorFactoryBean factoryBean = new LocalValidatorFactoryBean();
-        factoryBean.setMessageInterpolator(new NoOpMessageInterpolator());
-
-        return factoryBean;
     }
 
     /**
@@ -255,23 +221,5 @@ public class ErrorsAutoConfiguration {
      */
     private boolean isServletApplication(ApplicationContext context) {
         return context instanceof WebApplicationContext;
-    }
-
-    /**
-     * A No Op {@link MessageInterpolator} which does not interpolate the {@code ${...}} codes
-     * to messages. We're switching off the Bean Validation message interpolator in favor of
-     * Spring's {@link MessageSource}.
-     */
-    private static class NoOpMessageInterpolator implements MessageInterpolator {
-
-        @Override
-        public String interpolate(String messageTemplate, Context context) {
-            return messageTemplate;
-        }
-
-        @Override
-        public String interpolate(String messageTemplate, Context context, Locale locale) {
-            return messageTemplate;
-        }
     }
 }

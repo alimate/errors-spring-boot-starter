@@ -4,8 +4,10 @@ import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
 import me.alidg.errors.adapter.attributes.ReactiveErrorAttributes;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.autoconfigure.web.reactive.error.ErrorWebFluxAutoConfiguration;
 import org.springframework.boot.web.reactive.error.ErrorAttributes;
 import org.springframework.context.annotation.Bean;
 
@@ -18,6 +20,7 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
  */
 @ConditionalOnWebApplication(type = REACTIVE)
 @AutoConfigureAfter(ErrorsAutoConfiguration.class)
+@AutoConfigureBefore(ErrorWebFluxAutoConfiguration.class)
 public class ReactiveErrorsAutoConfiguration {
 
     /**
