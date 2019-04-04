@@ -36,9 +36,9 @@ A Bootiful, consistent and opinionated approach to handle all sorts of exception
 Built on top of Spring Boot's great exception handling mechanism, the `errors-spring-boot-starter` offers:
  - A consistent approach to handle all exceptions. Doesn't matter if it's a validation/binding error or a 
  custom domain-specific error or even a Spring related error, All of them would be handled by a `WebErrorHandler`
- implementation (No more `ErrorController` vs `@ExceptionHandler`)
+ implementation (No more `ErrorController` vs `@ExceptionHandler` vs `WebExceptionHandler`)
  - Built-in support for application specific error codes, again, for all possible errors.
- - Simple error message interpolation using `MessageSource`.
+ - Simple error message interpolation using plain old `MessageSource`s.
  - Customizable HTTP error representation.
  - Exposing arguments from exceptions to error messages.
  - Supporting both traditional and reactive stacks.
