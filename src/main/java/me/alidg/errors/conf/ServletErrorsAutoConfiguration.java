@@ -5,8 +5,10 @@ import me.alidg.errors.adapter.attributes.ServletErrorAttributes;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
 import me.alidg.errors.mvc.ErrorsControllerAdvice;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConfiguration;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.context.annotation.Bean;
 
@@ -19,6 +21,7 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
  */
 @ConditionalOnWebApplication(type = SERVLET)
 @AutoConfigureAfter(ErrorsAutoConfiguration.class)
+@AutoConfigureBefore(ErrorMvcAutoConfiguration.class)
 public class ServletErrorsAutoConfiguration {
 
     /**
