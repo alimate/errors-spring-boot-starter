@@ -7,7 +7,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>me.alidg</groupId>
     <artifactId>errors-spring-boot-starter</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
+    <version>1.4.0</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>
@@ -25,6 +25,7 @@
 
     <developers>
         <developer>
+            <id>alidg</id>
             <name>Ali Dehghani</name>
             <email>ali.dehghani.g@gmail.com</email>
             <organization>alimate</organization>
@@ -34,6 +35,11 @@
             <id>zarebski-m</id>
             <name>Marcin Zarębski</name>
             <email>zarebski.m@gmail.com</email>
+        </developer>
+        <developer>
+            <id>mona</id>
+            <name>Mona Mohamadinia</name>
+            <email>mona.mohamadinia@gmail.com</email>
         </developer>
     </developers>
 
