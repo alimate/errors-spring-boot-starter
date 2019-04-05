@@ -67,7 +67,8 @@ public class ErrorsAutoConfiguration {
     private static final List<WebErrorHandler> BUILT_IN_HANDLERS = Arrays.asList(
             new SpringValidationWebErrorHandler(),
             new ConstraintViolationWebErrorHandler(),
-            new AnnotatedWebErrorHandler()
+            new AnnotatedWebErrorHandler(),
+            new TypeMismatchHandler()
     );
 
     /**

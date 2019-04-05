@@ -34,11 +34,6 @@ import static me.alidg.errors.Argument.arg;
 public class SpringValidationWebErrorHandler implements WebErrorHandler {
 
     /**
-     * Basic error code for all type mismatches.
-     */
-    public static final String TYPE_MISMATCH = "binding.type_mismatch";
-
-    /**
      * Basic error code for unknown binding errors.
      */
     public static final String BINDING_FAILURE = "binding.failure";
@@ -66,11 +61,11 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
     public HandledException handle(Throwable exception) {
         BindingResult bindingResult = getBindingResult(exception);
         return bindingResult.getAllErrors()
-                .stream()
-                .collect(collectingAndThen(
-                        toMap(this::errorCode, this::arguments, (value1, value2) -> value1),
-                        m -> new HandledException(m.keySet(), HttpStatus.BAD_REQUEST, dropEmptyValues(m))
-                ));
+            .stream()
+            .collect(collectingAndThen(
+                toMap(this::errorCode, this::arguments, (value1, value2) -> value1),
+                m -> new HandledException(m.keySet(), HttpStatus.BAD_REQUEST, dropEmptyValues(m))
+            ));
     }
 
     /**
@@ -81,8 +76,8 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
      */
     private BindingResult getBindingResult(Throwable exception) {
         return exception instanceof BindingResult ?
-                ((BindingResult) exception) :
-                ((MethodArgumentNotValidException) exception).getBindingResult();
+            ((BindingResult) exception) :
+            ((MethodArgumentNotValidException) exception).getBindingResult();
     }
 
     /**
@@ -102,8 +97,7 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
 
         if (code == null) {
             try {
-                TypeMismatchException exception = error.unwrap(TypeMismatchException.class);
-                code = TYPE_MISMATCH + "." + exception.getPropertyName();
+                code = TypeMismatchHandler.getErrorCode(error.unwrap(TypeMismatchException.class));
             } catch (Exception ignored) {}
         }
 
@@ -132,14 +126,7 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
         } catch (Exception ignored) {}
 
         try {
-            TypeMismatchException mismatchException = error.unwrap(TypeMismatchException.class);
-            List<Argument> arguments = new ArrayList<>();
-            arguments.add(arg("property", mismatchException.getPropertyName()));
-            arguments.add(arg("invalid", mismatchException.getValue()));
-            if (mismatchException.getRequiredType() != null) {
-                arguments.add(arg("expected", mismatchException.getRequiredType().getSimpleName()));
-            }
-            return arguments;
+            return TypeMismatchHandler.getArguments(error.unwrap(TypeMismatchException.class));
         } catch (Exception ignored) {}
 
         return emptyList();
@@ -153,7 +140,7 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
      */
     private Map<String, List<Argument>> dropEmptyValues(Map<String, List<Argument>> input) {
         return input.entrySet().stream()
-                .filter(e -> e.getValue() != null && !e.getValue().isEmpty())
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v2));
+            .filter(e -> e.getValue() != null && !e.getValue().isEmpty())
+            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v2));
     }
 }
