@@ -41,15 +41,15 @@ public class ReactiveErrorAttributes extends DefaultErrorAttributes {
     public ReactiveErrorAttributes(WebErrorHandlers webErrorHandlers,
                                    HttpErrorAttributesAdapter httpErrorAttributesAdapter) {
         super(true);
-        this.webErrorHandlers = requireNonNull(webErrorHandlers, "Web error handlers is required");;
-        this.httpErrorAttributesAdapter =  requireNonNull(httpErrorAttributesAdapter, "Adapter is required");;
+        this.webErrorHandlers = requireNonNull(webErrorHandlers, "Web error handlers is required");
+        this.httpErrorAttributesAdapter = requireNonNull(httpErrorAttributesAdapter, "Adapter is required");
     }
 
     /**
      * Handles the exception by delegating it to the {@link #webErrorHandlers} and then adapting
      * the representation.
      *
-     * @param request The source request.
+     * @param request           The source request.
      * @param includeStackTrace whether to include the error stacktrace information.
      * @return A map of error attributes
      */

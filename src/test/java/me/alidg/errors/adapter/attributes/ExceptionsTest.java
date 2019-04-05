@@ -30,17 +30,17 @@ public class ExceptionsTest {
 
 
         assertThat(Exceptions.refineUnknownException(attributes).getClass().getSimpleName())
-                .isEqualTo(expected);
+            .isEqualTo(expected);
     }
 
     private Object[] provideParams() {
         return p(
-                p("dqd", "IllegalStateException"),
-                p(null, "IllegalStateException"),
-                p(12, "IllegalStateException"),
-                p(401, "UnauthorizedException"),
-                p(403, "ForbiddenException"),
-                p(404, "HandlerNotFoundException")
+            p("dqd", "IllegalStateException"),
+            p(null, "IllegalStateException"),
+            p(12, "IllegalStateException"),
+            p(401, "UnauthorizedException"),
+            p(403, "ForbiddenException"),
+            p(404, "HandlerNotFoundException")
         );
     }
 }

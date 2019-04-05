@@ -13,9 +13,8 @@ import org.springframework.lang.NonNull;
  * contains original exception along with other goodies. Moreover, more than single post processor
  * can be declared.
  *
- * @implNote Ensure the implementation doesn't throw.
- *
  * @author zarebski-m
+ * @implNote Ensure the implementation doesn't throw.
  */
 public interface WebErrorHandlerPostProcessor {
 

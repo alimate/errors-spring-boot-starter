@@ -62,14 +62,14 @@ public class SpringSecurityWebErrorHandler implements WebErrorHandler {
     @Override
     public boolean canHandle(Throwable exception) {
         return exception instanceof AccessDeniedException ||
-                exception instanceof AccountExpiredException ||
-                exception instanceof AuthenticationCredentialsNotFoundException ||
-                exception instanceof AuthenticationServiceException ||
-                exception instanceof BadCredentialsException ||
-                exception instanceof UsernameNotFoundException ||
-                exception instanceof InsufficientAuthenticationException ||
-                exception instanceof LockedException ||
-                exception instanceof DisabledException;
+            exception instanceof AccountExpiredException ||
+            exception instanceof AuthenticationCredentialsNotFoundException ||
+            exception instanceof AuthenticationServiceException ||
+            exception instanceof BadCredentialsException ||
+            exception instanceof UsernameNotFoundException ||
+            exception instanceof InsufficientAuthenticationException ||
+            exception instanceof LockedException ||
+            exception instanceof DisabledException;
     }
 
     /**
@@ -102,7 +102,7 @@ public class SpringSecurityWebErrorHandler implements WebErrorHandler {
         if (exception instanceof InsufficientAuthenticationException)
             return new HandledException(AUTH_REQUIRED, UNAUTHORIZED, null);
 
-        if (exception instanceof  LockedException) return new HandledException(USER_LOCKED, BAD_REQUEST, null);
+        if (exception instanceof LockedException) return new HandledException(USER_LOCKED, BAD_REQUEST, null);
         if (exception instanceof DisabledException) return new HandledException(USER_DISABLED, BAD_REQUEST, null);
 
         return new HandledException("unknown_error", INTERNAL_SERVER_ERROR, null);

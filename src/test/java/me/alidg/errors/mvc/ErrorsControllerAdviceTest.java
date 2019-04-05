@@ -24,15 +24,16 @@ public class ErrorsControllerAdviceTest {
     public void constructor_ShouldEnforceItsPreconditions(WebErrorHandlers handlers,
                                                           HttpErrorAttributesAdapter adapter,
                                                           String message) {
-        assertThatThrownBy(() -> new ErrorsControllerAdvice(handlers, adapter) {})
-                .isInstanceOf(NullPointerException.class)
-                .hasMessage(message);
+        assertThatThrownBy(() -> new ErrorsControllerAdvice(handlers, adapter) {
+        })
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage(message);
     }
 
     private Object[] provideParamsForConstructor() {
         return p(
-                p(null, null, "Error handlers is required"),
-                p(mock(WebErrorHandlers.class), null, "Adapter is required")
+            p(null, null, "Error handlers is required"),
+            p(mock(WebErrorHandlers.class), null, "Adapter is required")
         );
     }
 }

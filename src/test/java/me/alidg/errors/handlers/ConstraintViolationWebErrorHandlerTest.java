@@ -149,7 +149,8 @@ public class ConstraintViolationWebErrorHandlerTest {
         @Max(message = "{age.max}", value = 30)
         private int age;
 
-        public Person() {}
+        public Person() {
+        }
 
         public Person(String username, int age) {
             this.username = username;

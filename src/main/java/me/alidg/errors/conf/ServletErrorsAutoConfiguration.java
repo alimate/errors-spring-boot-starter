@@ -1,8 +1,8 @@
 package me.alidg.errors.conf;
 
 import me.alidg.errors.WebErrorHandlers;
-import me.alidg.errors.adapter.attributes.ServletErrorAttributes;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
+import me.alidg.errors.adapter.attributes.ServletErrorAttributes;
 import me.alidg.errors.mvc.ErrorsControllerAdvice;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -37,7 +37,8 @@ public class ServletErrorsAutoConfiguration {
     @ConditionalOnBean(WebErrorHandlers.class)
     public ErrorsControllerAdvice errorsControllerAdvice(WebErrorHandlers webErrorHandlers,
                                                          HttpErrorAttributesAdapter httpErrorAttributesAdapter) {
-        return new ErrorsControllerAdvice(webErrorHandlers, httpErrorAttributesAdapter) {};
+        return new ErrorsControllerAdvice(webErrorHandlers, httpErrorAttributesAdapter) {
+        };
     }
 
     /**

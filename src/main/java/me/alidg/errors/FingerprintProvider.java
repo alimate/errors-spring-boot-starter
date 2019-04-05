@@ -23,5 +23,6 @@ public interface FingerprintProvider {
      * @param httpError Error event for which fingerprint is generated.
      * @return Fingerprint - an identifier of given error event.
      */
-    @Nullable String generate(@NonNull HttpError httpError);
+    @Nullable
+    String generate(@NonNull HttpError httpError);
 }

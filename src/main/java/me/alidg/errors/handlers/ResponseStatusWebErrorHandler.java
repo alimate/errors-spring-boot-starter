@@ -108,17 +108,6 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
     }
 
     /**
-     * Creates a map of arguments to exposed under the given {@code code} as a key.
-     *
-     * @param code The map key.
-     * @param arguments The to-be-exposed arguments.
-     * @return The intended map.
-     */
-    private static Map<String, List<Argument>> argMap(String code, Argument... arguments) {
-        return singletonMap(code, asList(arguments));
-    }
-
-    /**
      * Spring WebFlux throw just one exception, i.e. {@link WebExchangeBindException} for
      * all request body binding failures, i.e. missing required parameter or missing matrix
      * variables. On the contrary, Traditional web stack throw one specific exception for
@@ -167,10 +156,21 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
 
         if (code != null) {
             return new HandledException(code, BAD_REQUEST,
-                    argMap(code, arg("name", parameterName), arg("expected", parameter.getParameterType().getSimpleName())));
+                argMap(code, arg("name", parameterName), arg("expected", parameter.getParameterType().getSimpleName())));
         }
 
         return null;
+    }
+
+    /**
+     * Creates a map of arguments to exposed under the given {@code code} as a key.
+     *
+     * @param code      The map key.
+     * @param arguments The to-be-exposed arguments.
+     * @return The intended map.
+     */
+    private static Map<String, List<Argument>> argMap(String code, Argument... arguments) {
+        return singletonMap(code, asList(arguments));
     }
 
     private String extractParameterName(Annotation annotation, MethodParameter parameter) {

@@ -74,7 +74,6 @@ public class ErrorsProperties {
          * Expose error arguments only when there is anything to expose.
          */
         NON_EMPTY {
-
             @Override
             public void expose(Map<String, Object> error, List<Argument> arguments) {
                 if (!arguments.isEmpty()) {
@@ -87,7 +86,6 @@ public class ErrorsProperties {
          * Always expose {@code "arguments"} element, even when there are no error arguments.
          */
         ALWAYS {
-
             @Override
             public void expose(Map<String, Object> error, List<Argument> arguments) {
                 error.put("arguments", argumentsMap(arguments));
@@ -108,9 +106,10 @@ public class ErrorsProperties {
         /**
          * Exposes the given {@code arguments} into the given {@code error} representation
          *
-         * @param error The current error representation.
+         * @param error     The current error representation.
          * @param arguments Collection of to be exposed arguments.
          */
-        public void expose(Map<String, Object> error, List<Argument> arguments) {}
+        public void expose(Map<String, Object> error, List<Argument> arguments) {
+        }
     }
 }

@@ -33,7 +33,7 @@ public class SpringSecurityWebErrorHandlerTest {
     @Parameters(method = "provideParamsForCanHandle")
     public void canHandle_CanOnlyHandleSpringSecurityRelatedExceptions(Throwable exception, boolean expected) {
         assertThat(handler.canHandle(exception))
-                .isEqualTo(expected);
+            .isEqualTo(expected);
     }
 
     @Test
@@ -50,32 +50,32 @@ public class SpringSecurityWebErrorHandlerTest {
 
     private Object[] provideParamsForCanHandle() {
         return p(
-                p(null, false),
-                p(new IllegalArgumentException(), false),
-                p(new AccessDeniedException(""), true),
-                p(new LockedException(""), true),
-                p(new DisabledException(""), true),
-                p(new UsernameNotFoundException(""), true),
-                p(new BadCredentialsException(""), true),
-                p(new AccountExpiredException(""), true),
-                p(new AuthenticationServiceException(""), true),
-                p(new InsufficientAuthenticationException(""), true),
-                p(new AuthenticationCredentialsNotFoundException(""), true)
+            p(null, false),
+            p(new IllegalArgumentException(), false),
+            p(new AccessDeniedException(""), true),
+            p(new LockedException(""), true),
+            p(new DisabledException(""), true),
+            p(new UsernameNotFoundException(""), true),
+            p(new BadCredentialsException(""), true),
+            p(new AccountExpiredException(""), true),
+            p(new AuthenticationServiceException(""), true),
+            p(new InsufficientAuthenticationException(""), true),
+            p(new AuthenticationCredentialsNotFoundException(""), true)
         );
     }
 
     private Object[] provideParamsForHandle() {
         return p(
-                p(new AccessDeniedException(""), ACCESS_DENIED, FORBIDDEN),
-                p(new LockedException(""), USER_LOCKED, BAD_REQUEST),
-                p(new DisabledException(""), USER_DISABLED, BAD_REQUEST),
-                p(new UsernameNotFoundException(""), BAD_CREDENTIALS, BAD_REQUEST),
-                p(new BadCredentialsException(""), BAD_CREDENTIALS, BAD_REQUEST),
-                p(new AccountExpiredException(""), ACCOUNT_EXPIRED, BAD_REQUEST),
-                p(new AuthenticationServiceException(""), INTERNAL_ERROR, INTERNAL_SERVER_ERROR),
-                p(new InsufficientAuthenticationException(""), AUTH_REQUIRED, UNAUTHORIZED),
-                p(new AuthenticationCredentialsNotFoundException(""), AUTH_REQUIRED, UNAUTHORIZED),
-                p(new CookieTheftException(""), "unknown_error", INTERNAL_SERVER_ERROR)
+            p(new AccessDeniedException(""), ACCESS_DENIED, FORBIDDEN),
+            p(new LockedException(""), USER_LOCKED, BAD_REQUEST),
+            p(new DisabledException(""), USER_DISABLED, BAD_REQUEST),
+            p(new UsernameNotFoundException(""), BAD_CREDENTIALS, BAD_REQUEST),
+            p(new BadCredentialsException(""), BAD_CREDENTIALS, BAD_REQUEST),
+            p(new AccountExpiredException(""), ACCOUNT_EXPIRED, BAD_REQUEST),
+            p(new AuthenticationServiceException(""), INTERNAL_ERROR, INTERNAL_SERVER_ERROR),
+            p(new InsufficientAuthenticationException(""), AUTH_REQUIRED, UNAUTHORIZED),
+            p(new AuthenticationCredentialsNotFoundException(""), AUTH_REQUIRED, UNAUTHORIZED),
+            p(new CookieTheftException(""), "unknown_error", INTERNAL_SERVER_ERROR)
         );
     }
 }

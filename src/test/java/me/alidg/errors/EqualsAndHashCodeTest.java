@@ -30,17 +30,17 @@ public class EqualsAndHashCodeTest {
 
     private Object[] provideParams() {
         return p(
-                p(arg("name", "value"), arg("name", "value"), arg("differentName", "differentValue")),
-                p(
-                        new HttpError.CodedMessage("code", "message", emptyList()),
-                        new HttpError.CodedMessage("code", "message", emptyList()),
-                        new HttpError.CodedMessage("code", "differentMessage", emptyList())
-                ),
-                p(
-                        new HttpError.CodedMessage("code", "message", emptyList()),
-                        new HttpError.CodedMessage("code", "message", emptyList()),
-                        new HttpError.CodedMessage("code", "message", singletonList(arg("foo", "bar")))
-                )
+            p(arg("name", "value"), arg("name", "value"), arg("differentName", "differentValue")),
+            p(
+                new HttpError.CodedMessage("code", "message", emptyList()),
+                new HttpError.CodedMessage("code", "message", emptyList()),
+                new HttpError.CodedMessage("code", "differentMessage", emptyList())
+            ),
+            p(
+                new HttpError.CodedMessage("code", "message", emptyList()),
+                new HttpError.CodedMessage("code", "message", emptyList()),
+                new HttpError.CodedMessage("code", "message", singletonList(arg("foo", "bar")))
+            )
         );
     }
 }

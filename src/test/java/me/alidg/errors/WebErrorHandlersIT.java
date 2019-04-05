@@ -53,13 +53,13 @@ public class WebErrorHandlersIT {
 
     private static final Locale IRAN_LOCALE = new Locale("fa", "IR");
     private final WebApplicationContextRunner contextRunner = new WebApplicationContextRunner()
-            .withPropertyValues("spring.messages.basename=test_messages")
-            .withConfiguration(AutoConfigurations.of(
-                    MessageSourceAutoConfiguration.class,
-                    ValidationAutoConfiguration.class,
-                    ErrorsAutoConfiguration.class
+        .withPropertyValues("spring.messages.basename=test_messages")
+        .withConfiguration(AutoConfigurations.of(
+            MessageSourceAutoConfiguration.class,
+            ValidationAutoConfiguration.class,
+            ErrorsAutoConfiguration.class
 
-            ));
+        ));
 
     @Test
     @Parameters(method = "provideValidationParams")
@@ -96,13 +96,13 @@ public class WebErrorHandlersIT {
             HttpError error = errorHandlers.handle(exception, null, null);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
             assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42",
-                    arg("min", 10), arg("max", 12), arg("theAnswer", "42"), arg("notUsed", "123")));
+                arg("min", 10), arg("max", 12), arg("theAnswer", "42"), arg("notUsed", "123")));
 
             // With locale
             error = errorHandlers.handle(exception, null, Locale.CANADA);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
             assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42",
-                    arg("min", 10), arg("max", 12), arg("theAnswer", "42"), arg("notUsed", "123")));
+                arg("min", 10), arg("max", 12), arg("theAnswer", "42"), arg("notUsed", "123")));
 
             verifyPostProcessorsHasBeenCalled(ctx);
         });
@@ -224,107 +224,107 @@ public class WebErrorHandlersIT {
 
     private Object[] provideValidationParams() {
         return p(
-                // Invalid text
-                p(
-                        pojo("", 10, "a"), null,
-                        cm("text.required", "The text is required",
-                                arg("invalid", ""), arg("property", "text"))
-                ),
-                p(
-                        pojo("", 10, "a"), Locale.CANADA,
-                        cm("text.required", "The text is required",
-                                arg("invalid", ""), arg("property", "text"))
-                ),
-                p(
-                        pojo("", 10, "a"), IRAN_LOCALE,
-                        cm("text.required", "متن اجباری است",
-                                arg("invalid", ""), arg("property", "text"))
-                ),
+            // Invalid text
+            p(
+                pojo("", 10, "a"), null,
+                cm("text.required", "The text is required",
+                    arg("invalid", ""), arg("property", "text"))
+            ),
+            p(
+                pojo("", 10, "a"), Locale.CANADA,
+                cm("text.required", "The text is required",
+                    arg("invalid", ""), arg("property", "text"))
+            ),
+            p(
+                pojo("", 10, "a"), IRAN_LOCALE,
+                cm("text.required", "متن اجباری است",
+                    arg("invalid", ""), arg("property", "text"))
+            ),
 
-                // Invalid number: min
-                p(
-                        pojo("t", -1, "a"), null,
-                        cm("number.min", "The min is 0",
-                                arg("value", 0L), arg("invalid", -1), arg("property", "number"))
-                ),
-                p(
-                        pojo("t", -1, "a"), Locale.GERMANY,
-                        cm("number.min", "The min is 0",
-                                arg("value", 0L), arg("invalid", -1), arg("property", "number"))
-                ),
+            // Invalid number: min
+            p(
+                pojo("t", -1, "a"), null,
+                cm("number.min", "The min is 0",
+                    arg("value", 0L), arg("invalid", -1), arg("property", "number"))
+            ),
+            p(
+                pojo("t", -1, "a"), Locale.GERMANY,
+                cm("number.min", "The min is 0",
+                    arg("value", 0L), arg("invalid", -1), arg("property", "number"))
+            ),
 
-                // Invalid number: max
-                p(
-                        pojo("t", 11, "a"), null,
-                        cm("number.max", null,
-                                arg("value", 10L), arg("invalid", 11), arg("property", "number"))
-                ),
-                p(
-                        pojo("t", 11, "a"), Locale.GERMANY,
-                        cm("number.max", null,
-                                arg("value", 10L), arg("invalid", 11), arg("property", "number"))
-                ),
-                p(
-                        pojo("t", 11, "a"), IRAN_LOCALE,
-                        cm("number.max", null,
-                                arg("value", 10L), arg("invalid", 11), arg("property", "number"))
-                ),
+            // Invalid number: max
+            p(
+                pojo("t", 11, "a"), null,
+                cm("number.max", null,
+                    arg("value", 10L), arg("invalid", 11), arg("property", "number"))
+            ),
+            p(
+                pojo("t", 11, "a"), Locale.GERMANY,
+                cm("number.max", null,
+                    arg("value", 10L), arg("invalid", 11), arg("property", "number"))
+            ),
+            p(
+                pojo("t", 11, "a"), IRAN_LOCALE,
+                cm("number.max", null,
+                    arg("value", 10L), arg("invalid", 11), arg("property", "number"))
+            ),
 
-                // Invalid range
-                p(
-                        pojo("t", 0), null,
-                        cm("range.limit", "Between 1 and 3",
-                                arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range"))
-                ),
-                p(
-                        pojo("t", 0), Locale.GERMANY,
-                        cm("range.limit", "Between 1 and 3",
-                                arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range"))
-                ),
+            // Invalid range
+            p(
+                pojo("t", 0), null,
+                cm("range.limit", "Between 1 and 3",
+                    arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range"))
+            ),
+            p(
+                pojo("t", 0), Locale.GERMANY,
+                cm("range.limit", "Between 1 and 3",
+                    arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range"))
+            ),
 
-                // Mixed
-                p(
-                        pojo("", 11), null,
-                        cm("range.limit", "Between 1 and 3",
-                                arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range")),
-                        cm("number.max", null,
-                                arg("value", 10L), arg("invalid", 11), arg("property", "number")),
-                        cm("text.required", "The text is required",
-                                arg("invalid", ""), arg("property", "text"))
-                ),
-                p(
-                        pojo("", 11), Locale.CANADA,
-                        cm("range.limit", "Between 1 and 3",
-                                arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range")),
-                        cm("number.max", null,
-                                arg("value", 10L), arg("invalid", 11), arg("property", "number")),
-                        cm("text.required", "The text is required",
-                                arg("invalid", ""), arg("property", "text"))
-                )
+            // Mixed
+            p(
+                pojo("", 11), null,
+                cm("range.limit", "Between 1 and 3",
+                    arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range")),
+                cm("number.max", null,
+                    arg("value", 10L), arg("invalid", 11), arg("property", "number")),
+                cm("text.required", "The text is required",
+                    arg("invalid", ""), arg("property", "text"))
+            ),
+            p(
+                pojo("", 11), Locale.CANADA,
+                cm("range.limit", "Between 1 and 3",
+                    arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range")),
+                cm("number.max", null,
+                    arg("value", 10L), arg("invalid", 11), arg("property", "number")),
+                cm("text.required", "The text is required",
+                    arg("invalid", ""), arg("property", "text"))
+            )
         );
     }
 
     private Object[] provideParamsForRefined() {
         return p(
-                p(
-                        new SymptomException(new SomeException(10, 11)),
-                        HttpStatus.UNPROCESSABLE_ENTITY,
-                        cm("invalid_params", "Params are: 10, 11 and 42",
-                                arg("min", 10), arg("max", 11), arg("theAnswer", "42"), arg("notUsed", "123"))
-                ),
-                p(
-                        new SymptomException(null), HttpStatus.INTERNAL_SERVER_ERROR, cm("unknown_error", null)
-                ),
-                p(
-                        new IllegalArgumentException(), HttpStatus.INTERNAL_SERVER_ERROR, cm("unknown_error", null)
-                )
+            p(
+                new SymptomException(new SomeException(10, 11)),
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                cm("invalid_params", "Params are: 10, 11 and 42",
+                    arg("min", 10), arg("max", 11), arg("theAnswer", "42"), arg("notUsed", "123"))
+            ),
+            p(
+                new SymptomException(null), HttpStatus.INTERNAL_SERVER_ERROR, cm("unknown_error", null)
+            ),
+            p(
+                new IllegalArgumentException(), HttpStatus.INTERNAL_SERVER_ERROR, cm("unknown_error", null)
+            )
         );
     }
 
     private Object[] provideEmptyViolations() {
         return p(
-                new ConstraintViolationException(null),
-                new ConstraintViolationException(Collections.emptySet())
+            new ConstraintViolationException(null),
+            new ConstraintViolationException(Collections.emptySet())
         );
     }
 
@@ -350,6 +350,10 @@ public class WebErrorHandlersIT {
             this.range = Arrays.asList(range);
         }
 
+        static Pojo pojo(String text, int number, String... range) {
+            return new Pojo(text, number, range);
+        }
+
         public String getText() {
             return text;
         }
@@ -372,32 +376,6 @@ public class WebErrorHandlersIT {
 
         public void setRange(List<String> range) {
             this.range = range;
-        }
-
-        static Pojo pojo(String text, int number, String... range) {
-            return new Pojo(text, number, range);
-        }
-    }
-
-    @ExceptionMapping(errorCode = "invalid_params", statusCode = HttpStatus.UNPROCESSABLE_ENTITY)
-    private class SomeException extends RuntimeException {
-
-        @ExposeAsArg(100) private final int min;
-        @ExposeAsArg(101) private final int max;
-
-        SomeException(int min, int max) {
-            this.min = min;
-            this.max = max;
-        }
-
-        @ExposeAsArg(1000)
-        public String theAnswer() {
-            return "42";
-        }
-
-        @ExposeAsArg(2000)
-        public String notUsed() {
-            return "123";
         }
     }
 
@@ -428,6 +406,30 @@ public class WebErrorHandlersIT {
         @Bean
         public WebErrorHandlerPostProcessor second() {
             return mock(WebErrorHandlerPostProcessor.class);
+        }
+    }
+
+    @ExceptionMapping(errorCode = "invalid_params", statusCode = HttpStatus.UNPROCESSABLE_ENTITY)
+    private class SomeException extends RuntimeException {
+
+        @ExposeAsArg(100)
+        private final int min;
+        @ExposeAsArg(101)
+        private final int max;
+
+        SomeException(int min, int max) {
+            this.min = min;
+            this.max = max;
+        }
+
+        @ExposeAsArg(1000)
+        public String theAnswer() {
+            return "42";
+        }
+
+        @ExposeAsArg(2000)
+        public String notUsed() {
+            return "123";
         }
     }
 }

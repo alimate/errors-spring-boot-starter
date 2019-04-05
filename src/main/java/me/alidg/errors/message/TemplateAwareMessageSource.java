@@ -17,9 +17,8 @@ import java.util.Objects;
  * resolve the message template using the wrapped {@link #messageSource}. Then {@link #templateParser} would
  * help us to replace all placeholders with their corresponding argument value.
  *
- * @see TemplateParser
- *
  * @author zarebski-m
+ * @see TemplateParser
  */
 public class TemplateAwareMessageSource {
 

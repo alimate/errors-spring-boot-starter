@@ -56,15 +56,16 @@ public class Md5FingerprintProvider implements FingerprintProvider {
 
     private String exceptionName(HttpError httpError) {
         return Optional.ofNullable(httpError.getOriginalException())
-                .map(Throwable::getClass)
-                .map(Class::getName)
-                .orElse("no-exception");
+            .map(Throwable::getClass)
+            .map(Class::getName)
+            .orElse("no-exception");
     }
 
     private void write(OutputStream os, String toWrite) {
         try {
             os.write(toWrite.getBytes(UTF_8));
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 
     private void write(OutputStream os, long timestamp) {
@@ -72,6 +73,7 @@ public class Md5FingerprintProvider implements FingerprintProvider {
             ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
             buffer.putLong(0, timestamp);
             os.write(buffer.array());
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
     }
 }

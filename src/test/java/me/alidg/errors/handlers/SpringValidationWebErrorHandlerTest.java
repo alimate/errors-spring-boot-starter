@@ -47,14 +47,14 @@ public class SpringValidationWebErrorHandlerTest {
      * Spring Validator to generate valid {@link BindingResult}s.
      */
     private final Validator validator = new SpringValidatorAdapter(
-            Validation.buildDefaultValidatorFactory().getValidator()
+        Validation.buildDefaultValidatorFactory().getValidator()
     );
 
     @Test
     @Parameters(method = "provideParamsForCanHandle")
     public void canHandle_ShouldOnlyReturnTrueForSpringSpecificValidationErrors(Throwable exception, boolean expected) {
         assertThat(handler.canHandle(exception))
-                .isEqualTo(expected);
+            .isEqualTo(expected);
     }
 
     @Test
@@ -98,51 +98,51 @@ public class SpringValidationWebErrorHandlerTest {
 
     private Object[] provideParamsForCanHandle() {
         return p(
-                p(null, false),
-                p(new RuntimeException(), false),
-                p(new BindException(mock(BindingResult.class)), true),
-                p(mock(MethodArgumentNotValidException.class), true)
+            p(null, false),
+            p(new RuntimeException(), false),
+            p(new BindException(mock(BindingResult.class)), true),
+            p(mock(MethodArgumentNotValidException.class), true)
         );
     }
 
     private Object[] provideParamsForHandle() {
         return p(
-                p(tbv("ali", 0, "coding"), e("age.min"),
-                        singletonMap("age.min", asList(
-                                arg("value", 1L),
-                                arg("invalid", 0),
-                                arg("property", "age")))),
-                p(tbv("ali", 29), e("interests.limit"),
-                        singletonMap("interests.limit", asList(
-                                arg("max", 6),
-                                arg("min", 1),
-                                arg("invalid", emptyList()),
-                                arg("property", "interests")))),
-                p(tbv("", 29, "coding"), e("name.required"),
-                        singletonMap("name.required", asList(
-                                arg("invalid", ""),
-                                arg("property", "name")))),
-                p(tbv("", 200), e("name.required", "age.max", "interests.limit"),
-                        m(
-                                "age.max", asList(
-                                        arg("value", 100L),
-                                        arg("invalid", 200),
-                                        arg("property", "age")),
-                                "interests.limit", asList(
-                                        arg("max", 6),
-                                        arg("min", 1),
-                                        arg("invalid", emptyList()),
-                                        arg("property", "interests")),
-                                "name.required", asList(
-                                        arg("invalid", ""),
-                                        arg("property", "name"))
-                        )
-                ),
-                p(tbv("ali", 29, singletonList("coding"), asList(tbvChild("given"), tbvChild(""), tbvChild("also given"))),
-                        e("stringField.required"),
-                        singletonMap("stringField.required", asList(
-                                arg("invalid", ""),
-                                arg("property", "tbvChildren[1].stringField"))))
+            p(tbv("ali", 0, "coding"), e("age.min"),
+                singletonMap("age.min", asList(
+                    arg("value", 1L),
+                    arg("invalid", 0),
+                    arg("property", "age")))),
+            p(tbv("ali", 29), e("interests.limit"),
+                singletonMap("interests.limit", asList(
+                    arg("max", 6),
+                    arg("min", 1),
+                    arg("invalid", emptyList()),
+                    arg("property", "interests")))),
+            p(tbv("", 29, "coding"), e("name.required"),
+                singletonMap("name.required", asList(
+                    arg("invalid", ""),
+                    arg("property", "name")))),
+            p(tbv("", 200), e("name.required", "age.max", "interests.limit"),
+                m(
+                    "age.max", asList(
+                        arg("value", 100L),
+                        arg("invalid", 200),
+                        arg("property", "age")),
+                    "interests.limit", asList(
+                        arg("max", 6),
+                        arg("min", 1),
+                        arg("invalid", emptyList()),
+                        arg("property", "interests")),
+                    "name.required", asList(
+                        arg("invalid", ""),
+                        arg("property", "name"))
+                )
+            ),
+            p(tbv("ali", 29, singletonList("coding"), asList(tbvChild("given"), tbvChild(""), tbvChild("also given"))),
+                e("stringField.required"),
+                singletonMap("stringField.required", asList(
+                    arg("invalid", ""),
+                    arg("property", "tbvChildren[1].stringField"))))
         );
     }
 
@@ -189,6 +189,14 @@ public class SpringValidationWebErrorHandlerTest {
             this.tbvChildren = tbvChildren;
         }
 
+        static TBV tbv(String name, int age, String... interests) {
+            return new TBV(name, age, asList(interests));
+        }
+
+        static TBV tbv(String name, int age, List<String> interests, List<TBVchild> tbvChildren) {
+            return new TBV(name, age, interests, tbvChildren);
+        }
+
         public String getName() {
             return name;
         }
@@ -220,13 +228,6 @@ public class SpringValidationWebErrorHandlerTest {
         public void setTbvChildren(List<TBVchild> tbvChildren) {
             this.tbvChildren = tbvChildren;
         }
-
-        static TBV tbv(String name, int age, String... interests) {
-            return new TBV(name, age, asList(interests));
-        }
-        static TBV tbv(String name, int age, List<String> interests, List<TBVchild> tbvChildren) {
-            return new TBV(name, age, interests, tbvChildren);
-        }
     }
 
     static class TBVchild {
@@ -237,16 +238,16 @@ public class SpringValidationWebErrorHandlerTest {
             this.stringField = stringField;
         }
 
+        public static TBVchild tbvChild(String stringField) {
+            return new TBVchild(stringField);
+        }
+
         public String getStringField() {
             return stringField;
         }
 
         public void setStringField(String stringField) {
             this.stringField = stringField;
-        }
-
-        public static TBVchild tbvChild(String stringField) {
-            return new TBVchild(stringField);
         }
     }
 }

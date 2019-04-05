@@ -19,6 +19,11 @@ public final class Argument {
      */
     private final Object value;
 
+    private Argument(String name, Object value) {
+        this.name = name;
+        this.value = value;
+    }
+
     /**
      * Creates an {@link Argument} instance based on the given name-value pair.
      *
@@ -28,11 +33,6 @@ public final class Argument {
      */
     public static Argument arg(String name, Object value) {
         return new Argument(name, value);
-    }
-
-    private Argument(String name, Object value) {
-        this.name = name;
-        this.value = value;
     }
 
     /**
@@ -69,7 +69,7 @@ public final class Argument {
         Argument argument = (Argument) other;
 
         return Objects.equals(getName(), argument.getName()) &&
-                Objects.equals(getValue(), argument.getValue());
+            Objects.equals(getValue(), argument.getValue());
     }
 
     /**

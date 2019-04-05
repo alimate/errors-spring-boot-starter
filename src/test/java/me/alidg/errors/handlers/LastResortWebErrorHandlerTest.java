@@ -31,7 +31,7 @@ public class LastResortWebErrorHandlerTest {
     @Parameters(method = "provideParams")
     public void canHandle_AlwaysReturnsFalse(Throwable exception) {
         assertThat(handler.canHandle(exception))
-                .isFalse();
+            .isFalse();
     }
 
     @Test

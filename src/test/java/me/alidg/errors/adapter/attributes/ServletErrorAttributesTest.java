@@ -26,14 +26,14 @@ public class ServletErrorAttributesTest {
                                                           Class<? extends Throwable> expectedException,
                                                           String expectedMessage) {
         assertThatThrownBy(() -> new ServletErrorAttributes(handlers, adapter))
-                .isInstanceOf(expectedException)
-                .hasMessage(expectedMessage);
+            .isInstanceOf(expectedException)
+            .hasMessage(expectedMessage);
     }
 
     private Object[] provideInvalidParamsToConstructor() {
         return p(
-                p(null, null, NullPointerException.class, "Web error handlers is required"),
-                p(mock(WebErrorHandlers.class), null, NullPointerException.class, "Adapter is required")
+            p(null, null, NullPointerException.class, "Web error handlers is required"),
+            p(mock(WebErrorHandlers.class), null, NullPointerException.class, "Adapter is required")
         );
     }
 }

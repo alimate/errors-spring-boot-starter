@@ -23,7 +23,8 @@ final class ConstraintViolationArgumentsExtractor {
      */
     private static final Collection<String> IGNORE_ATTRIBUTES = Arrays.asList("groups", "payload", "message");
 
-    private ConstraintViolationArgumentsExtractor() {}
+    private ConstraintViolationArgumentsExtractor() {
+    }
 
     /**
      * Remove mandatory annotation attributes and sort the remaining ones by their key and return their
@@ -34,13 +35,13 @@ final class ConstraintViolationArgumentsExtractor {
      */
     static List<Argument> extract(ConstraintViolation<?> violation) {
         List<Argument> args = violation.getConstraintDescriptor()
-                .getAttributes()
-                .entrySet()
-                .stream()
-                .filter(e -> !IGNORE_ATTRIBUTES.contains(e.getKey()))
-                .sorted(Map.Entry.comparingByKey())
-                .map(e -> arg(e.getKey(), e.getValue()))
-                .collect(Collectors.toList());
+            .getAttributes()
+            .entrySet()
+            .stream()
+            .filter(e -> !IGNORE_ATTRIBUTES.contains(e.getKey()))
+            .sorted(Map.Entry.comparingByKey())
+            .map(e -> arg(e.getKey(), e.getValue()))
+            .collect(Collectors.toList());
 
         args.add(arg("invalid", violation.getInvalidValue()));
         args.add(arg("property", violation.getPropertyPath().toString()));

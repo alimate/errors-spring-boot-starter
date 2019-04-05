@@ -126,5 +126,6 @@ public class ServletErrorAttributesIT {
         HttpMessageConvertersAutoConfiguration.class,
         ServletWebServerFactoryAutoConfiguration.class
     })
-    protected static class WebConfig {}
+    protected static class WebConfig {
+    }
 }

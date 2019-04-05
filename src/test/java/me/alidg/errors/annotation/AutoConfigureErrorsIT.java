@@ -66,7 +66,8 @@ public class AutoConfigureErrorsIT {
     }
 
     @AutoConfigureErrors
-    static class TestConfig {}
+    static class TestConfig {
+    }
 
     @AutoConfigureErrors
     @AutoConfigureWebFlux

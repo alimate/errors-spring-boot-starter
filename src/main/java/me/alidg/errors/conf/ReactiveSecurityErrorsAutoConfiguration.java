@@ -16,6 +16,7 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
  * are just gonna eventually delegate the exception handling procedure to plain old
  * {@link me.alidg.errors.WebErrorHandlers}.
  *
+ * @author Ali Dehghani
  * @implNote In contrast with other handlers which register themselves automatically, in order to use these
  * two handlers, you should register them in your security configuration manually as follows:
  * <pre>
@@ -42,7 +43,6 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
  * }
  * }
  * </pre>
- * @author Ali Dehghani
  */
 @ConditionalOnWebApplication(type = REACTIVE)
 @ConditionalOnBean(ErrorWebExceptionHandler.class)

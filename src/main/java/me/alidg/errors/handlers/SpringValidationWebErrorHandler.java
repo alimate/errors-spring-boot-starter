@@ -90,12 +90,14 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
         String code = null;
         try {
             code = error.unwrap(ConstraintViolation.class).getMessageTemplate();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         if (code == null) {
             try {
                 code = TypeMismatchWebErrorHandler.getErrorCode(error.unwrap(TypeMismatchException.class));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         if (code == null) code = BINDING_FAILURE;
@@ -114,11 +116,13 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
         try {
             ConstraintViolation<?> violation = error.unwrap(ConstraintViolation.class);
             return ConstraintViolationArgumentsExtractor.extract(violation);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         try {
             return TypeMismatchWebErrorHandler.getArguments(error.unwrap(TypeMismatchException.class));
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         return emptyList();
     }

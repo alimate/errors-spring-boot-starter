@@ -16,6 +16,7 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
  * two handlers will make sure that our exception handling mechanism would properly catch and handle
  * all security related exceptions.
  *
+ * @author Ali Dehghani
  * @implNote In contrast with other handlers that register themselves automatically, in order to use these
  * two handlers, you should register them in your security configuration manually as follows:
  * <pre>
@@ -41,8 +42,6 @@ import static org.springframework.boot.autoconfigure.condition.ConditionalOnWebA
  * }
  * }
  * </pre>
- *
- * @author Ali Dehghani
  */
 @ConditionalOnWebApplication(type = SERVLET)
 @ConditionalOnClass(name = "org.springframework.security.web.access.AccessDeniedHandler")
