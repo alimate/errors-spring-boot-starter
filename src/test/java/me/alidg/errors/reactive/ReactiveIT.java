@@ -356,6 +356,18 @@ public class ReactiveIT {
             .jsonPath("$.errors[*].arguments.invalid").value(containsInAnyOrder("nan", "na", "invalid"));
     }
 
+    @Test
+    public void errorAttributes_ShouldHandleTypeMismatchesAsExpected() throws Exception {
+        client.get().uri("/test/type-mismatch?number=invalid")
+            .exchange()
+            .expectStatus().isBadRequest()
+            .expectBody()
+            .jsonPath("$.errors[0].code").isEqualTo("binding.type_mismatch.number")
+            .jsonPath("$.errors[0].arguments.property").isEqualTo("number")
+            .jsonPath("$.errors[0].arguments.invalid").isEqualTo("invalid")
+            .jsonPath("$.errors[0].arguments.expected").isEqualTo("Integer");
+    }
+
     private MultiValueMap<String, HttpEntity<?>> generateBody() {
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
         builder.part("fieldPart", "fieldValue");
@@ -445,6 +457,10 @@ public class ReactiveIT {
         @GetMapping("/matrix")
         public Mono<Void> matrixIsRequired(@MatrixVariable String name) {
             return Mono.empty();
+        }
+
+        @GetMapping("/type-mismatch")
+        public void mismatch(@RequestParam Integer number) {
         }
 
         @GetMapping("/paged")
@@ -558,18 +574,18 @@ public class ReactiveIT {
                                                              ServerAccessDeniedHandler accessDeniedHandler,
                                                              ServerAuthenticationEntryPoint authenticationEntryPoint) {
             return http
-                    .csrf()
-                        .accessDeniedHandler(accessDeniedHandler)
-                    .and()
-                    .exceptionHandling()
-                        .authenticationEntryPoint(authenticationEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler)
-                    .and()
-                    .authorizeExchange()
-                        .pathMatchers(GET, "/test/protected").authenticated()
-                        .pathMatchers(POST, "/test/protected").hasRole("ADMIN")
-                        .anyExchange().permitAll()
-                    .and().build();
+                .csrf()
+                .accessDeniedHandler(accessDeniedHandler)
+                .and()
+                .exceptionHandling()
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler)
+                .and()
+                .authorizeExchange()
+                .pathMatchers(GET, "/test/protected").authenticated()
+                .pathMatchers(POST, "/test/protected").hasRole("ADMIN")
+                .anyExchange().permitAll()
+                .and().build();
         }
 
         @Bean

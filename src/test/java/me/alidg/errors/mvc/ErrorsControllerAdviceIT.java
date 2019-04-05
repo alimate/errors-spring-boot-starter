@@ -306,6 +306,16 @@ public class ErrorsControllerAdviceIT {
             .andExpect(jsonPath("$.errors[*].arguments.invalid").value(containsInAnyOrder("nan", "size", "value")));
     }
 
+    @Test
+    public void controllerAdvice_ShouldHandleTypeMismatchesAsExpected() throws Exception {
+        mvc.perform(get("/test//type-mismatch").param("number", "not a number"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errors[0].code").value("binding.type_mismatch.number"))
+            .andExpect(jsonPath("$.errors[0].arguments.property").value("number"))
+            .andExpect(jsonPath("$.errors[0].arguments.invalid").value("not a number"))
+            .andExpect(jsonPath("$.errors[0].arguments.expected").value("Integer"));
+    }
+
     private Object[] provideInvalidBody() {
         return p(
             p(Collections.emptyMap(), null, cm("text.required", "The text is required")),

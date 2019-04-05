@@ -5,6 +5,7 @@ import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.lang.NonNull;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +56,7 @@ public class TypeMismatchWebErrorHandler implements WebErrorHandler {
 
     static List<Argument> getArguments(TypeMismatchException mismatchException) {
         List<Argument> arguments = new ArrayList<>();
-        arguments.add(arg("property", mismatchException.getPropertyName()));
+        arguments.add(arg("property", getPropertyName(mismatchException)));
         arguments.add(arg("invalid", mismatchException.getValue()));
         if (mismatchException.getRequiredType() != null) {
             arguments.add(arg("expected", mismatchException.getRequiredType().getSimpleName()));
@@ -65,6 +66,13 @@ public class TypeMismatchWebErrorHandler implements WebErrorHandler {
     }
 
     static String getErrorCode(TypeMismatchException mismatchException) {
-        return TYPE_MISMATCH + "." + mismatchException.getPropertyName();
+        return TYPE_MISMATCH + "." + getPropertyName(mismatchException);
+    }
+
+    private static String getPropertyName(TypeMismatchException mismatchException) {
+        if (mismatchException instanceof MethodArgumentTypeMismatchException)
+            return ((MethodArgumentTypeMismatchException) mismatchException).getName();
+
+        return mismatchException.getPropertyName();
     }
 }

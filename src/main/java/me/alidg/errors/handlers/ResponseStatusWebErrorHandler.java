@@ -3,6 +3,7 @@ package me.alidg.errors.handlers;
 import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -41,6 +42,7 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
      * binding result handler.
      */
     private final SpringValidationWebErrorHandler validationWebErrorHandler = new SpringValidationWebErrorHandler();
+    private final TypeMismatchWebErrorHandler typeMismatchWebErrorHandler = new TypeMismatchWebErrorHandler();
 
     /**
      * Only can handle exceptions of type {@link ResponseStatusException}.
@@ -91,6 +93,13 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
 
         if (exception instanceof ServerWebInputException) {
             MethodParameter parameter = ((ServerWebInputException) exception).getMethodParameter();
+            if (exception.getCause() instanceof TypeMismatchException) {
+                TypeMismatchException cause = ((TypeMismatchException) exception.getCause());
+                if (cause.getPropertyName() == null) cause.initPropertyName(parameter.getParameterName());
+
+                return typeMismatchWebErrorHandler.handle(cause);
+            }
+
             HandledException handledException = handleMissingParameters(parameter);
             if (handledException != null) return handledException;
 
