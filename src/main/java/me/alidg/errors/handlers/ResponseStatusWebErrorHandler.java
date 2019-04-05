@@ -3,6 +3,7 @@ package me.alidg.errors.handlers;
 import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -41,6 +42,7 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
      * binding result handler.
      */
     private final SpringValidationWebErrorHandler validationWebErrorHandler = new SpringValidationWebErrorHandler();
+    private final TypeMismatchWebErrorHandler typeMismatchWebErrorHandler = new TypeMismatchWebErrorHandler();
 
     /**
      * Only can handle exceptions of type {@link ResponseStatusException}.
@@ -91,6 +93,13 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
 
         if (exception instanceof ServerWebInputException) {
             MethodParameter parameter = ((ServerWebInputException) exception).getMethodParameter();
+            if (exception.getCause() instanceof TypeMismatchException) {
+                TypeMismatchException cause = ((TypeMismatchException) exception.getCause());
+                if (cause.getPropertyName() == null) cause.initPropertyName(parameter.getParameterName());
+
+                return typeMismatchWebErrorHandler.handle(cause);
+            }
+
             HandledException handledException = handleMissingParameters(parameter);
             if (handledException != null) return handledException;
 
@@ -105,17 +114,6 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
         }
 
         return new HandledException(UNKNOWN_ERROR_CODE, INTERNAL_SERVER_ERROR, null);
-    }
-
-    /**
-     * Creates a map of arguments to exposed under the given {@code code} as a key.
-     *
-     * @param code The map key.
-     * @param arguments The to-be-exposed arguments.
-     * @return The intended map.
-     */
-    private static Map<String, List<Argument>> argMap(String code, Argument... arguments) {
-        return singletonMap(code, asList(arguments));
     }
 
     /**
@@ -167,10 +165,21 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
 
         if (code != null) {
             return new HandledException(code, BAD_REQUEST,
-                    argMap(code, arg("name", parameterName), arg("expected", parameter.getParameterType().getSimpleName())));
+                argMap(code, arg("name", parameterName), arg("expected", parameter.getParameterType().getSimpleName())));
         }
 
         return null;
+    }
+
+    /**
+     * Creates a map of arguments to exposed under the given {@code code} as a key.
+     *
+     * @param code      The map key.
+     * @param arguments The to-be-exposed arguments.
+     * @return The intended map.
+     */
+    private static Map<String, List<Argument>> argMap(String code, Argument... arguments) {
+        return singletonMap(code, asList(arguments));
     }
 
     private String extractParameterName(Annotation annotation, MethodParameter parameter) {

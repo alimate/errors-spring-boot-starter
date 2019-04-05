@@ -49,13 +49,13 @@ public class MissingRequestParametersWebErrorHandler implements WebErrorHandler 
      *
      * @param exception The exception to examine.
      * @return {@code true} when the exception is related to missing required headers, cookies or
-     *         matrix variables, {@code false} otherwise.
+     * matrix variables, {@code false} otherwise.
      */
     @Override
     public boolean canHandle(Throwable exception) {
         return exception instanceof MissingRequestHeaderException ||
-                exception instanceof MissingRequestCookieException ||
-                exception instanceof MissingMatrixVariableException;
+            exception instanceof MissingRequestCookieException ||
+            exception instanceof MissingMatrixVariableException;
     }
 
     /**

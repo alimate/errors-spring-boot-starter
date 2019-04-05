@@ -9,9 +9,8 @@ import org.springframework.lang.Nullable;
  * nobody's gonna handle the exceptions thrown by the contract methods, so do not throw
  * exceptions in your method implementations.
  *
- * @implNote Do not throw exceptions in method implementations.
- *
  * @author Ali Dehghani
+ * @implNote Do not throw exceptions in method implementations.
  */
 public interface WebErrorHandler {
 
@@ -21,7 +20,7 @@ public interface WebErrorHandler {
      *
      * @param exception The exception to examine.
      * @return {@code true} if this implementation can handle the exception, {@code false}
-     *         otherwise.
+     * otherwise.
      */
     boolean canHandle(@Nullable Throwable exception);
 
@@ -33,5 +32,6 @@ public interface WebErrorHandler {
      * @param exception The exception to handle.
      * @return A set of error codes.
      */
-    @NonNull HandledException handle(@Nullable Throwable exception);
+    @NonNull
+    HandledException handle(@Nullable Throwable exception);
 }

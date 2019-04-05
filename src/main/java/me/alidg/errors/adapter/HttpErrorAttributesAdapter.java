@@ -22,5 +22,6 @@ public interface HttpErrorAttributesAdapter {
      * @param httpError The {@link HttpError} to convert.
      * @return The converted {@link Map}.
      */
-    @NonNull Map<String, Object> adapt(@NonNull HttpError httpError);
+    @NonNull
+    Map<String, Object> adapt(@NonNull HttpError httpError);
 }

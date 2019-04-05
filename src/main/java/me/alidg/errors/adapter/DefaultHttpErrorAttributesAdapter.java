@@ -59,11 +59,11 @@ public class DefaultHttpErrorAttributesAdapter implements HttpErrorAttributesAda
     @Override
     public Map<String, Object> adapt(@NonNull HttpError httpError) {
         return httpError.getErrors().stream()
-                .map(this::toMap)
-                .collect(collectingAndThen(
-                        toList(),
-                        errors -> errorDetails(errors, httpError)
-                ));
+            .map(this::toMap)
+            .collect(collectingAndThen(
+                toList(),
+                errors -> errorDetails(errors, httpError)
+            ));
     }
 
     private Map<String, Object> errorDetails(Object errors, HttpError httpError) {

@@ -145,10 +145,10 @@ public class HttpError {
     @Override
     public String toString() {
         return "HttpError{" +
-                "errors=" + errors +
-                ", httpStatus=" + httpStatus +
-                ", fingerprint=" + fingerprint +
-                '}';
+            "errors=" + errors +
+            ", httpStatus=" + httpStatus +
+            ", fingerprint=" + fingerprint +
+            '}';
     }
 
     /**
@@ -217,8 +217,8 @@ public class HttpError {
 
             CodedMessage that = (CodedMessage) o;
             return Objects.equals(getCode(), that.getCode()) &&
-                    Objects.equals(getMessage(), that.getMessage()) &&
-                    Objects.equals(getArguments(), that.getArguments());
+                Objects.equals(getMessage(), that.getMessage()) &&
+                Objects.equals(getArguments(), that.getArguments());
         }
 
         @Override
@@ -229,10 +229,10 @@ public class HttpError {
         @Override
         public String toString() {
             return "CodedMessage{" +
-                    "code='" + code + '\'' +
-                    ", message='" + message + '\'' +
-                    ", arguments=" + arguments +
-                    '}';
+                "code='" + code + '\'' +
+                ", message='" + message + '\'' +
+                ", arguments=" + arguments +
+                '}';
         }
     }
 }

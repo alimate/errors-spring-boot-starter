@@ -8,9 +8,8 @@ import org.springframework.lang.Nullable;
  * <p>
  * For a richer alternative check {@link WebErrorHandlerPostProcessor}.
  *
- * @implNote Do not throw exceptions in method implementations.
- *
  * @author Ali Dehghani
+ * @implNote Do not throw exceptions in method implementations.
  */
 public interface ExceptionLogger {
 
@@ -41,6 +40,7 @@ public interface ExceptionLogger {
          * @param exception The exception to log.
          */
         @Override
-        public void log(Throwable exception) {}
+        public void log(Throwable exception) {
+        }
     }
 }

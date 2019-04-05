@@ -39,7 +39,7 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
      * {@link ExposeAsArg#value()}.
      */
     private final Comparator<AnnotatedElement> byExposedIndex =
-            Comparator.comparing(e -> e.getAnnotation(ExposeAsArg.class).value());
+        Comparator.comparing(e -> e.getAnnotation(ExposeAsArg.class).value());
 
     /**
      * Only can handle non-null exceptions annotated with {@link ExceptionMapping} annotation.
@@ -89,10 +89,10 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
         members.sort(byExposedIndex);
 
         return members
-                .stream()
-                .map(e -> getArgument(e, exception))
-                .filter(Objects::nonNull)
-                .collect(toList());
+            .stream()
+            .map(e -> getArgument(e, exception))
+            .filter(Objects::nonNull)
+            .collect(toList());
     }
 
     /**
@@ -115,7 +115,8 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
 
                 return arg(getExposedName(m), m.invoke(exception));
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         return null;
     }
@@ -129,8 +130,8 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
      */
     private List<Field> getExposedFields(Throwable exception) {
         return Stream.of(exception.getClass().getDeclaredFields())
-                .filter(f -> f.isAnnotationPresent(ExposeAsArg.class))
-                .collect(toList());
+            .filter(f -> f.isAnnotationPresent(ExposeAsArg.class))
+            .collect(toList());
     }
 
     /**
@@ -141,8 +142,8 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
      */
     private List<Method> getExposedMethods(Throwable exception) {
         return Stream.of(exception.getClass().getMethods())
-                .filter(m -> annotationIsPresent(m) && hasReturnType(m) && hasNoParameters(m))
-                .collect(toList());
+            .filter(m -> annotationIsPresent(m) && hasReturnType(m) && hasNoParameters(m))
+            .collect(toList());
     }
 
     /**

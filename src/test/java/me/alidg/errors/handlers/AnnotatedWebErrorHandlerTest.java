@@ -37,7 +37,7 @@ public class AnnotatedWebErrorHandlerTest {
     public void canHandle_ShouldOnlyReturnTrueForExceptionsAnnotatedWithExceptionMapping(Exception exception,
                                                                                          boolean expected) {
         assertThat(handler.canHandle(exception))
-                .isEqualTo(expected);
+            .isEqualTo(expected);
     }
 
     @Test
@@ -57,38 +57,41 @@ public class AnnotatedWebErrorHandlerTest {
 
     private Object[] provideParamsForCanHandle() {
         return p(
-                p(null, false),
-                p(new NotAnnotated(), false),
-                p(new Annotated("", ""), true),
-                p(new Inherited(), true)
+            p(null, false),
+            p(new NotAnnotated(), false),
+            p(new Annotated("", ""), true),
+            p(new Inherited(), true)
         );
     }
 
     private Object[] provideParamsForHandle() {
         return p(
-                p(new Annotated("f", "s"), "annotated", BAD_REQUEST, asList(
-                        arg("staticExposure", "42"),
-                        arg("some_value", "f"),
-                        arg("other", "s"))),
-                p(new Inherited(), "annotated", BAD_REQUEST, asList(
-                        arg("staticExposure", "42"),
-                        arg("random", "random"),
-                        arg("other", "s"))),
-                p(new NoExposedArgs(), "no_exposed", BAD_REQUEST, Collections.emptyList())
+            p(new Annotated("f", "s"), "annotated", BAD_REQUEST, asList(
+                arg("staticExposure", "42"),
+                arg("some_value", "f"),
+                arg("other", "s"))),
+            p(new Inherited(), "annotated", BAD_REQUEST, asList(
+                arg("staticExposure", "42"),
+                arg("random", "random"),
+                arg("other", "s"))),
+            p(new NoExposedArgs(), "no_exposed", BAD_REQUEST, Collections.emptyList())
         );
     }
 
     // Auxiliary exception definitions!
 
-    private class NotAnnotated extends RuntimeException {}
+    private class NotAnnotated extends RuntimeException {
+    }
 
     @ExceptionMapping(statusCode = BAD_REQUEST, errorCode = "no_exposed")
-    private class NoExposedArgs extends RuntimeException {}
+    private class NoExposedArgs extends RuntimeException {
+    }
 
     @ExceptionMapping(statusCode = BAD_REQUEST, errorCode = "annotated")
     private class Annotated extends RuntimeException {
 
-        @ExposeAsArg(value = -1, name = "some_value") private final String someValue;
+        @ExposeAsArg(value = -1, name = "some_value")
+        private final String someValue;
         private final String other;
 
         private Annotated(String someValue, String other) {
@@ -97,7 +100,8 @@ public class AnnotatedWebErrorHandlerTest {
         }
 
         @ExposeAsArg(0)
-        public void shouldBeDiscarded() {}
+        public void shouldBeDiscarded() {
+        }
 
         @ExposeAsArg(-100)
         public String shouldBeIgnoredToo(String howToPassThis) {

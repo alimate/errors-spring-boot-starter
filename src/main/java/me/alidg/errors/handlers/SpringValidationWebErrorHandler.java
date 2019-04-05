@@ -12,14 +12,12 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import javax.validation.ConstraintViolation;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toMap;
-import static me.alidg.errors.Argument.arg;
 
 /**
  * A {@link WebErrorHandler} responsible for handling validation errors thrown by
@@ -32,11 +30,6 @@ import static me.alidg.errors.Argument.arg;
  * @author Ali Dehghani
  */
 public class SpringValidationWebErrorHandler implements WebErrorHandler {
-
-    /**
-     * Basic error code for all type mismatches.
-     */
-    public static final String TYPE_MISMATCH = "binding.type_mismatch";
 
     /**
      * Basic error code for unknown binding errors.
@@ -66,11 +59,11 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
     public HandledException handle(Throwable exception) {
         BindingResult bindingResult = getBindingResult(exception);
         return bindingResult.getAllErrors()
-                .stream()
-                .collect(collectingAndThen(
-                        toMap(this::errorCode, this::arguments, (value1, value2) -> value1),
-                        m -> new HandledException(m.keySet(), HttpStatus.BAD_REQUEST, dropEmptyValues(m))
-                ));
+            .stream()
+            .collect(collectingAndThen(
+                toMap(this::errorCode, this::arguments, (value1, value2) -> value1),
+                m -> new HandledException(m.keySet(), HttpStatus.BAD_REQUEST, dropEmptyValues(m))
+            ));
     }
 
     /**
@@ -81,8 +74,8 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
      */
     private BindingResult getBindingResult(Throwable exception) {
         return exception instanceof BindingResult ?
-                ((BindingResult) exception) :
-                ((MethodArgumentNotValidException) exception).getBindingResult();
+            ((BindingResult) exception) :
+            ((MethodArgumentNotValidException) exception).getBindingResult();
     }
 
     /**
@@ -96,15 +89,15 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
     private String errorCode(ObjectError error) {
         String code = null;
         try {
-            ConstraintViolation violation = error.unwrap(ConstraintViolation.class);
-            code = violation.getMessageTemplate();
-        } catch (Exception ignored) {}
+            code = error.unwrap(ConstraintViolation.class).getMessageTemplate();
+        } catch (Exception ignored) {
+        }
 
         if (code == null) {
             try {
-                TypeMismatchException exception = error.unwrap(TypeMismatchException.class);
-                code = TYPE_MISMATCH + "." + exception.getPropertyName();
-            } catch (Exception ignored) {}
+                code = TypeMismatchWebErrorHandler.getErrorCode(error.unwrap(TypeMismatchException.class));
+            } catch (Exception ignored) {
+            }
         }
 
         if (code == null) code = BINDING_FAILURE;
@@ -114,13 +107,7 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
     /**
      * Extracts the arguments from the validation meta data and exposes them to the outside
      * world. First try to unwrap {@link ConstraintViolation} and if successful, use
-     * {@link ConstraintViolationArgumentsExtractor#extract(ConstraintViolation)}. Otherwise
-     * fallback to handling {@link ObjectError#getArguments()} with generated argument names
-     * ({@code "arg0"}, {@code "arg1"}, etc.
-     *
-     * <p>Apparently, all actual arguments in {@link ObjectError#getArguments()} are starting
-     * at index 1. So If there is less than or equal to one argument, then we can assume that
-     * there is no argument to expose.
+     * {@link ConstraintViolationArgumentsExtractor#extract(ConstraintViolation)}.
      *
      * @param error Encapsulates the error details.
      * @return Collection of all arguments for the given {@code error} details.
@@ -129,18 +116,13 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
         try {
             ConstraintViolation<?> violation = error.unwrap(ConstraintViolation.class);
             return ConstraintViolationArgumentsExtractor.extract(violation);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         try {
-            TypeMismatchException mismatchException = error.unwrap(TypeMismatchException.class);
-            List<Argument> arguments = new ArrayList<>();
-            arguments.add(arg("property", mismatchException.getPropertyName()));
-            arguments.add(arg("invalid", mismatchException.getValue()));
-            if (mismatchException.getRequiredType() != null) {
-                arguments.add(arg("expected", mismatchException.getRequiredType().getSimpleName()));
-            }
-            return arguments;
-        } catch (Exception ignored) {}
+            return TypeMismatchWebErrorHandler.getArguments(error.unwrap(TypeMismatchException.class));
+        } catch (Exception ignored) {
+        }
 
         return emptyList();
     }
@@ -153,7 +135,7 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
      */
     private Map<String, List<Argument>> dropEmptyValues(Map<String, List<Argument>> input) {
         return input.entrySet().stream()
-                .filter(e -> e.getValue() != null && !e.getValue().isEmpty())
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v2));
+            .filter(e -> e.getValue() != null && !e.getValue().isEmpty())
+            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v2));
     }
 }

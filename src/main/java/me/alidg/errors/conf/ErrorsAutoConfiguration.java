@@ -65,9 +65,10 @@ public class ErrorsAutoConfiguration {
      * and will be consulted before any other implementations for error handling.
      */
     private static final List<WebErrorHandler> BUILT_IN_HANDLERS = Arrays.asList(
-            new SpringValidationWebErrorHandler(),
-            new ConstraintViolationWebErrorHandler(),
-            new AnnotatedWebErrorHandler()
+        new SpringValidationWebErrorHandler(),
+        new ConstraintViolationWebErrorHandler(),
+        new AnnotatedWebErrorHandler(),
+        new TypeMismatchWebErrorHandler()
     );
 
     /**
@@ -110,12 +111,12 @@ public class ErrorsAutoConfiguration {
         }
 
         WebErrorHandlersBuilder builder = WebErrorHandlers
-                .builder(messageSource)
-                .withErrorsProperties(errorsProperties)
-                .withErrorHandlers(handlers)
-                .withExceptionRefiner(exceptionRefiner)
-                .withExceptionLogger(exceptionLogger)
-                .withFingerprintProvider(fingerprintProvider);
+            .builder(messageSource)
+            .withErrorsProperties(errorsProperties)
+            .withErrorHandlers(handlers)
+            .withExceptionRefiner(exceptionRefiner)
+            .withExceptionLogger(exceptionLogger)
+            .withFingerprintProvider(fingerprintProvider);
 
         if (defaultWebErrorHandler != null) builder.withDefaultWebErrorHandler(defaultWebErrorHandler);
         if (webErrorHandlerPostProcessors != null) builder.withPostProcessors(webErrorHandlerPostProcessors);
@@ -129,7 +130,6 @@ public class ErrorsAutoConfiguration {
      * {@link me.alidg.errors.HttpError} to Spring's {@link ErrorAttributes} abstraction.
      *
      * @param errorsProperties Configuration properties bean.
-     *
      * @return The to-be-registered {@link HttpErrorAttributesAdapter}.
      */
     @Bean

@@ -7,9 +7,8 @@ import org.springframework.lang.Nullable;
  * actual cause of the problem. This interface can help us to transform the given exception
  * before handling it.
  *
- * @implNote Do not throw exceptions in method implementations.
- *
  * @author Ali Dehghani
+ * @implNote Do not throw exceptions in method implementations.
  */
 public interface ExceptionRefiner {
 
@@ -21,7 +20,8 @@ public interface ExceptionRefiner {
      * @param exception The exception to refine.
      * @return The refined exception.
      */
-    @Nullable Throwable refine(@Nullable Throwable exception);
+    @Nullable
+    Throwable refine(@Nullable Throwable exception);
 
     /**
      * A NoOp implementation for the {@link ExceptionRefiner}.

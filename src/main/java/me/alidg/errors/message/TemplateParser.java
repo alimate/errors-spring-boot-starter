@@ -93,7 +93,8 @@ final class TemplateParser {
         try {
             int index = Integer.parseInt(variable);
             return argumentValue(arguments.get(index));
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         return null;
     }

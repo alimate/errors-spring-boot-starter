@@ -69,7 +69,7 @@ public final class WebErrorHandlersBuilder {
      */
     WebErrorHandlersBuilder(@NonNull MessageSource messageSource) {
         this.messageSource = requireNonNull(messageSource,
-                "Message source is required to create WebErrorHandlers instance");
+            "Message source is required to create WebErrorHandlers instance");
     }
 
     /**
@@ -82,7 +82,7 @@ public final class WebErrorHandlersBuilder {
      */
     public WebErrorHandlersBuilder withErrorsProperties(@NonNull ErrorsProperties errorsProperties) {
         this.errorsProperties = requireNonNull(errorsProperties,
-                "Error properties is required to create WebErrorHandlers instance");
+            "Error properties is required to create WebErrorHandlers instance");
         if (errorsProperties.getExposeArguments() == null)
             errorsProperties.setExposeArguments(NEVER);
 
@@ -98,7 +98,7 @@ public final class WebErrorHandlersBuilder {
      */
     public WebErrorHandlersBuilder withErrorHandlers(@NonNull Collection<WebErrorHandler> webErrorHandlers) {
         this.webErrorHandlers.addAll(requireNonNull(webErrorHandlers,
-                "Web error handlers are required to create WebErrorHandlers instance"));
+            "Web error handlers are required to create WebErrorHandlers instance"));
 
         return this;
     }
@@ -112,7 +112,7 @@ public final class WebErrorHandlersBuilder {
      */
     public WebErrorHandlersBuilder withErrorHandlers(@NonNull WebErrorHandler... webErrorHandlers) {
         return withErrorHandlers(Arrays.asList(requireNonNull(webErrorHandlers,
-                "Web error handlers are required to create WebErrorHandlers instance")));
+            "Web error handlers are required to create WebErrorHandlers instance")));
     }
 
     /**
@@ -126,7 +126,7 @@ public final class WebErrorHandlersBuilder {
      */
     public WebErrorHandlersBuilder withDefaultWebErrorHandler(@NonNull WebErrorHandler defaultWebErrorHandler) {
         this.defaultWebErrorHandler = requireNonNull(defaultWebErrorHandler,
-                "Default web error handler is required to create WebErrorHandlers instance");
+            "Default web error handler is required to create WebErrorHandlers instance");
 
         return this;
     }
@@ -141,7 +141,7 @@ public final class WebErrorHandlersBuilder {
      */
     public WebErrorHandlersBuilder withExceptionRefiner(@NonNull ExceptionRefiner exceptionRefiner) {
         this.exceptionRefiner = requireNonNull(exceptionRefiner,
-                "An exception refiner is required to create WebErrorHandlers instance");
+            "An exception refiner is required to create WebErrorHandlers instance");
 
         return this;
     }
@@ -156,7 +156,7 @@ public final class WebErrorHandlersBuilder {
      */
     public WebErrorHandlersBuilder withExceptionLogger(@NonNull ExceptionLogger exceptionLogger) {
         this.exceptionLogger = requireNonNull(exceptionLogger,
-                "An exception logger is required to create WebErrorHandlers instance");
+            "An exception logger is required to create WebErrorHandlers instance");
 
         return this;
     }
@@ -170,7 +170,7 @@ public final class WebErrorHandlersBuilder {
      */
     public WebErrorHandlersBuilder withPostProcessors(@NonNull Collection<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors) {
         this.webErrorHandlerPostProcessors.addAll(requireNonNull(webErrorHandlerPostProcessors,
-                "Post processors are required to create WebErrorHandlers instance"));
+            "Post processors are required to create WebErrorHandlers instance"));
 
         return this;
     }
@@ -184,7 +184,7 @@ public final class WebErrorHandlersBuilder {
      */
     public WebErrorHandlersBuilder withPostProcessors(@NonNull WebErrorHandlerPostProcessor... webErrorHandlerPostProcessors) {
         return withPostProcessors(Arrays.asList(requireNonNull(webErrorHandlerPostProcessors,
-                "Post processors are required to create WebErrorHandlers instance")));
+            "Post processors are required to create WebErrorHandlers instance")));
     }
 
     /**
@@ -197,7 +197,7 @@ public final class WebErrorHandlersBuilder {
      */
     public WebErrorHandlersBuilder withFingerprintProvider(@NonNull FingerprintProvider fingerprintProvider) {
         this.fingerprintProvider = requireNonNull(fingerprintProvider,
-                "Fingerprint provider is required to create WebErrorHandlers instance");
+            "Fingerprint provider is required to create WebErrorHandlers instance");
 
         return this;
     }
@@ -210,9 +210,9 @@ public final class WebErrorHandlersBuilder {
     @NonNull
     public WebErrorHandlers build() {
         return new WebErrorHandlers(
-                messageSource, webErrorHandlers, defaultWebErrorHandler,
-                exceptionRefiner, exceptionLogger, webErrorHandlerPostProcessors,
-                fingerprintProvider, errorsProperties
+            messageSource, webErrorHandlers, defaultWebErrorHandler,
+            exceptionRefiner, exceptionLogger, webErrorHandlerPostProcessors,
+            fingerprintProvider, errorsProperties
         );
     }
 }

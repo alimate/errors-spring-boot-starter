@@ -17,25 +17,6 @@ import static org.springframework.http.HttpStatus.*;
  */
 class Exceptions {
 
-    @ExceptionMapping(statusCode = UNAUTHORIZED, errorCode = AUTH_REQUIRED)
-    private static final class UnauthorizedException extends RuntimeException {}
-
-    @ExceptionMapping(statusCode = FORBIDDEN, errorCode = ACCESS_DENIED)
-    private static final class ForbiddenException extends RuntimeException {}
-
-    @ExceptionMapping(statusCode = NOT_FOUND, errorCode = NO_HANDLER)
-    private static final class HandlerNotFoundException extends RuntimeException {
-
-        /**
-         * The to-be-exposed path.
-         */
-        @ExposeAsArg(0) private final String path;
-
-        private HandlerNotFoundException(String path) {
-            this.path = path;
-        }
-    }
-
     /**
      * Given a classic set of error attributes, it will determines the to-be-handled
      * exception from the status code.
@@ -72,6 +53,28 @@ class Exceptions {
             return (Integer) attributes.getOrDefault("status", 0);
         } catch (Exception e) {
             return 0;
+        }
+    }
+
+    @ExceptionMapping(statusCode = UNAUTHORIZED, errorCode = AUTH_REQUIRED)
+    private static final class UnauthorizedException extends RuntimeException {
+    }
+
+    @ExceptionMapping(statusCode = FORBIDDEN, errorCode = ACCESS_DENIED)
+    private static final class ForbiddenException extends RuntimeException {
+    }
+
+    @ExceptionMapping(statusCode = NOT_FOUND, errorCode = NO_HANDLER)
+    private static final class HandlerNotFoundException extends RuntimeException {
+
+        /**
+         * The to-be-exposed path.
+         */
+        @ExposeAsArg(0)
+        private final String path;
+
+        private HandlerNotFoundException(String path) {
+            this.path = path;
         }
     }
 }

@@ -43,7 +43,7 @@ public class MissingRequestParametersWebErrorHandlerTest {
     @Parameters(method = "provideParamsForCanHandle")
     public void canHandle_ShouldReturnTrueForMissingRequestParamsErrors(Throwable exception, boolean expected) {
         assertThat(handler.canHandle(exception))
-                .isEqualTo(expected);
+            .isEqualTo(expected);
     }
 
     @Test
@@ -61,43 +61,43 @@ public class MissingRequestParametersWebErrorHandlerTest {
 
     private Object[] provideParamsForCanHandle() {
         return p(
-                p(null, false),
-                p(new RuntimeException(), false),
-                p(new MissingPathVariableException("name", getParameter()), false),
-                p(new MissingRequestHeaderException("name", getParameter()), true),
-                p(new MissingRequestCookieException("name", getParameter()), true),
-                p(new MissingMatrixVariableException("name", getParameter()), true)
+            p(null, false),
+            p(new RuntimeException(), false),
+            p(new MissingPathVariableException("name", getParameter()), false),
+            p(new MissingRequestHeaderException("name", getParameter()), true),
+            p(new MissingRequestCookieException("name", getParameter()), true),
+            p(new MissingMatrixVariableException("name", getParameter()), true)
         );
     }
 
     private Object[] provideParamsForHandle() {
         return p(
-                p(
-                        new MissingRequestHeaderException("Authorization", getParameter()),
-                        MISSING_HEADER,
-                        BAD_REQUEST,
-                        singletonMap(MISSING_HEADER, asList(arg("name", "Authorization"), arg("expected", "boolean")))
-                ),
-                p(
-                        new MissingRequestCookieException("sessionId", getParameter()),
-                        MISSING_COOKIE,
-                        BAD_REQUEST,
-                        singletonMap(MISSING_COOKIE, asList(arg("name", "sessionId"), arg("expected", "boolean")))
-                ),
-                p(
-                        new MissingMatrixVariableException("name", getParameter()),
-                        MISSING_MATRIX_VARIABLE,
-                        BAD_REQUEST,
-                        singletonMap(MISSING_MATRIX_VARIABLE, asList(arg("name", "name"), arg("expected", "boolean")))
-                )
+            p(
+                new MissingRequestHeaderException("Authorization", getParameter()),
+                MISSING_HEADER,
+                BAD_REQUEST,
+                singletonMap(MISSING_HEADER, asList(arg("name", "Authorization"), arg("expected", "boolean")))
+            ),
+            p(
+                new MissingRequestCookieException("sessionId", getParameter()),
+                MISSING_COOKIE,
+                BAD_REQUEST,
+                singletonMap(MISSING_COOKIE, asList(arg("name", "sessionId"), arg("expected", "boolean")))
+            ),
+            p(
+                new MissingMatrixVariableException("name", getParameter()),
+                MISSING_MATRIX_VARIABLE,
+                BAD_REQUEST,
+                singletonMap(MISSING_MATRIX_VARIABLE, asList(arg("name", "name"), arg("expected", "boolean")))
+            )
         );
     }
 
     private MethodParameter getParameter() {
         Method testMethod = Arrays.stream(getClass().getMethods())
-                .filter(m -> m.getName().equals("canHandle_ShouldReturnTrueForMissingRequestParamsErrors"))
-                .findFirst()
-                .orElseThrow(IllegalStateException::new);
+            .filter(m -> m.getName().equals("canHandle_ShouldReturnTrueForMissingRequestParamsErrors"))
+            .findFirst()
+            .orElseThrow(IllegalStateException::new);
         return new MethodParameter(testMethod, 1);
     }
 }

@@ -76,12 +76,12 @@ public class ServletWebErrorHandler implements WebErrorHandler {
     @Override
     public boolean canHandle(Throwable exception) {
         return exception instanceof HttpMediaTypeNotAcceptableException ||
-                exception instanceof HttpMediaTypeNotSupportedException ||
-                exception instanceof HttpRequestMethodNotSupportedException ||
-                exception instanceof MissingServletRequestParameterException ||
-                exception instanceof MissingServletRequestPartException ||
-                exception instanceof NoHandlerFoundException ||
-                exception instanceof HttpMessageNotReadableException;
+            exception instanceof HttpMediaTypeNotSupportedException ||
+            exception instanceof HttpRequestMethodNotSupportedException ||
+            exception instanceof MissingServletRequestParameterException ||
+            exception instanceof MissingServletRequestPartException ||
+            exception instanceof NoHandlerFoundException ||
+            exception instanceof HttpMessageNotReadableException;
     }
 
     /**
@@ -102,7 +102,7 @@ public class ServletWebErrorHandler implements WebErrorHandler {
         if (exception instanceof HttpMediaTypeNotAcceptableException) {
             Set<String> types = getMediaTypes(((HttpMediaTypeNotAcceptableException) exception).getSupportedMediaTypes());
             Map<String, List<Argument>> args = types.isEmpty() ?
-                    emptyMap() : singletonMap(NOT_ACCEPTABLE, singletonList(arg("types", types)));
+                emptyMap() : singletonMap(NOT_ACCEPTABLE, singletonList(arg("types", types)));
 
             return new HandledException(NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE, args);
         }
@@ -113,14 +113,14 @@ public class ServletWebErrorHandler implements WebErrorHandler {
             List<Argument> arguments = null;
             if (contentType != null) arguments = singletonList(arg("type", contentType.toString()));
             return new HandledException(NOT_SUPPORTED, HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                    arguments == null ? emptyMap() : singletonMap(NOT_SUPPORTED, arguments));
+                arguments == null ? emptyMap() : singletonMap(NOT_SUPPORTED, arguments));
         }
 
         if (exception instanceof HttpRequestMethodNotSupportedException) {
             String method = ((HttpRequestMethodNotSupportedException) exception).getMethod();
 
             return new HandledException(METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED,
-                    singletonMap(METHOD_NOT_ALLOWED, singletonList(arg("method", method)))
+                singletonMap(METHOD_NOT_ALLOWED, singletonList(arg("method", method)))
             );
         }
 
@@ -130,7 +130,7 @@ public class ServletWebErrorHandler implements WebErrorHandler {
             String type = actualException.getParameterType();
 
             return new HandledException(MISSING_PARAMETER, HttpStatus.BAD_REQUEST,
-                    singletonMap(MISSING_PARAMETER, asList(arg("name", name), arg("expected", type)))
+                singletonMap(MISSING_PARAMETER, asList(arg("name", name), arg("expected", type)))
             );
         }
 
@@ -138,7 +138,7 @@ public class ServletWebErrorHandler implements WebErrorHandler {
             String name = ((MissingServletRequestPartException) exception).getRequestPartName();
 
             return new HandledException(MISSING_PART, HttpStatus.BAD_REQUEST,
-                    singletonMap(MISSING_PART, singletonList(arg("name", name)))
+                singletonMap(MISSING_PART, singletonList(arg("name", name)))
             );
         }
 
@@ -146,7 +146,7 @@ public class ServletWebErrorHandler implements WebErrorHandler {
             String url = ((NoHandlerFoundException) exception).getRequestURL();
 
             return new HandledException(NO_HANDLER, HttpStatus.NOT_FOUND,
-                    singletonMap(NO_HANDLER, singletonList(arg("path", url)))
+                singletonMap(NO_HANDLER, singletonList(arg("path", url)))
             );
         }
 

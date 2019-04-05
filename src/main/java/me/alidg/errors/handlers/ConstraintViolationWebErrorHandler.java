@@ -29,7 +29,7 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
      *
      * @param exception The exception to examine.
      * @return {@code true} if the {@code exception} is a {@link ConstraintViolationException} with at least one
-     *         violation, {@code false} otherwise.
+     * violation, {@code false} otherwise.
      */
     @Override
     public boolean canHandle(Throwable exception) {
@@ -80,9 +80,9 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
      */
     private Map<String, List<Argument>> extractArguments(ConstraintViolationException violationException) {
         Map<String, List<Argument>> args = violationException
-                .getConstraintViolations()
-                .stream()
-                .collect(toMap(this::errorCode, ConstraintViolationArgumentsExtractor::extract, (v1, v2) -> v1));
+            .getConstraintViolations()
+            .stream()
+            .collect(toMap(this::errorCode, ConstraintViolationArgumentsExtractor::extract, (v1, v2) -> v1));
         args.entrySet().removeIf(e -> e.getValue().isEmpty());
         return args;
     }
@@ -95,10 +95,10 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
      */
     private Set<String> extractErrorCodes(ConstraintViolationException violationException) {
         return violationException
-                .getConstraintViolations()
-                .stream()
-                .map(this::errorCode)
-                .collect(toSet());
+            .getConstraintViolations()
+            .stream()
+            .map(this::errorCode)
+            .collect(toSet());
     }
 
     private String errorCode(ConstraintViolation<?> violation) {

@@ -55,15 +55,6 @@ public class WebErrorHandlers {
     private final List<WebErrorHandler> webErrorHandlers;
 
     /**
-     * This is the fallback error handler which will be used when all other {@link WebErrorHandler}
-     * implementations refuse to handle the exception. By default, the {@link LastResortWebErrorHandler}
-     * would be used in such circumstances but you have the option to provide your own custom error
-     * handler as the fallback handler.
-     */
-    @NonNull
-    private WebErrorHandler defaultWebErrorHandler = LastResortWebErrorHandler.INSTANCE;
-
-    /**
      * To refine exceptions before handling the them.
      */
     @NonNull
@@ -100,6 +91,15 @@ public class WebErrorHandlers {
     private final TemplateAwareMessageSource messageSource;
 
     /**
+     * This is the fallback error handler which will be used when all other {@link WebErrorHandler}
+     * implementations refuse to handle the exception. By default, the {@link LastResortWebErrorHandler}
+     * would be used in such circumstances but you have the option to provide your own custom error
+     * handler as the fallback handler.
+     */
+    @NonNull
+    private WebErrorHandler defaultWebErrorHandler = LastResortWebErrorHandler.INSTANCE;
+
+    /**
      * Backward-compatible constructor with defaults for {@link #webErrorHandlerPostProcessors}
      *
      * @param messageSource          The code to message translator.
@@ -116,9 +116,9 @@ public class WebErrorHandlers {
                             @Nullable ExceptionRefiner exceptionRefiner,
                             @Nullable ExceptionLogger exceptionLogger) {
         this(messageSource, webErrorHandlers, defaultWebErrorHandler,
-                exceptionRefiner != null ? exceptionRefiner : ExceptionRefiner.NoOp.INSTANCE,
-                exceptionLogger != null ? exceptionLogger : ExceptionLogger.NoOp.INSTANCE,
-                Collections.emptyList(), new UuidFingerprintProvider(), new ErrorsProperties());
+            exceptionRefiner != null ? exceptionRefiner : ExceptionRefiner.NoOp.INSTANCE,
+            exceptionLogger != null ? exceptionLogger : ExceptionLogger.NoOp.INSTANCE,
+            Collections.emptyList(), new UuidFingerprintProvider(), new ErrorsProperties());
     }
 
     /**
@@ -147,9 +147,9 @@ public class WebErrorHandlers {
                      @NonNull List<WebErrorHandlerPostProcessor> webErrorHandlerPostProcessors,
                      @NonNull FingerprintProvider fingerprintProvider,
                      @NonNull ErrorsProperties errorsProperties) {
-        requireNonNull(messageSource, "We need a MessageSource implementation to message translation");
         this.errorsProperties = requireNonNull(errorsProperties);
-        this.messageSource = new TemplateAwareMessageSource(messageSource);
+        this.messageSource = new TemplateAwareMessageSource(
+            requireNonNull(messageSource, "We need a MessageSource implementation to message translation"));
         this.webErrorHandlers = requireAtLeastOneHandler(webErrorHandlers);
         if (defaultWebErrorHandler != null) this.defaultWebErrorHandler = defaultWebErrorHandler;
         this.exceptionRefiner = requireNonNull(exceptionRefiner);
@@ -167,6 +167,13 @@ public class WebErrorHandlers {
      */
     public static WebErrorHandlersBuilder builder(@NonNull MessageSource messageSource) {
         return new WebErrorHandlersBuilder(messageSource);
+    }
+
+    private static <T> List<T> requireAtLeastOneHandler(List<T> handlers) {
+        if (requireNonNull(handlers, "Collection of error handlers is required").isEmpty())
+            throw new IllegalArgumentException("We need at least one error handler");
+
+        return handlers;
     }
 
     /**
@@ -214,13 +221,6 @@ public class WebErrorHandlers {
         return httpError;
     }
 
-    private static <T> List<T> requireAtLeastOneHandler(List<T> handlers) {
-        if (requireNonNull(handlers, "Collection of error handlers is required").isEmpty())
-            throw new IllegalArgumentException("We need at least one error handler");
-
-        return handlers;
-    }
-
     private Throwable refineIfNeeded(Throwable exception) {
         Throwable refined = exceptionRefiner.refine(exception);
         if (refined != null) {
@@ -233,10 +233,10 @@ public class WebErrorHandlers {
 
     private List<CodedMessage> translateErrors(HandledException handled, Locale locale) {
         return handled
-                .getErrorCodes()
-                .stream()
-                .map(code -> withMessage(code, getArgumentsFor(handled, code), locale))
-                .collect(toList());
+            .getErrorCodes()
+            .stream()
+            .map(code -> withMessage(code, getArgumentsFor(handled, code), locale))
+            .collect(toList());
     }
 
     private CodedMessage withMessage(String code, List<Argument> arguments, Locale locale) {
@@ -253,10 +253,10 @@ public class WebErrorHandlers {
         if (exception == null) return defaultWebErrorHandler;
 
         return webErrorHandlers
-                .stream()
-                .filter(p -> p.canHandle(exception))
-                .findFirst()
-                .orElse(defaultWebErrorHandler);
+            .stream()
+            .filter(p -> p.canHandle(exception))
+            .findFirst()
+            .orElse(defaultWebErrorHandler);
     }
 
     private String className(Object toInspect) {

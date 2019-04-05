@@ -29,15 +29,15 @@ public class WebErrorHandlersTest {
                                                           Class<? extends Throwable> expectedException,
                                                           String expectedMessage) {
         assertThatThrownBy(() -> new WebErrorHandlers(messageSource, handlers, null, null, null))
-                .isInstanceOf(expectedException)
-                .hasMessage(expectedMessage);
+            .isInstanceOf(expectedException)
+            .hasMessage(expectedMessage);
     }
 
     private Object[] paramsForConstructor() {
         return p(
-                p(null, null, NullPointerException.class, "We need a MessageSource implementation to message translation"),
-                p(mock(MessageSource.class), null, NullPointerException.class, "Collection of error handlers is required"),
-                p(mock(MessageSource.class), emptyList(), IllegalArgumentException.class, "We need at least one error handler")
+            p(null, null, NullPointerException.class, "We need a MessageSource implementation to message translation"),
+            p(mock(MessageSource.class), null, NullPointerException.class, "Collection of error handlers is required"),
+            p(mock(MessageSource.class), emptyList(), IllegalArgumentException.class, "We need at least one error handler")
         );
     }
 }
