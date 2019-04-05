@@ -12,14 +12,12 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import javax.validation.ConstraintViolation;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toMap;
-import static me.alidg.errors.Argument.arg;
 
 /**
  * A {@link WebErrorHandler} responsible for handling validation errors thrown by
@@ -91,13 +89,12 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
     private String errorCode(ObjectError error) {
         String code = null;
         try {
-            ConstraintViolation violation = error.unwrap(ConstraintViolation.class);
-            code = violation.getMessageTemplate();
+            code = error.unwrap(ConstraintViolation.class).getMessageTemplate();
         } catch (Exception ignored) {}
 
         if (code == null) {
             try {
-                code = TypeMismatchHandler.getErrorCode(error.unwrap(TypeMismatchException.class));
+                code = TypeMismatchWebErrorHandler.getErrorCode(error.unwrap(TypeMismatchException.class));
             } catch (Exception ignored) {}
         }
 
@@ -108,13 +105,7 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
     /**
      * Extracts the arguments from the validation meta data and exposes them to the outside
      * world. First try to unwrap {@link ConstraintViolation} and if successful, use
-     * {@link ConstraintViolationArgumentsExtractor#extract(ConstraintViolation)}. Otherwise
-     * fallback to handling {@link ObjectError#getArguments()} with generated argument names
-     * ({@code "arg0"}, {@code "arg1"}, etc.
-     *
-     * <p>Apparently, all actual arguments in {@link ObjectError#getArguments()} are starting
-     * at index 1. So If there is less than or equal to one argument, then we can assume that
-     * there is no argument to expose.
+     * {@link ConstraintViolationArgumentsExtractor#extract(ConstraintViolation)}.
      *
      * @param error Encapsulates the error details.
      * @return Collection of all arguments for the given {@code error} details.
@@ -126,7 +117,7 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
         } catch (Exception ignored) {}
 
         try {
-            return TypeMismatchHandler.getArguments(error.unwrap(TypeMismatchException.class));
+            return TypeMismatchWebErrorHandler.getArguments(error.unwrap(TypeMismatchException.class));
         } catch (Exception ignored) {}
 
         return emptyList();

@@ -15,11 +15,10 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 /**
  * A {@link WebErrorHandler} implementation responsible for handling {@link TypeMismatchException}s.
- * it raised while resolving a controller method argument.
  *
  * @author Mona Mohamadinia
  */
-public class TypeMismatchHandler implements WebErrorHandler {
+public class TypeMismatchWebErrorHandler implements WebErrorHandler {
 
     /**
      * Basic error code for all type mismatches.
@@ -37,14 +36,20 @@ public class TypeMismatchHandler implements WebErrorHandler {
         return exception instanceof TypeMismatchException;
     }
 
+    /**
+     * Cast the given exception to {@link TypeMismatchException} and return a handled exception
+     * instance by extracting the error code and exposing appropriate arguments.
+     *
+     * @param exception The exception to handle.
+     * @return The handled exception instance.
+     */
     @NonNull
     @Override
     public HandledException handle(Throwable exception) {
-
         TypeMismatchException mismatchException = (TypeMismatchException) exception;
+        String errorCode = getErrorCode(mismatchException);
         List<Argument> arguments = getArguments(mismatchException);
 
-        String errorCode = getErrorCode(mismatchException);
         return new HandledException(errorCode, BAD_REQUEST, singletonMap(errorCode, arguments));
     }
 
@@ -55,6 +60,7 @@ public class TypeMismatchHandler implements WebErrorHandler {
         if (mismatchException.getRequiredType() != null) {
             arguments.add(arg("expected", mismatchException.getRequiredType().getSimpleName()));
         }
+
         return arguments;
     }
 
