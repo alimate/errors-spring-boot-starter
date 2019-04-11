@@ -73,6 +73,8 @@ public class ReactiveErrorAttributes extends DefaultErrorAttributes {
      * Returns {@code true} if the given exception represents a not found kind of
      * {@link ResponseStatusException}.
      *
+     * <p>This is an attempt to handle not found exceptions in both stacks consistently.
+     *
      * @param e The exception to examine.
      * @return {@code true} if it's a not found one, {@code false} otherwise.
      */
