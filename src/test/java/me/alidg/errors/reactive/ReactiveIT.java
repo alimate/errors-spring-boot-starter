@@ -178,7 +178,7 @@ public class ReactiveIT {
             .expectBody()
             .jsonPath("errors[0].code").isEqualTo(NO_HANDLER)
             .jsonPath("$.fingerprint").doesNotExist()
-            .jsonPath("$.errors[0].arguments").doesNotExist();
+            .jsonPath("$.errors[0].arguments.path").isEqualTo("/should_not_be_found");
 
         verify(logger()).log(any());
     }
@@ -357,7 +357,7 @@ public class ReactiveIT {
     }
 
     @Test
-    public void errorAttributes_ShouldHandleTypeMismatchesAsExpected() throws Exception {
+    public void errorAttributes_ShouldHandleTypeMismatchesAsExpected() {
         client.get().uri("/test/type-mismatch?number=invalid")
             .exchange()
             .expectStatus().isBadRequest()
