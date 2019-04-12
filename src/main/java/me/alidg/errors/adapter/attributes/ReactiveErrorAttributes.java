@@ -5,7 +5,9 @@ import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
 import org.springframework.boot.web.reactive.error.DefaultErrorAttributes;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
@@ -57,12 +59,27 @@ public class ReactiveErrorAttributes extends DefaultErrorAttributes {
     public Map<String, Object> getErrorAttributes(ServerRequest request, boolean includeStackTrace) {
         Map<String, Object> attributes = super.getErrorAttributes(request, includeStackTrace);
         Throwable exception = getError(request);
-        if (exception == null) exception = Exceptions.refineUnknownException(attributes);
+        if (exception == null || isNotFoundException(exception))
+            exception = Exceptions.refineUnknownException(attributes);
 
         HttpError httpError = webErrorHandlers.handle(exception, request, LocaleContextHolder.getLocale());
         Map<String, Object> adapted = httpErrorAttributesAdapter.adapt(httpError);
         adapted.put("status", httpError.getHttpStatus().value());
 
         return adapted;
+    }
+
+    /**
+     * Returns {@code true} if the given exception represents a not found kind of
+     * {@link ResponseStatusException}.
+     *
+     * <p>This is an attempt to handle not found exceptions in both stacks consistently.
+     *
+     * @param e The exception to examine.
+     * @return {@code true} if it's a not found one, {@code false} otherwise.
+     */
+    private boolean isNotFoundException(Throwable e) {
+        return e instanceof ResponseStatusException &&
+            ((ResponseStatusException) e).getStatus() == HttpStatus.NOT_FOUND;
     }
 }

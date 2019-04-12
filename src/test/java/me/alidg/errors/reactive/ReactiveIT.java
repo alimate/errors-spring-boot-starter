@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import me.alidg.errors.ExceptionLogger;
+import me.alidg.errors.HttpError;
 import me.alidg.errors.HttpError.CodedMessage;
+import me.alidg.errors.WebErrorHandlerPostProcessor;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
 import me.alidg.errors.conf.ErrorsAutoConfiguration;
@@ -16,6 +18,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -50,6 +53,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.config.WebFluxConfigurationSupport;
+import org.springframework.web.reactive.function.server.ServerRequest;
 import reactor.core.publisher.Mono;
 
 import javax.validation.constraints.Min;
@@ -69,6 +73,7 @@ import static me.alidg.errors.handlers.ServletWebErrorHandler.*;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.ACCESS_DENIED;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.AUTH_REQUIRED;
 import static me.alidg.errors.reactive.ReactiveIT.Dto.dto;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -178,7 +183,7 @@ public class ReactiveIT {
             .expectBody()
             .jsonPath("errors[0].code").isEqualTo(NO_HANDLER)
             .jsonPath("$.fingerprint").doesNotExist()
-            .jsonPath("$.errors[0].arguments").doesNotExist();
+            .jsonPath("$.errors[0].arguments.path").isEqualTo("/should_not_be_found");
 
         verify(logger()).log(any());
     }
@@ -357,7 +362,7 @@ public class ReactiveIT {
     }
 
     @Test
-    public void errorAttributes_ShouldHandleTypeMismatchesAsExpected() throws Exception {
+    public void errorAttributes_ShouldHandleTypeMismatchesAsExpected() {
         client.get().uri("/test/type-mismatch?number=invalid")
             .exchange()
             .expectStatus().isBadRequest()
@@ -366,6 +371,23 @@ public class ReactiveIT {
             .jsonPath("$.errors[0].arguments.property").isEqualTo("number")
             .jsonPath("$.errors[0].arguments.invalid").isEqualTo("invalid")
             .jsonPath("$.errors[0].arguments.expected").isEqualTo("Integer");
+    }
+
+    @Test
+    public void errorAttributes_HttpErrorShouldContainAppropriateDetails() {
+        WebErrorHandlerPostProcessor processor = context.getBean(WebErrorHandlerPostProcessor.class);
+        ArgumentCaptor<HttpError> captor = ArgumentCaptor.forClass(HttpError.class);
+
+        client.get().uri("/test/type-mismatch?number=invalid")
+            .exchange()
+            .expectStatus().isBadRequest();
+
+        verify(processor).process(captor.capture());
+        HttpError value = captor.getValue();
+        assertThat(value.getRequest()).isNotNull();
+        assertThat(value.getRequest()).isInstanceOf(ServerRequest.class);
+        assertThat(value.getOriginalException()).isNotNull();
+        assertThat(value.getRefinedException()).isNotNull();
     }
 
     private MultiValueMap<String, HttpEntity<?>> generateBody() {
@@ -591,6 +613,11 @@ public class ReactiveIT {
         @Bean
         public ExceptionLogger exceptionLogger() {
             return mock(ExceptionLogger.class);
+        }
+
+        @Bean
+        public WebErrorHandlerPostProcessor postProcessor() {
+            return mock(WebErrorHandlerPostProcessor.class);
         }
     }
 

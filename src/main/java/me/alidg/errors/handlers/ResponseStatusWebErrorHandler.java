@@ -197,7 +197,7 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
     private String getNameAttribute(Annotation annotation) {
         try {
             Method method = annotation.getClass().getMethod("name");
-            return (String) method.invoke(method);
+            return (String) method.invoke(annotation);
         } catch (Exception e) {
             return "";
         }

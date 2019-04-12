@@ -3,7 +3,9 @@ package me.alidg.errors.mvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import me.alidg.errors.HttpError;
 import me.alidg.errors.HttpError.CodedMessage;
+import me.alidg.errors.WebErrorHandlerPostProcessor;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
 import me.alidg.errors.conf.ErrorsAutoConfiguration;
@@ -14,6 +16,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -30,6 +33,7 @@ import org.springframework.boot.autoconfigure.web.servlet.error.ErrorMvcAutoConf
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.boot.test.util.ApplicationContextTestUtils;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,6 +51,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
@@ -70,6 +75,8 @@ import static me.alidg.errors.mvc.ErrorsControllerAdviceIT.Dto.dto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -316,6 +323,22 @@ public class ErrorsControllerAdviceIT {
             .andExpect(jsonPath("$.errors[0].arguments.expected").value("Integer"));
     }
 
+    @Test
+    public void controllerAdvice_HttpErrorShouldContainAppropriateDetails() throws Exception {
+        WebErrorHandlerPostProcessor processor = context.getBean(WebErrorHandlerPostProcessor.class);
+        ArgumentCaptor<HttpError> captor = ArgumentCaptor.forClass(HttpError.class);
+
+        mvc.perform(get("/test//type-mismatch").param("number", "not a number"))
+            .andExpect(status().isBadRequest());
+
+        verify(processor).process(captor.capture());
+        HttpError value = captor.getValue();
+        assertThat(value.getRequest()).isNotNull();
+        assertThat(value.getRequest()).isInstanceOf(WebRequest.class);
+        assertThat(value.getOriginalException()).isNotNull();
+        assertThat(value.getRefinedException()).isNotNull();
+    }
+
     private Object[] provideInvalidBody() {
         return p(
             p(Collections.emptyMap(), null, cm("text.required", "The text is required")),
@@ -382,6 +405,11 @@ public class ErrorsControllerAdviceIT {
                 .exceptionHandling()
                 .accessDeniedHandler(accessDeniedHandler)
                 .authenticationEntryPoint(authenticationEntryPoint);
+        }
+
+        @Bean
+        public WebErrorHandlerPostProcessor postProcessor() {
+            return mock(WebErrorHandlerPostProcessor.class);
         }
     }
 
