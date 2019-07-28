@@ -1,9 +1,22 @@
-# Spring Boot Errors [![Build Status](https://travis-ci.org/alimate/errors-spring-boot-starter.svg?branch=master)](https://travis-ci.org/alimate/errors-spring-boot-starter) [![codecov](https://codecov.io/gh/alimate/errors-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/alimate/errors-spring-boot-starter) [![Maven Central](https://img.shields.io/maven-central/v/me.alidg/errors-spring-boot-starter.svg)](https://search.maven.org/search?q=g:me.alidg%20AND%20a:errors-spring-boot-starter) [![Javadocs](http://www.javadoc.io/badge/me.alidg/errors-spring-boot-starter.svg)](http://www.javadoc.io/doc/me.alidg/errors-spring-boot-starter) [![Sonatype](https://img.shields.io/static/v1.svg?label=snapshot&message=v1.5.0&color=blueviolet)](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=me.alidg&a=errors-spring-boot-starter&v=1.5.0-SNAPSHOT&e=jar) 
-A Bootiful, consistent and opinionated approach to handle all sorts of exceptions.
+<p align="center">
+    <img width="300" height="300" src="https://imgur.com/cOcB3kB.png" />
+</p>
+
+<h1 align="center">Errors Spring Boot Starter</h1> 
+
+[![Build Status](https://travis-ci.org/alimate/errors-spring-boot-starter.svg?branch=master)](https://travis-ci.org/alimate/errors-spring-boot-starter) 
+[![codecov](https://codecov.io/gh/alimate/errors-spring-boot-starter/branch/master/graph/badge.svg)](https://codecov.io/gh/alimate/errors-spring-boot-starter) 
+[![Maven Central](https://img.shields.io/maven-central/v/me.alidg/errors-spring-boot-starter.svg)](https://search.maven.org/search?q=g:me.alidg%20AND%20a:errors-spring-boot-starter) 
+[![Javadocs](http://www.javadoc.io/badge/me.alidg/errors-spring-boot-starter.svg)](http://www.javadoc.io/doc/me.alidg/errors-spring-boot-starter) 
+[![Sonatype](https://img.shields.io/static/v1.svg?label=snapshot&message=v1.5.0-SNAPSHOT&color=blueviolet)](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=me.alidg&a=errors-spring-boot-starter&v=1.5.0-SNAPSHOT&e=jar) 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![made-with-java](https://img.shields.io/badge/Made%20with-Java-ed55e3.svg)](https://openjdk.java.net)
+
+<p align="center"><b>A Bootiful, Consistent and Opinionated Approach to Handle all sorts of Exceptions.</b></p>
 
 ## Table of Contents
 
-  * [Make error handling great again!](#make-error-handling-great-again)
+  * [Make Error Handling Great Again!](#make-error-handling-great-again)
   * [Getting Started](#getting-started)
     + [Download](#download)
     + [Prerequisites](#prerequisites)
@@ -32,7 +45,7 @@ A Bootiful, consistent and opinionated approach to handle all sorts of exception
     + [Configuration](#configuration)
   * [License](#license)
 
-## Make error handling great again!
+## Make Error Handling Great Again!
 Built on top of Spring Boot's great exception handling mechanism, the `errors-spring-boot-starter` offers:
  - A consistent approach to handle all exceptions. Doesn't matter if it's a validation/binding error or a 
  custom domain-specific error or even a Spring related error, All of them would be handled by a `WebErrorHandler`
