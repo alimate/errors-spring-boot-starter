@@ -1,10 +1,10 @@
 language: java
 matrix:
   include:
-    - jdk: oraclejdk8
+    - jdk: openjdk8
       os:  linux
       env: JAVA_VERSION=1.8
-    - jdk: oraclejdk9
+    - jdk: openjdk9
       os:  linux
       env: JAVA_VERSION=9
     - jdk: openjdk10
