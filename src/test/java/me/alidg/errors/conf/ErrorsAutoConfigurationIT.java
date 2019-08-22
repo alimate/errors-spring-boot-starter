@@ -68,10 +68,10 @@ public class ErrorsAutoConfigurationIT {
 
             // Web Error Handlers
             List<WebErrorHandler> implementations = getImplementations(errorHandlers);
-            assertImplementations(implementations, 8,
+            assertImplementations(implementations, 9,
                 SpringValidationWebErrorHandler.class, ConstraintViolationWebErrorHandler.class,
                 AnnotatedWebErrorHandler.class, TypeMismatchWebErrorHandler.class,
-                ServletWebErrorHandler.class, SpringSecurityWebErrorHandler.class,
+                MultipartWebErrorHandler.class, ServletWebErrorHandler.class, SpringSecurityWebErrorHandler.class,
                 MissingRequestParametersWebErrorHandler.class, ResponseStatusWebErrorHandler.class
             );
 
@@ -90,9 +90,10 @@ public class ErrorsAutoConfigurationIT {
 
             // Web Error Handlers
             List<WebErrorHandler> implementations = getImplementations(errorHandlers);
-            assertImplementations(implementations, 10,
+            assertImplementations(implementations, 11,
                 SpringValidationWebErrorHandler.class, ConstraintViolationWebErrorHandler.class,
-                AnnotatedWebErrorHandler.class, TypeMismatchWebErrorHandler.class, ServletWebErrorHandler.class,
+                AnnotatedWebErrorHandler.class, TypeMismatchWebErrorHandler.class,
+                MultipartWebErrorHandler.class, ServletWebErrorHandler.class,
                 Sec.class, First.class, SpringSecurityWebErrorHandler.class,
                 MissingRequestParametersWebErrorHandler.class, ResponseStatusWebErrorHandler.class);
 
@@ -111,9 +112,10 @@ public class ErrorsAutoConfigurationIT {
 
             // Web Error Handlers
             List<WebErrorHandler> implementations = getImplementations(errorHandlers);
-            assertImplementations(implementations, 8,
+            assertImplementations(implementations, 9,
                 SpringValidationWebErrorHandler.class, ConstraintViolationWebErrorHandler.class,
-                AnnotatedWebErrorHandler.class, TypeMismatchWebErrorHandler.class, ServletWebErrorHandler.class,
+                AnnotatedWebErrorHandler.class, TypeMismatchWebErrorHandler.class,
+                MultipartWebErrorHandler.class, ServletWebErrorHandler.class,
                 SpringSecurityWebErrorHandler.class, MissingRequestParametersWebErrorHandler.class,
                 ResponseStatusWebErrorHandler.class
             );
@@ -133,9 +135,10 @@ public class ErrorsAutoConfigurationIT {
 
             // Web Error Handlers
             List<WebErrorHandler> implementations = getImplementations(errorHandlers);
-            assertImplementations(implementations, 10,
+            assertImplementations(implementations, 11,
                 SpringValidationWebErrorHandler.class, ConstraintViolationWebErrorHandler.class,
-                AnnotatedWebErrorHandler.class, TypeMismatchWebErrorHandler.class, ServletWebErrorHandler.class,
+                AnnotatedWebErrorHandler.class, TypeMismatchWebErrorHandler.class,
+                MultipartWebErrorHandler.class, ServletWebErrorHandler.class,
                 Sec.class, First.class, SpringSecurityWebErrorHandler.class,
                 MissingRequestParametersWebErrorHandler.class, ResponseStatusWebErrorHandler.class);
 
