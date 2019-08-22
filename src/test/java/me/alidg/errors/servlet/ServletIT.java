@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -49,9 +48,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(JUnitParamsRunner.class)
 @SpringBootTest(classes = ServletApplication.class)
 public class ServletIT {
-
-    //@Autowired
-    private TestRestTemplate client;
 
     @ClassRule
     public static final SpringClassRule springClassRule = new SpringClassRule();
