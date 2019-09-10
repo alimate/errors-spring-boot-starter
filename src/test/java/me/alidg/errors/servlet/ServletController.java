@@ -73,6 +73,9 @@ public class ServletController {
     public void pagedResult(Pageable pageable) {
     }
 
+    @PostMapping("/max-size")
+    public void upload(@RequestPart MultipartFile file) {}
+
     protected static class Pageable {
 
         private Integer page;

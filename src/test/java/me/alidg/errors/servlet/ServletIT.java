@@ -1,11 +1,13 @@
 package me.alidg.errors.servlet;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import me.alidg.errors.HttpError;
 import me.alidg.errors.WebErrorHandlerPostProcessor;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
+import me.alidg.errors.handlers.MultipartWebErrorHandler;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -15,19 +17,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.*;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.junit4.rules.SpringClassRule;
 import org.springframework.test.context.junit4.rules.SpringMethodRule;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.request.WebRequest;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Stream;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static me.alidg.Params.p;
@@ -39,6 +44,8 @@ import static me.alidg.errors.servlet.ServletController.Dto.dto;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.Mockito.verify;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -46,7 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @RunWith(JUnitParamsRunner.class)
-@SpringBootTest(classes = ServletApplication.class)
+@SpringBootTest(classes = ServletApplication.class, webEnvironment = RANDOM_PORT)
 public class ServletIT {
 
     @ClassRule
@@ -57,6 +64,9 @@ public class ServletIT {
 
     @Autowired
     private MockMvc mvc;
+
+    @Autowired
+    private TestRestTemplate restTemplate;
 
     @MockBean
     private WebErrorHandlerPostProcessor processor;
@@ -270,6 +280,60 @@ public class ServletIT {
         assertThat(value.getRefinedException()).isNotNull();
     }
 
+    @Test
+    public void controllerAdvice_ShouldRejectRequestsWithFileSizeBiggerThanTheMaxThreshold() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        MultiValueMap<String, byte[]> data = new LinkedMultiValueMap<>();
+        data.add("file", new byte[1025]);
+
+        HttpEntity<MultiValueMap<String, byte[]>> request = new HttpEntity<>(data, headers);
+
+        ResponseEntity<Errors> response = restTemplate.postForEntity("/test/max-size", request, Errors.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().errors.size()).isOne();
+        assertThat(response.getBody().errors.get(0).code).isEqualTo(MultipartWebErrorHandler.MAX_SIZE);
+        assertThat(response.getBody().errors.get(0).message).isNull();
+    }
+
+    @Test
+    public void controllerAdvice_ShouldRejectRequestsWithRequestSizeBiggerThanTheMaxThreshold() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        MultiValueMap<String, byte[]> data = new LinkedMultiValueMap<>();
+        data.add("file", new byte[1000]);
+        data.add("file1", new byte[1000]);
+        data.add("file2", new byte[1000]);
+
+        HttpEntity<MultiValueMap<String, byte[]>> request = new HttpEntity<>(data, headers);
+
+        ResponseEntity<Errors> response = restTemplate.postForEntity("/test/max-size", request, Errors.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().errors.size()).isOne();
+        assertThat(response.getBody().errors.get(0).code).isEqualTo(MultipartWebErrorHandler.MAX_SIZE);
+        assertThat(response.getBody().errors.get(0).message).isNull();
+    }
+
+    @Test
+    public void controllerAdvice_ShouldRejectNonMultipartRequestForMultipartEndpoints() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(APPLICATION_JSON_UTF8);
+        HttpEntity<String> request = new HttpEntity<>("{}", headers);
+
+        ResponseEntity<Errors> response = restTemplate.postForEntity("/test/max-size", request, Errors.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().errors.size()).isOne();
+        assertThat(response.getBody().errors.get(0).code).isEqualTo(MultipartWebErrorHandler.MULTIPART_EXPECTED);
+        assertThat(response.getBody().errors.get(0).message).isNull();
+    }
+
     private Object[] provideInvalidBody() {
         return p(
             p(Collections.emptyMap(), null, cm("text.required", "The text is required")),
@@ -290,5 +354,36 @@ public class ServletIT {
 
     private HttpError.CodedMessage cm(String code, String message) {
         return new HttpError.CodedMessage(code, message, emptyList());
+    }
+
+    @JsonAutoDetect(fieldVisibility = ANY)
+    private static class Error {
+
+        private String code;
+        private String message;
+        private Map<String, String> arguments = new HashMap<>();
+
+        @Override
+        public String toString() {
+            return "Error{" +
+                "code='" + code + '\'' +
+                ", message='" + message + '\'' +
+                ", arguments=" + arguments +
+                '}';
+        }
+    }
+
+    @JsonAutoDetect(fieldVisibility = ANY)
+    private static class Errors {
+        private String fingerprint;
+        private List<Error> errors = new ArrayList<>();
+
+        @Override
+        public String toString() {
+            return "Errors{" +
+                "fingerprint='" + fingerprint + '\'' +
+                ", errors=" + errors +
+                '}';
+        }
     }
 }

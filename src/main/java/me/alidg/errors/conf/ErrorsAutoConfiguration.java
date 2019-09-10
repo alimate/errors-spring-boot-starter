@@ -68,7 +68,8 @@ public class ErrorsAutoConfiguration {
         new SpringValidationWebErrorHandler(),
         new ConstraintViolationWebErrorHandler(),
         new AnnotatedWebErrorHandler(),
-        new TypeMismatchWebErrorHandler()
+        new TypeMismatchWebErrorHandler(),
+        new MultipartWebErrorHandler()
     );
 
     /**
