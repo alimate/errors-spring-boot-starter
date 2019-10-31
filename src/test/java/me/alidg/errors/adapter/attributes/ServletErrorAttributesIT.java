@@ -102,7 +102,7 @@ public class ServletErrorAttributesIT {
 
     private Object[] dataForDifferentErrorScenarios() {
         return p(
-            p(new AccessDeniedException(""), 0, 403, ACCESS_DENIED, null),
+            p(new AccessDeniedException(""), 403, 403, ACCESS_DENIED, null),
             p(null, 403, 403, ACCESS_DENIED, null),
             p(null, 401, 401, AUTH_REQUIRED, null),
             p(null, 404, 404, NO_HANDLER, Argument.arg("path", "/test")),
