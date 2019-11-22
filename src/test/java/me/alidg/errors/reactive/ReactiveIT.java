@@ -6,6 +6,8 @@ import junitparams.Parameters;
 import me.alidg.errors.ExceptionLogger;
 import me.alidg.errors.HttpError.CodedMessage;
 import me.alidg.errors.handlers.ServletWebErrorHandler;
+import me.alidg.errors.reactive.ReactiveController.DefaultDto;
+import me.alidg.errors.reactive.ReactiveController.Wrapper;
 import org.hamcrest.Matchers;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -25,6 +27,7 @@ import org.springframework.test.context.junit4.rules.SpringMethodRule;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.MultiValueMap;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.stream.Stream;
@@ -115,8 +118,32 @@ public class ReactiveIT {
         Object[] messages = Stream.of(expectedErrors).map(CodedMessage::getMessage).toArray();
 
         WebTestClient.RequestHeadersSpec<?> request = client.mutateWith(csrf())
-            .post().uri("/test").contentType(APPLICATION_JSON_UTF8).syncBody(data);
+            .post().uri("/test").contentType(APPLICATION_JSON).bodyValue(data);
         if (locale != null) request = request.header(ACCEPT_LANGUAGE, locale.toString());
+
+        request
+            .exchange()
+            .expectStatus().isBadRequest()
+            .expectBody()
+            .jsonPath("errors[*].code").value(Matchers.containsInAnyOrder(codes))
+            .jsonPath("errors[*].message").value(Matchers.containsInAnyOrder(messages))
+            .jsonPath("$.fingerprint").doesNotExist();
+
+        verify(logger).log(any());
+    }
+
+    @Test
+    @Parameters(method = "provideInvalidBodyForDefaultCodes")
+    public void errorAttributes_ShouldHandleValidationErrorsProperlyDefaultCodes(Object body,
+                                                                                 CodedMessage... expectedErrors) throws Exception {
+
+        ObjectMapper mapper = new ObjectMapper();
+        String data = mapper.writeValueAsString(body);
+        Object[] codes = Stream.of(expectedErrors).map(CodedMessage::getCode).toArray();
+        Object[] messages = Stream.of(expectedErrors).map(CodedMessage::getMessage).toArray();
+
+        WebTestClient.RequestHeadersSpec<?> request = client.mutateWith(csrf())
+            .post().uri("/test/default-codes").contentType(APPLICATION_JSON).bodyValue(data);
 
         request
             .exchange()
@@ -143,7 +170,7 @@ public class ReactiveIT {
 
     @Test
     public void errorAttributes_ShouldHandleMissingBodiesProperly() {
-        client.mutateWith(csrf()).post().uri("/test").contentType(APPLICATION_JSON_UTF8).exchange()
+        client.mutateWith(csrf()).post().uri("/test").contentType(APPLICATION_JSON).exchange()
             .expectStatus().isBadRequest()
             .expectBody()
             .jsonPath("errors[0].code").isEqualTo(INVALID_OR_MISSING_BODY)
@@ -155,7 +182,7 @@ public class ReactiveIT {
 
     @Test
     public void errorAttributes_ShouldHandleInvalidBodiesProperly() {
-        client.mutateWith(csrf()).post().uri("/test").contentType(APPLICATION_JSON_UTF8).syncBody("gibberish").exchange()
+        client.mutateWith(csrf()).post().uri("/test").contentType(APPLICATION_JSON).bodyValue("gibberish").exchange()
             .expectStatus().isBadRequest()
             .expectBody()
             .jsonPath("errors[0].code").isEqualTo(INVALID_OR_MISSING_BODY)
@@ -167,7 +194,7 @@ public class ReactiveIT {
 
     @Test
     public void errorAttributes_ShouldHandleMissingContentTypesProperly() {
-        client.mutateWith(csrf()).post().uri("/test").syncBody("gibberish").exchange()
+        client.mutateWith(csrf()).post().uri("/test").bodyValue("gibberish").exchange()
             .expectStatus().isEqualTo(UNSUPPORTED_MEDIA_TYPE)
             .expectBody()
             .jsonPath("errors[0].code").isEqualTo(NOT_SUPPORTED)
@@ -179,7 +206,7 @@ public class ReactiveIT {
 
     @Test
     public void errorAttributes_ShouldHandleInvalidContentTypesProperly() {
-        client.mutateWith(csrf()).post().uri("/test").contentType(new MediaType("text", "gibberish")).syncBody("gibberish").exchange()
+        client.mutateWith(csrf()).post().uri("/test").contentType(new MediaType("text", "gibberish")).bodyValue("gibberish").exchange()
             .expectStatus().isEqualTo(UNSUPPORTED_MEDIA_TYPE)
             .expectBody().jsonPath("errors[0].code").isEqualTo(NOT_SUPPORTED);
 
@@ -224,7 +251,7 @@ public class ReactiveIT {
     @Test
     public void errorAttributes_ShouldHandleMissingPartsProperly() {
         client.mutateWith(csrf()).post().uri("/test/part")
-            .contentType(MULTIPART_FORM_DATA).syncBody(generateBody()).exchange()
+            .contentType(MULTIPART_FORM_DATA).bodyValue(generateBody()).exchange()
             .expectStatus().isBadRequest()
             .expectBody()
             .jsonPath("errors[0].code").isEqualTo(MISSING_PART)
@@ -338,7 +365,6 @@ public class ReactiveIT {
             p(Collections.emptyMap(), null, cm("text.required", "The text is required")),
             p(dto(null, 10, "code"), null, cm("text.required", "The text is required")),
             p(dto("", 10, "code"), null, cm("text.required", "The text is required")),
-            //p(dto("", 10, "code"), new Locale("fa", "IR"), cm("text.required", "متن اجباری است")),
             p(dto("text", -1, "code"), null, cm("number.min", "The min is 0")),
             p(dto("text", 0), null, cm("range.limit", "Between 1 and 2")),
             p(
@@ -348,6 +374,17 @@ public class ReactiveIT {
                 cm("number.min", "The min is 0"),
                 cm("text.required", "The text is required")
             )
+        );
+    }
+
+    private Object[] provideInvalidBodyForDefaultCodes() {
+        return p(
+            p(new DefaultDto().setActive(false), cm("isActive.shouldBeTrue", null)),
+            p(new DefaultDto().setFailed(true), cm("isFailed.shouldBeFalse", null)),
+            p(new DefaultDto().setDecimalMax(BigDecimal.valueOf(14)), cm("decimalMax.exceedsMax", null)),
+            p(new DefaultDto().setDecimalMin(BigDecimal.ONE), cm("decimalMin.lessThanMin", null)),
+            p(new DefaultDto().setUserEmail("email"), cm("userEmail.invalidEmail", null)),
+            p(new DefaultDto().setWrapper(new Wrapper().setName("")), cm("wrapper.name.shouldNotBeBlank", null))
         );
     }
 
