@@ -1,4 +1,9 @@
 language: java
+addons:
+  sonarcloud:
+    organization: "alimate"
+    token:
+      secure: "Yd79/X/4ynYpXYNS0npZQ/xcNZTzfl4XxIQQ0Ajf8SiUBJlayvSgFMQ1Kz0iph0/1l2iEV9lDhk7zEd0ZB5C6VKJlBjcpCU50XdIxP4byZ9SKLYR0dqBB0p6QHTSZ+nJjR4wszQzgwu/q/b30L29q3b++cQbbIuIxkVkJnqXptxVAP8uPV+lKLpMORWdrXOA9HQ+Q8Rar/FtBGnVjWVRvkXc168O6V3tV5eygKTyBpE6IBwjVnWxgKILe3zUasCjQTUTkMevHNTEpX/8RlO9JEwBaWMZrrRBhHmUjXSRNLSAkXDQRoOgQsXsv342EwA6RVwxGo2bqIIxJe+zKwfWcMMh24O0QZtYObbfmrGvemKv/FaZ/IhlxG9GntOI1VBjqh4xOdQR8IfPNnSP7iMTj2Q/oKZValRFAEI7Gn6b70mAIPfkktXAv1+AdoU33AVb5UZAtmhgiTylcZMdFstdhXxEgY85ei8q1SsM9718KEhys/azlOeVkNOuACmTAjp61umE32NITlS3eHpkOXM+R7H0AtCWymfmrtJ9jETg1lYArMUO6PdQUtumKm/DfY+nYUoQYdbNFPwqVZl22VK/ploDw9xzX80btd3YHtQkQyyesG5S/3XcxuYJGqkP4Qzs1iV518lA9uVCcGV4DG0Tg4nKc2eG3NqI3q08sPZdNSs="
 matrix:
   include:
     - jdk: openjdk8
@@ -15,5 +20,5 @@ matrix:
       env: JAVA_VERSION=11
 install: true
 script:
-  - ./mvnw clean verify -B
+  - ./mvnw clean verify sonar:sonar -Dsonar.projectKey=alimate_errors-spring-boot-starter -B
   - bash <(curl -s https://codecov.io/bash)
