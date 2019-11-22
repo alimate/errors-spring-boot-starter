@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import javax.validation.Valid;
+import javax.validation.constraints.*;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,6 +27,11 @@ public class ReactiveController {
 
     @PostMapping
     public Mono<Void> post(@RequestBody @Validated Dto dto) {
+        return Mono.empty();
+    }
+
+    @PostMapping("/default-codes")
+    public Mono<Void> postDefault(@RequestBody @Validated DefaultDto dto) {
         return Mono.empty();
     }
 
@@ -159,6 +164,95 @@ public class ReactiveController {
 
         public void setSort(Sort sort) {
             this.sort = sort;
+        }
+    }
+    protected static class DefaultDto {
+
+        @Email
+        private String userEmail = "valid@v.com";
+
+        @AssertTrue
+        private boolean isActive = true;
+
+        @AssertFalse
+        private boolean isFailed = false;
+
+        @DecimalMax(value = "12")
+        private BigDecimal decimalMax = BigDecimal.valueOf(12);
+
+        @DecimalMin(value = "10")
+        private BigDecimal decimalMin = BigDecimal.valueOf(15);
+
+        @Valid
+        private Wrapper wrapper = new Wrapper().setName("default");
+
+        public String getUserEmail() {
+            return userEmail;
+        }
+
+        public DefaultDto setUserEmail(String userEmail) {
+            this.userEmail = userEmail;
+            return this;
+        }
+
+        public boolean isActive() {
+            return isActive;
+        }
+
+        public DefaultDto setActive(boolean active) {
+            isActive = active;
+            return this;
+        }
+
+        public boolean isFailed() {
+            return isFailed;
+        }
+
+        public DefaultDto setFailed(boolean failed) {
+            isFailed = failed;
+            return this;
+        }
+
+        public BigDecimal getDecimalMax() {
+            return decimalMax;
+        }
+
+        public DefaultDto setDecimalMax(BigDecimal decimalMax) {
+            this.decimalMax = decimalMax;
+            return this;
+        }
+
+        public BigDecimal getDecimalMin() {
+            return decimalMin;
+        }
+
+        public DefaultDto setDecimalMin(BigDecimal decimalMin) {
+            this.decimalMin = decimalMin;
+            return this;
+        }
+
+        public Wrapper getWrapper() {
+            return wrapper;
+        }
+
+        public DefaultDto setWrapper(Wrapper wrapper) {
+            this.wrapper = wrapper;
+            return this;
+        }
+    }
+
+    protected static class Wrapper {
+
+        @NotBlank
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+
+        public Wrapper setName(String name) {
+            this.name = name;
+            return this;
         }
     }
 

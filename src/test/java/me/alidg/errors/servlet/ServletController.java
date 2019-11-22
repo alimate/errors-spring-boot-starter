@@ -8,9 +8,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import javax.validation.Valid;
+import javax.validation.constraints.*;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
@@ -75,6 +75,9 @@ public class ServletController {
 
     @PostMapping("/max-size")
     public void upload(@RequestPart MultipartFile file) {}
+
+    @PostMapping("/default-codes")
+    public void defaultCodes(@RequestBody @Valid DefaultDto dto) {}
 
     protected static class Pageable {
 
@@ -157,6 +160,96 @@ public class ServletController {
 
         public void setRange(List<String> range) {
             this.range = range;
+        }
+    }
+
+    protected static class DefaultDto {
+
+        @Email
+        private String userEmail = "valid@v.com";
+
+        @AssertTrue
+        private boolean isActive = true;
+
+        @AssertFalse
+        private boolean isFailed = false;
+
+        @DecimalMax(value = "12")
+        private BigDecimal decimalMax = BigDecimal.valueOf(12);
+
+        @DecimalMin(value = "10")
+        private BigDecimal decimalMin = BigDecimal.valueOf(15);
+
+        @Valid
+        private Wrapper wrapper = new Wrapper().setName("default");
+
+        public String getUserEmail() {
+            return userEmail;
+        }
+
+        public DefaultDto setUserEmail(String userEmail) {
+            this.userEmail = userEmail;
+            return this;
+        }
+
+        public boolean isActive() {
+            return isActive;
+        }
+
+        public DefaultDto setActive(boolean active) {
+            isActive = active;
+            return this;
+        }
+
+        public boolean isFailed() {
+            return isFailed;
+        }
+
+        public DefaultDto setFailed(boolean failed) {
+            isFailed = failed;
+            return this;
+        }
+
+        public BigDecimal getDecimalMax() {
+            return decimalMax;
+        }
+
+        public DefaultDto setDecimalMax(BigDecimal decimalMax) {
+            this.decimalMax = decimalMax;
+            return this;
+        }
+
+        public BigDecimal getDecimalMin() {
+            return decimalMin;
+        }
+
+        public DefaultDto setDecimalMin(BigDecimal decimalMin) {
+            this.decimalMin = decimalMin;
+            return this;
+        }
+
+        public Wrapper getWrapper() {
+            return wrapper;
+        }
+
+        public DefaultDto setWrapper(Wrapper wrapper) {
+            this.wrapper = wrapper;
+            return this;
+        }
+    }
+
+    protected static class Wrapper {
+
+        @NotBlank
+        private String name;
+
+        public String getName() {
+            return name;
+        }
+
+        public Wrapper setName(String name) {
+            this.name = name;
+            return this;
         }
     }
 

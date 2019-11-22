@@ -89,7 +89,7 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
     private String errorCode(ObjectError error) {
         String code = null;
         try {
-            code = error.unwrap(ConstraintViolation.class).getMessageTemplate();
+            code = ConstraintViolations.getErrorCode(error.unwrap(ConstraintViolation.class));
         } catch (Exception ignored) {
         }
 
@@ -107,7 +107,7 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
     /**
      * Extracts the arguments from the validation meta data and exposes them to the outside
      * world. First try to unwrap {@link ConstraintViolation} and if successful, use
-     * {@link ConstraintViolationArgumentsExtractor#extract(ConstraintViolation)}.
+     * {@link ConstraintViolations#getArguments(ConstraintViolation)}.
      *
      * @param error Encapsulates the error details.
      * @return Collection of all arguments for the given {@code error} details.
@@ -115,7 +115,7 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
     private List<Argument> arguments(ObjectError error) {
         try {
             ConstraintViolation<?> violation = error.unwrap(ConstraintViolation.class);
-            return ConstraintViolationArgumentsExtractor.extract(violation);
+            return ConstraintViolations.getArguments(violation);
         } catch (Exception ignored) {
         }
 
