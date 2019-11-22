@@ -9,9 +9,8 @@
 [![Maven Central](https://img.shields.io/maven-central/v/me.alidg/errors-spring-boot-starter.svg)](https://search.maven.org/search?q=g:me.alidg%20AND%20a:errors-spring-boot-starter) 
 [![Javadocs](http://www.javadoc.io/badge/me.alidg/errors-spring-boot-starter.svg)](http://www.javadoc.io/doc/me.alidg/errors-spring-boot-starter) 
 [![Sonatype](https://img.shields.io/static/v1.svg?label=snapshot&message=v1.5.0-SNAPSHOT&color=blueviolet)](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=snapshots&g=me.alidg&a=errors-spring-boot-starter&v=1.5.0-SNAPSHOT&e=jar) 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![made-with-java](https://img.shields.io/badge/Made%20with-Java-ed55e3.svg)](https://openjdk.java.net)
 [![Sonar Quality Gate](https://img.shields.io/sonar/quality_gate/alimate_errors-spring-boot-starter?label=code%20quality&server=https%3A%2F%2Fsonarcloud.io)](https://sonarcloud.io/dashboard?id=alimate_errors-spring-boot-starter)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 <p align="center"><b>A Bootiful, Consistent and Opinionated Approach to Handle all sorts of Exceptions.</b></p>
 
