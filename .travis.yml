@@ -3,7 +3,7 @@ addons:
   sonarcloud:
     organization: "alimate"
     token:
-      secure: "$SONAR_SECRET"
+      secure: "${SONAR_SECRET}"
 matrix:
   include:
     - jdk: openjdk8
