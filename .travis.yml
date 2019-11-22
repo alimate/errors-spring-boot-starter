@@ -1,4 +1,9 @@
 language: java
+addons:
+  sonarcloud:
+    organization: "alimate"
+    token:
+      secure: "$SONAR_SECRET"
 matrix:
   include:
     - jdk: openjdk8
@@ -15,5 +20,5 @@ matrix:
       env: JAVA_VERSION=11
 install: true
 script:
-  - ./mvnw clean verify -B
+  - ./mvnw clean verify sonar:sonar -Dsonar.projectKey=alimate_errors-spring-boot-starter -B
   - bash <(curl -s https://codecov.io/bash)
