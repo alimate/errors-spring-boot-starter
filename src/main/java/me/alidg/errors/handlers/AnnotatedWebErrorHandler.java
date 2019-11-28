@@ -26,11 +26,10 @@ import static me.alidg.errors.Argument.arg;
  * {@link WebErrorHandler} implementation responsible for handling exceptions annotated with
  * the {@link ExceptionMapping} annotation. The web error code and status code would be
  * extracted form the annotated exception. Also, any member annotated with {@link ExposeArg}
- * or {@link ExposeAsArg} would be exposed as arguments.
+ * would be exposed as arguments.
  *
  * @author Ali Dehghani
  * @see ExposeArg
- * @see ExposeAsArg
  * @see ExceptionMapping
  */
 public class AnnotatedWebErrorHandler implements WebErrorHandler {
@@ -135,7 +134,7 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
 
     /**
      * Returns all fields declared in the given {@code exception} that annotated with the
-     * {@link ExposeArg} or {@link ExposeAsArg} annotation.
+     * {@link ExposeArg} annotation.
      *
      * @param exception The exception reflect on.
      * @return List of all annotated fields.

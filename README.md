@@ -204,23 +204,29 @@ The `min` attribute from the `@Size` constraint would be passed to the message i
   ]
 }
 ```
-In addition to support this feature for validation errors, we extend it for custom exceptions using the `@ExposeAsArg`
+In addition to support this feature for validation errors, we extend it for custom exceptions using the `@ExposeArg`
 annotation. For example, if we're going to specify the already taken username in the message:
 ```properties
-user.already_exists=Another user with the '{0}' username already exists
+user.already_exists=Another user with name '{username}' and e-mail '{email}' already exists
 ```
 We could write:
 ```java
 @ExceptionMapping(statusCode = BAD_REQUEST, errorCode = "user.already_exists")
 public class UserAlreadyExistsException extends RuntimeException {
-    @ExposeAsArg(0) private final String username;
+    @ExposeArg private final String username;
+    @ExposeArg private final String email;
     
     // constructor
 }
 ```
 Then the `username` property from the `UserAlreadyExistsException` would be available to the message under the 
-`user.already_exists` key as the first argument. `@ExposeAsArg` can be used on fields and no-arg methods with a
+`user.already_exists` key as the `{username}` argument. `@ExposeArg` can be used on fields and no-arg methods with a
 return type. The `HandledException` class also accepts the *to-be-exposed* arguments in its constructor.
+
+Instead of using argument names, argument position can be used instead. Exposed arguments are ordered with respect to:
+ 1. `order` attribute of `@ExposeArg`, then
+ 2. `value` attribute of `@ExposeArg` (which is optional name for exposed argument), then
+ 3. name of annotated element. 
 
 #### Exposing Named Arguments
 By default error arguments will be used in message interpolation only. It is also possible to additionally get those
@@ -276,14 +282,14 @@ password.length=Password \\{min} is {min} and \\{max} is {max}
 ```
 After interpolation, this message would read: `Password {min} is 6 and {max} is 20`.
 
-Arguments annotated with `@ExposeAsArg` will be named by annotated field or method name:
+Arguments annotated with `@ExposeArg` will be named by annotated field or method name:
 ```java
-@ExposeAsArg(0)
+@ExposeArg
 private final String argName; // will be exposed as "argName"
 ```
-This can be changed by the `name` parameter:
+This can be changed by the `value` parameter:
 ```java
-@ExposeAsArg(value = 0, name = "customName")
+@ExposeArg("customName")
 private final String argName; // will be exposed as "customName"
 ```
 
@@ -326,15 +332,15 @@ public class UserAlreadyExistsException extends RuntimeException {}
 Here, every time we catch an instance of `UserAlreadyExistsException`, a `Bad Request` HTTP response with `user.already_exists`
 error would be returned.
 
-Also, it's possible to expose some arguments from custom exceptions to error messages using the `ExposeAsArg`:
+Also, it's possible to expose some arguments from custom exceptions to error messages using the `ExposeArg`:
 ```java
 @ExceptionMapping(statusCode = BAD_REQUEST, errorCode = "user.already_exists")
 public class UserAlreadyExistsException extends RuntimeException {
-    @ExposeAsArg(0) private final String username;
+    @ExposeArg(order = 0) private final String username;
     
     // constructor
     
-    @ExposeAsArg(1)
+    @ExposeArg(order = 1)
     public String exposeThisToo() {
         return "42";
     }
@@ -345,7 +351,7 @@ Then the error message template can be something like:
 user.already_exists=Another user exists with the '{0}' username: {1}
 ```
 During message interpolation, the `{0}` and `{1}` placeholders would be replaced with annotated field's value and
-method's return value. The `ExposeAsArg` annotation is applicable to:
+method's return value. The `ExposeArg` annotation is applicable to:
  - Fields
  - No-arg methods with a return type
 
