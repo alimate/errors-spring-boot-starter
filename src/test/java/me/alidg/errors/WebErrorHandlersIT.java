@@ -4,6 +4,7 @@ import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import me.alidg.errors.HttpError.CodedMessage;
 import me.alidg.errors.annotation.ExceptionMapping;
+import me.alidg.errors.annotation.ExposeArg;
 import me.alidg.errors.annotation.ExposeAsArg;
 import me.alidg.errors.conf.ErrorsAutoConfiguration;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
@@ -96,6 +97,29 @@ public class WebErrorHandlersIT {
             HttpError error = errorHandlers.handle(exception, null, null);
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
             assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42",
+                arg("min", 10), arg("max", 12), arg("namedAnswer", "42"), arg("notUsed", "123")));
+
+            // With locale
+            error = errorHandlers.handle(exception, null, Locale.CANADA);
+            assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+            assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42",
+                arg("min", 10), arg("max", 12), arg("namedAnswer", "42"), arg("notUsed", "123")));
+
+            verifyPostProcessorsHasBeenCalled(ctx);
+        });
+    }
+
+    @Test
+    public void annotatedException_withDeprecatedAnnotations_ShouldBeHandledProperly() {
+        contextRunner.run(ctx -> {
+            WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
+
+            SomeExceptionWithDeprecatedExposeAnnotations exception = new SomeExceptionWithDeprecatedExposeAnnotations(10, 12);
+
+            // Without locale
+            HttpError error = errorHandlers.handle(exception, null, null);
+            assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+            assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42",
                 arg("min", 10), arg("max", 12), arg("theAnswer", "42"), arg("notUsed", "123")));
 
             // With locale
@@ -103,6 +127,29 @@ public class WebErrorHandlersIT {
             assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
             assertThat(error.getErrors()).containsOnly(cm("invalid_params", "Params are: 10, 12 and 42",
                 arg("min", 10), arg("max", 12), arg("theAnswer", "42"), arg("notUsed", "123")));
+
+            verifyPostProcessorsHasBeenCalled(ctx);
+        });
+    }
+
+    @Test
+    public void annotatedException_withMixedNewAndDeprecatedAnnotations_ShouldBeHandledProperly() {
+        contextRunner.run(ctx -> {
+            WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
+
+            SomeExceptionWithMixedExposeAnnotations exception = new SomeExceptionWithMixedExposeAnnotations(10, 12);
+
+            // Without locale
+            HttpError error = errorHandlers.handle(exception, null, null);
+            assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+            assertThat(error.getErrors()).containsOnly(cm("invalid_params_named", "Params are: 10, 12 and 42",
+                arg("min", 10), arg("legacyMax", 12), arg("notUsed", "123"), arg("theAnswer", "42")));
+
+            // With locale
+            error = errorHandlers.handle(exception, null, Locale.CANADA);
+            assertThat(error.getHttpStatus()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+            assertThat(error.getErrors()).containsOnly(cm("invalid_params_named", "Params are: 10, 12 and 42",
+                arg("min", 10), arg("legacyMax", 12), arg("notUsed", "123"), arg("theAnswer", "42")));
 
             verifyPostProcessorsHasBeenCalled(ctx);
         });
@@ -310,7 +357,7 @@ public class WebErrorHandlersIT {
                 new SymptomException(new SomeException(10, 11)),
                 HttpStatus.UNPROCESSABLE_ENTITY,
                 cm("invalid_params", "Params are: 10, 11 and 42",
-                    arg("min", 10), arg("max", 11), arg("theAnswer", "42"), arg("notUsed", "123"))
+                    arg("min", 10), arg("max", 11), arg("namedAnswer", "42"), arg("notUsed", "123"))
             ),
             p(
                 new SymptomException(null), HttpStatus.INTERNAL_SERVER_ERROR, cm("unknown_error", null)
@@ -410,11 +457,11 @@ public class WebErrorHandlersIT {
     }
 
     @ExceptionMapping(errorCode = "invalid_params", statusCode = HttpStatus.UNPROCESSABLE_ENTITY)
-    private class SomeException extends RuntimeException {
+    private static class SomeException extends RuntimeException {
 
-        @ExposeAsArg(100)
+        @ExposeArg(order = 100)
         private final int min;
-        @ExposeAsArg(101)
+        @ExposeArg(order = 101)
         private final int max;
 
         SomeException(int min, int max) {
@@ -422,7 +469,55 @@ public class WebErrorHandlersIT {
             this.max = max;
         }
 
+        @ExposeArg(order = 1000, value = "namedAnswer")
+        public String theAnswer() {
+            return "42";
+        }
+
+        @ExposeArg(order = 2000)
+        public String notUsed() {
+            return "123";
+        }
+    }
+
+    @ExceptionMapping(errorCode = "invalid_params", statusCode = HttpStatus.UNPROCESSABLE_ENTITY)
+    private static class SomeExceptionWithDeprecatedExposeAnnotations extends RuntimeException {
+
+        @ExposeAsArg(100)
+        private final int min;
+        @ExposeAsArg(101)
+        private final int max;
+
+        SomeExceptionWithDeprecatedExposeAnnotations(int min, int max) {
+            this.min = min;
+            this.max = max;
+        }
+
         @ExposeAsArg(1000)
+        public String theAnswer() {
+            return "42";
+        }
+
+        @ExposeAsArg(2000)
+        public String notUsed() {
+            return "123";
+        }
+    }
+
+    @ExceptionMapping(errorCode = "invalid_params_named", statusCode = HttpStatus.UNPROCESSABLE_ENTITY)
+    private static class SomeExceptionWithMixedExposeAnnotations extends RuntimeException {
+
+        @ExposeArg(order = 100)
+        private final int min;
+        @ExposeAsArg(value = 101, name = "legacyMax")
+        private final int max;
+
+        SomeExceptionWithMixedExposeAnnotations(int min, int max) {
+            this.min = min;
+            this.max = max;
+        }
+
+        @ExposeArg
         public String theAnswer() {
             return "42";
         }
