@@ -229,6 +229,8 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <quiet>true</quiet>
+                    <source>${java.version}</source>
                     <tags>
                         <tag>
                             <name>apiNote</name>
