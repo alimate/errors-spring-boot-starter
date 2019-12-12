@@ -12,6 +12,7 @@ import me.alidg.errors.handlers.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.context.MessageSource;
@@ -37,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ErrorsAutoConfigurationIT {
 
     private final WebApplicationContextRunner contextRunner = new WebApplicationContextRunner()
+        .withBean(ServerProperties.class)
         .withConfiguration(AutoConfigurations.of(
             ErrorsAutoConfiguration.class,
             ServletErrorsAutoConfiguration.class
