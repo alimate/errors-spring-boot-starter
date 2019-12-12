@@ -71,6 +71,7 @@ class Exceptions {
          * The to-be-exposed path.
          */
         @ExposeAsArg(0)
+        @SuppressWarnings("FieldCanBeLocal")
         private final String path;
 
         private HandlerNotFoundException(String path) {
