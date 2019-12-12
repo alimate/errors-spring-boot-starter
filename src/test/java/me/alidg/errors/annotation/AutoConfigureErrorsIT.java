@@ -4,6 +4,7 @@ import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.conf.*;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.ErrorWebFluxAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebFlux;
 import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
@@ -23,9 +24,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AutoConfigureErrorsIT {
 
     private final WebApplicationContextRunner servletRunner = new WebApplicationContextRunner()
+        .withBean(ServerProperties.class)
         .withUserConfiguration(TestConfig.class);
 
     private final ReactiveWebApplicationContextRunner reactiveRunner = new ReactiveWebApplicationContextRunner()
+        .withBean(ServerProperties.class)
         .withUserConfiguration(ReactiveTestConfig.class);
 
     @Test

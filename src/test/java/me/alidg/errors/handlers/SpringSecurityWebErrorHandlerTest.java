@@ -13,7 +13,7 @@ import org.springframework.security.web.authentication.rememberme.CookieTheftExc
 
 import static me.alidg.Params.p;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.*;
-import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.*;
 
 /**

@@ -84,10 +84,10 @@ public class ResponseStatusWebErrorHandlerTest {
                 emptyList()
             ),
             p(
-                new MediaTypeNotSupportedStatusException(singletonList(APPLICATION_JSON_UTF8)),
+                new MediaTypeNotSupportedStatusException(singletonList(APPLICATION_JSON)),
                 NOT_SUPPORTED,
                 HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                singletonList(Argument.arg("types", singleton(APPLICATION_JSON_UTF8_VALUE)))
+                singletonList(Argument.arg("types", singleton(APPLICATION_JSON_VALUE)))
             ),
 
             // UnsupportedMediaTypeStatusException related parameters
