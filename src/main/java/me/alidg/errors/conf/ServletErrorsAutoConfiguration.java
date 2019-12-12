@@ -8,6 +8,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -83,7 +84,8 @@ public class ServletErrorsAutoConfiguration {
      */
     @Bean
     @ConditionalOnBean(WebErrorHandlers.class)
-    public ErrorController customErrorController(ErrorAttributes errorAttributes,
+    @ConditionalOnMissingBean(ErrorController.class)
+    public BasicErrorController customErrorController(ErrorAttributes errorAttributes,
                                                  ServerProperties serverProperties,
                                                  ObjectProvider<ErrorViewResolver> errorViewResolvers) {
         List<ErrorViewResolver> resolvers = errorViewResolvers.orderedStream().collect(toList());
