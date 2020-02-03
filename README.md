@@ -478,7 +478,7 @@ public class OopsDrivenHttpErrorAttributesAdapter implements HttpErrorAttributes
     
     @Override
     public Map<String, Object> adapt(HttpError httpError) {
-        return Collections.singletonMap("Oops!", httpError);
+        return Collections.singletonMap("Oops!", httpError.getErrors());
     }
 }
 ```
