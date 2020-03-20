@@ -58,8 +58,9 @@ public class TypeMismatchWebErrorHandler implements WebErrorHandler {
         List<Argument> arguments = new ArrayList<>();
         arguments.add(arg("property", getPropertyName(mismatchException)));
         arguments.add(arg("invalid", mismatchException.getValue()));
-        if (mismatchException.getRequiredType() != null) {
-            arguments.add(arg("expected", mismatchException.getRequiredType().getSimpleName()));
+        Class<?> requiredType = mismatchException.getRequiredType();
+        if (requiredType != null) {
+            arguments.add(arg("expected", ClassNameHelper.getClassName(requiredType)));
         }
 
         return arguments;
