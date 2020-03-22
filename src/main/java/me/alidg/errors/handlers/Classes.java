@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * A simply utility class to provide useful functions for different class tokens.
+ * A simple utility class to provide useful functions for different class tokens.
  */
 final class Classes {
 
@@ -15,7 +15,7 @@ final class Classes {
     }
 
     /**
-     * Gets the simply class name for the given class token while preserving the
+     * Gets the simple class name for the given class token while preserving the
      * class hierarchies.
      *
      * @param clazz The type token.
