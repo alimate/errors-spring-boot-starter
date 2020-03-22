@@ -97,6 +97,6 @@ public class MissingRequestParametersWebErrorHandler implements WebErrorHandler 
     private String getType(MethodParameter parameter) {
         if (parameter == null) return null;
 
-        return ClassNameHelper.getClassName(parameter.getParameterType());
+        return Classes.getClassName(parameter.getParameterType());
     }
 }

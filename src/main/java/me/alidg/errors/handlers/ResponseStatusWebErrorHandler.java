@@ -165,7 +165,7 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
 
         if (code != null) {
             return new HandledException(code, BAD_REQUEST,
-                argMap(code, arg("name", parameterName), arg("expected", ClassNameHelper.getClassName(parameter.getParameterType()))));
+                argMap(code, arg("name", parameterName), arg("expected", Classes.getClassName(parameter.getParameterType()))));
         }
 
         return null;

@@ -60,7 +60,7 @@ public class TypeMismatchWebErrorHandler implements WebErrorHandler {
         arguments.add(arg("invalid", mismatchException.getValue()));
         Class<?> requiredType = mismatchException.getRequiredType();
         if (requiredType != null) {
-            arguments.add(arg("expected", ClassNameHelper.getClassName(requiredType)));
+            arguments.add(arg("expected", Classes.getClassName(requiredType)));
         }
 
         return arguments;

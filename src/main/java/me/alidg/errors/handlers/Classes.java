@@ -6,9 +6,21 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-final class ClassNameHelper {
-    private ClassNameHelper() {}
+/**
+ * A simply utility class to provide useful functions for different class tokens.
+ */
+final class Classes {
 
+    private Classes() {
+    }
+
+    /**
+     * Gets the simply class name for the given class token while preserving the
+     * class hierarchies.
+     *
+     * @param clazz The type token.
+     * @return The simple class name.
+     */
     @NonNull
     static String getClassName(@NonNull Class<?> clazz) {
         List<String> classNames = new ArrayList<>();
@@ -16,6 +28,7 @@ final class ClassNameHelper {
             classNames.add(clazz.getSimpleName());
             clazz = clazz.getEnclosingClass();
         } while (clazz != null);
+
         Collections.reverse(classNames);
         return String.join(".", classNames);
     }
