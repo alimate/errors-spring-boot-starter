@@ -337,7 +337,7 @@ public class ReactiveIT {
             "binding.type_mismatch.page", "binding.type_mismatch.size", "binding.type_mismatch.sort"))
             .jsonPath("$.fingerprint").doesNotExist()
             .jsonPath("$.errors[*].arguments.property").value(containsInAnyOrder("page", "size", "sort"))
-            .jsonPath("$.errors[*].arguments.expected").value(containsInAnyOrder("Integer", "Integer", "Sort"))
+            .jsonPath("$.errors[*].arguments.expected").value(containsInAnyOrder("Integer", "Integer", "ReactiveController.Sort"))
             .jsonPath("$.errors[*].arguments.invalid").value(containsInAnyOrder("nan", "na", "invalid"));
     }
 
