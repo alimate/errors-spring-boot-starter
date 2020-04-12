@@ -1,5 +1,6 @@
 package me.alidg.errors.handlers;
 
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.lang.NonNull;
@@ -82,29 +83,29 @@ public class SpringSecurityWebErrorHandler implements WebErrorHandler {
     @Override
     public HandledException handle(Throwable exception) {
         if (exception instanceof AccessDeniedException)
-            return new HandledException(ACCESS_DENIED, FORBIDDEN, null);
+            return new HandledException(ErrorWithArguments.noArgumentError(ACCESS_DENIED), FORBIDDEN);
 
         if (exception instanceof AccountExpiredException)
-            return new HandledException(ACCOUNT_EXPIRED, BAD_REQUEST, null);
+            return new HandledException(ErrorWithArguments.noArgumentError(ACCOUNT_EXPIRED), BAD_REQUEST);
 
         if (exception instanceof AuthenticationCredentialsNotFoundException)
-            return new HandledException(AUTH_REQUIRED, UNAUTHORIZED, null);
+            return new HandledException(ErrorWithArguments.noArgumentError(AUTH_REQUIRED), UNAUTHORIZED);
 
         if (exception instanceof AuthenticationServiceException)
-            return new HandledException(INTERNAL_ERROR, INTERNAL_SERVER_ERROR, null);
+            return new HandledException(ErrorWithArguments.noArgumentError(INTERNAL_ERROR), INTERNAL_SERVER_ERROR);
 
         if (exception instanceof BadCredentialsException)
-            return new HandledException(BAD_CREDENTIALS, BAD_REQUEST, null);
+            return new HandledException(ErrorWithArguments.noArgumentError(BAD_CREDENTIALS), BAD_REQUEST);
 
         if (exception instanceof UsernameNotFoundException)
-            return new HandledException(BAD_CREDENTIALS, BAD_REQUEST, null);
+            return new HandledException(ErrorWithArguments.noArgumentError(BAD_CREDENTIALS), BAD_REQUEST);
 
         if (exception instanceof InsufficientAuthenticationException)
-            return new HandledException(AUTH_REQUIRED, UNAUTHORIZED, null);
+            return new HandledException(ErrorWithArguments.noArgumentError(AUTH_REQUIRED), UNAUTHORIZED);
 
-        if (exception instanceof LockedException) return new HandledException(USER_LOCKED, BAD_REQUEST, null);
-        if (exception instanceof DisabledException) return new HandledException(USER_DISABLED, BAD_REQUEST, null);
+        if (exception instanceof LockedException) return new HandledException(ErrorWithArguments.noArgumentError(USER_LOCKED), BAD_REQUEST);
+        if (exception instanceof DisabledException) return new HandledException(ErrorWithArguments.noArgumentError(USER_DISABLED), BAD_REQUEST);
 
-        return new HandledException("unknown_error", INTERNAL_SERVER_ERROR, null);
+        return new HandledException(ErrorWithArguments.noArgumentError("unknown_error"), INTERNAL_SERVER_ERROR);
     }
 }

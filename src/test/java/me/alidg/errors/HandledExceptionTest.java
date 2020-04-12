@@ -6,10 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.http.HttpStatus;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
@@ -28,11 +25,11 @@ public class HandledExceptionTest {
 
     @Test
     @Parameters(method = "provideParamsForPrimary")
-    public void primaryConstructor_ShouldEnforceItsPreconditions(Set<String> errorCodes,
+    public void primaryConstructor_ShouldEnforceItsPreconditions(List<ErrorWithArguments> errors,
                                                                  HttpStatus status,
                                                                  Class<? extends Throwable> expected,
                                                                  String message) {
-        assertThatThrownBy(() -> new HandledException(errorCodes, status, singletonMap("error", emptyList())))
+        assertThatThrownBy(() -> new HandledException(errors, status))
             .isInstanceOf(expected)
             .hasMessage(message);
     }
@@ -43,43 +40,32 @@ public class HandledExceptionTest {
                                                                 HttpStatus status,
                                                                 Class<? extends Throwable> expected,
                                                                 String message) {
-        assertThatThrownBy(() -> new HandledException(errorCode, status, singletonMap("error", emptyList())))
+        assertThatThrownBy(() -> new HandledException(ErrorWithArguments.noArgumentError(errorCode), status))
             .isInstanceOf(expected)
             .hasMessage(message);
     }
 
     @Test
-    @Parameters(method = "provideMaps")
-    public void constructors_ShouldSetNullArgumentsAsEmptyMaps(Map<String, List<Argument>> provided,
-                                                               Map<?, ?> expected) {
-        assertThat(new HandledException(singleton("error"), BAD_REQUEST, provided).getArguments())
-            .isEqualTo(expected);
+    public void constructors_ShouldSetNullArgumentsAsEmptyMaps() {
+        // TODO check arguments assertThat(new HandledException(new HandledException.ErrorWithArguments("error", null), BAD_REQUEST).getArguments())
+        //   .isEqualTo(Collections.emptyList());
 
-        assertThat(new HandledException("error", BAD_REQUEST, provided).getArguments())
-            .isEqualTo(expected);
     }
 
     private Object[] provideParamsForPrimary() {
         return p(
             p(null, null, NullPointerException.class, "Error codes is required"),
-            p(new HashSet<>(asList("", "", null)), null, NullPointerException.class, "Status code is required"),
-            p(singleton(null), BAD_REQUEST, NullPointerException.class, "The single error code can't be null"),
-            p(emptySet(), BAD_REQUEST, IllegalArgumentException.class, "At least one error code should be provided")
+            p(asList(ErrorWithArguments.noArgumentError(""), ErrorWithArguments.noArgumentError(""), null), null, NullPointerException.class, "Status code is required"),
+            p(singletonList(null), BAD_REQUEST, NullPointerException.class, "The single error code can't be null"),
+            p(emptyList(), BAD_REQUEST, IllegalArgumentException.class, "At least one error code should be provided")
         );
     }
 
     private Object[] provideParamsForSecondary() {
         return p(
-            p(null, null, NullPointerException.class, "Status code is required"),
+            p(null, null, NullPointerException.class, "The single error code can't be null"),
             p("error", null, NullPointerException.class, "Status code is required"),
             p(null, BAD_REQUEST, NullPointerException.class, "The single error code can't be null")
-        );
-    }
-
-    private Object[] provideMaps() {
-        return p(
-            p(null, emptyMap()),
-            p(singletonMap("key", emptyList()), singletonMap("key", emptyList()))
         );
     }
 }

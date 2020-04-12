@@ -2,6 +2,7 @@ package me.alidg.errors.handlers;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,9 +12,11 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.rememberme.CookieTheftException;
 
+import static java.util.Collections.emptyList;
 import static me.alidg.Params.p;
 import static me.alidg.errors.handlers.SpringSecurityWebErrorHandler.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.springframework.http.HttpStatus.*;
 
 /**
@@ -44,8 +47,10 @@ public class SpringSecurityWebErrorHandlerTest {
         HandledException handled = handler.handle(exception);
 
         assertThat(handled.getStatusCode()).isEqualTo(expectedStatusCode);
-        assertThat(handled.getErrorCodes()).containsOnly(expectedErrorCode);
-        assertThat(handled.getArguments()).isEmpty();
+        assertThat(handled.getErrors()).extracting(ErrorWithArguments::getErrorCode,
+                                                   ErrorWithArguments::getArguments)
+                                       .containsOnly(tuple(expectedErrorCode,
+                                                           emptyList()));
     }
 
     private Object[] provideParamsForCanHandle() {

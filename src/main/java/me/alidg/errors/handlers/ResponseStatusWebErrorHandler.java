@@ -1,6 +1,7 @@
 package me.alidg.errors.handlers;
 
 import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.beans.TypeMismatchException;
@@ -66,25 +67,27 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
     public HandledException handle(Throwable exception) {
         if (exception instanceof MediaTypeNotSupportedStatusException) {
             Set<String> types = getMediaTypes(((MediaTypeNotSupportedStatusException) exception).getSupportedMediaTypes());
-            Map<String, List<Argument>> args = types.isEmpty() ? emptyMap() : argMap(NOT_SUPPORTED, arg("types", types));
-            return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, args);
+            List<Argument> args = types.isEmpty() ? emptyList() : singletonList(arg("types", types));
+            return new HandledException(new ErrorWithArguments(NOT_SUPPORTED, args),
+                                        UNSUPPORTED_MEDIA_TYPE);
         }
 
         if (exception instanceof UnsupportedMediaTypeStatusException) {
             Set<String> types = getMediaTypes(((UnsupportedMediaTypeStatusException) exception).getSupportedMediaTypes());
-            Map<String, List<Argument>> args = types.isEmpty() ? emptyMap() : argMap(NOT_SUPPORTED, arg("types", types));
-            return new HandledException(NOT_SUPPORTED, UNSUPPORTED_MEDIA_TYPE, args);
+            List<Argument> args = types.isEmpty() ? emptyList() : singletonList(arg("types", types));
+            return new HandledException(new ErrorWithArguments(NOT_SUPPORTED, args), UNSUPPORTED_MEDIA_TYPE);
         }
 
         if (exception instanceof NotAcceptableStatusException) {
             Set<String> types = getMediaTypes(((NotAcceptableStatusException) exception).getSupportedMediaTypes());
-            Map<String, List<Argument>> args = types.isEmpty() ? emptyMap() : argMap(NOT_ACCEPTABLE, arg("types", types));
-            return new HandledException(NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE, args);
+            List<Argument> args = types.isEmpty() ? emptyList() : singletonList(arg("types", types));
+            return new HandledException(new ErrorWithArguments(NOT_ACCEPTABLE, args), HttpStatus.NOT_ACCEPTABLE);
         }
 
         if (exception instanceof MethodNotAllowedException) {
             String httpMethod = ((MethodNotAllowedException) exception).getHttpMethod();
-            return new HandledException(METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED, argMap(METHOD_NOT_ALLOWED, arg("method", httpMethod)));
+            return new HandledException(new ErrorWithArguments(METHOD_NOT_ALLOWED, singletonList(arg("method", httpMethod))),
+                                        HttpStatus.METHOD_NOT_ALLOWED);
         }
 
         if (exception instanceof WebExchangeBindException) {
@@ -103,17 +106,17 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
             HandledException handledException = handleMissingParameters(parameter);
             if (handledException != null) return handledException;
 
-            return new HandledException(INVALID_OR_MISSING_BODY, BAD_REQUEST, null);
+            return new HandledException(ErrorWithArguments.noArgumentError(INVALID_OR_MISSING_BODY), BAD_REQUEST);
         }
 
         if (exception instanceof ResponseStatusException) {
             HttpStatus status = ((ResponseStatusException) exception).getStatus();
-            if (status == NOT_FOUND) return new HandledException(NO_HANDLER, status, null);
+            if (status == NOT_FOUND) return new HandledException(ErrorWithArguments.noArgumentError(NO_HANDLER), status);
 
-            return new HandledException(UNKNOWN_ERROR_CODE, status, null);
+            return new HandledException(ErrorWithArguments.noArgumentError(UNKNOWN_ERROR_CODE), status);
         }
 
-        return new HandledException(UNKNOWN_ERROR_CODE, INTERNAL_SERVER_ERROR, null);
+        return new HandledException(ErrorWithArguments.noArgumentError(UNKNOWN_ERROR_CODE), INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -164,8 +167,8 @@ public class ResponseStatusWebErrorHandler implements WebErrorHandler {
         }
 
         if (code != null) {
-            return new HandledException(code, BAD_REQUEST,
-                argMap(code, arg("name", parameterName), arg("expected", Classes.getClassName(parameter.getParameterType()))));
+            List<Argument> arguments = asList(arg("name", parameterName), arg("expected", Classes.getClassName(parameter.getParameterType())));
+            return new HandledException(new ErrorWithArguments(code, arguments), BAD_REQUEST);
         }
 
         return null;

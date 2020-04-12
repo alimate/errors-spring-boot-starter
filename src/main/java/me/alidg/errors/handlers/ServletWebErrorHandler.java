@@ -1,6 +1,7 @@
 package me.alidg.errors.handlers;
 
 import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.http.HttpStatus;
@@ -16,7 +17,6 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import javax.servlet.ServletException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
@@ -97,14 +97,15 @@ public class ServletWebErrorHandler implements WebErrorHandler {
     @Override
     public HandledException handle(Throwable exception) {
         if (exception instanceof HttpMessageNotReadableException)
-            return new HandledException(INVALID_OR_MISSING_BODY, HttpStatus.BAD_REQUEST, null);
+            return new HandledException(ErrorWithArguments.noArgumentError(INVALID_OR_MISSING_BODY), HttpStatus.BAD_REQUEST);
 
         if (exception instanceof HttpMediaTypeNotAcceptableException) {
             Set<String> types = getMediaTypes(((HttpMediaTypeNotAcceptableException) exception).getSupportedMediaTypes());
-            Map<String, List<Argument>> args = types.isEmpty() ?
-                emptyMap() : singletonMap(NOT_ACCEPTABLE, singletonList(arg("types", types)));
+            List<Argument> args = types.isEmpty() ?
+                emptyList() : singletonList(arg("types", types));
 
-            return new HandledException(NOT_ACCEPTABLE, HttpStatus.NOT_ACCEPTABLE, args);
+            return new HandledException(new ErrorWithArguments(NOT_ACCEPTABLE, args),
+                                        HttpStatus.NOT_ACCEPTABLE);
         }
 
         if (exception instanceof HttpMediaTypeNotSupportedException) {
@@ -112,16 +113,15 @@ public class ServletWebErrorHandler implements WebErrorHandler {
 
             List<Argument> arguments = null;
             if (contentType != null) arguments = singletonList(arg("type", contentType.toString()));
-            return new HandledException(NOT_SUPPORTED, HttpStatus.UNSUPPORTED_MEDIA_TYPE,
-                arguments == null ? emptyMap() : singletonMap(NOT_SUPPORTED, arguments));
+            return new HandledException(new ErrorWithArguments(NOT_SUPPORTED, arguments),
+                                        HttpStatus.UNSUPPORTED_MEDIA_TYPE);
         }
 
         if (exception instanceof HttpRequestMethodNotSupportedException) {
             String method = ((HttpRequestMethodNotSupportedException) exception).getMethod();
 
-            return new HandledException(METHOD_NOT_ALLOWED, HttpStatus.METHOD_NOT_ALLOWED,
-                singletonMap(METHOD_NOT_ALLOWED, singletonList(arg("method", method)))
-            );
+            return new HandledException(new ErrorWithArguments(METHOD_NOT_ALLOWED, singletonList(arg("method", method))),
+                                        HttpStatus.METHOD_NOT_ALLOWED);
         }
 
         if (exception instanceof MissingServletRequestParameterException) {
@@ -129,28 +129,26 @@ public class ServletWebErrorHandler implements WebErrorHandler {
             String name = actualException.getParameterName();
             String type = actualException.getParameterType();
 
-            return new HandledException(MISSING_PARAMETER, HttpStatus.BAD_REQUEST,
-                singletonMap(MISSING_PARAMETER, asList(arg("name", name), arg("expected", type)))
-            );
+            return new HandledException(new ErrorWithArguments(MISSING_PARAMETER,
+                                                               asList(arg("name", name), arg("expected", type))),
+                                        HttpStatus.BAD_REQUEST);
         }
 
         if (exception instanceof MissingServletRequestPartException) {
             String name = ((MissingServletRequestPartException) exception).getRequestPartName();
 
-            return new HandledException(MISSING_PART, HttpStatus.BAD_REQUEST,
-                singletonMap(MISSING_PART, singletonList(arg("name", name)))
-            );
+            return new HandledException(new ErrorWithArguments(MISSING_PART, singletonList(arg("name", name))),
+                                        HttpStatus.BAD_REQUEST);
         }
 
         if (exception instanceof NoHandlerFoundException) {
             String url = ((NoHandlerFoundException) exception).getRequestURL();
 
-            return new HandledException(NO_HANDLER, HttpStatus.NOT_FOUND,
-                singletonMap(NO_HANDLER, singletonList(arg("path", url)))
-            );
+            return new HandledException(new ErrorWithArguments(NO_HANDLER, singletonList(arg("path", url))),
+                                        HttpStatus.NOT_FOUND);
         }
 
-        return new HandledException("unknown_error", HttpStatus.INTERNAL_SERVER_ERROR, null);
+        return new HandledException(ErrorWithArguments.noArgumentError("unknown_error"), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private Set<String> getMediaTypes(List<MediaType> mediaTypes) {

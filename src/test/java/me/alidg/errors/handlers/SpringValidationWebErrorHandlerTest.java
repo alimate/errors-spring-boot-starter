@@ -3,6 +3,7 @@ package me.alidg.errors.handlers;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,10 +14,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import javax.validation.Valid;
 import javax.validation.Validation;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -27,6 +25,7 @@ import static me.alidg.errors.handlers.SpringValidationWebErrorHandler.BINDING_F
 import static me.alidg.errors.handlers.SpringValidationWebErrorHandlerTest.TBV.tbv;
 import static me.alidg.errors.handlers.SpringValidationWebErrorHandlerTest.TBVchild.tbvChild;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -60,8 +59,7 @@ public class SpringValidationWebErrorHandlerTest {
     @Test
     @Parameters(method = "provideParamsForHandle")
     public void handle_ShouldHandleTheValidationErrorsProperly(Object toValidate,
-                                                               Set<String> errorCodes,
-                                                               Map<String, List<Argument>> args) {
+                                                               List<ErrorWithArguments> errors) {
         BindingResult result = new BeanPropertyBindingResult(toValidate, "toValidate");
         validator.validate(toValidate, result);
 
@@ -70,18 +68,16 @@ public class SpringValidationWebErrorHandlerTest {
         BindException bindException = new BindException(result);
         HandledException handledForBind = handler.handle(bindException);
 
-        assertThat(handledForBind.getErrorCodes()).containsAll(errorCodes);
+        assertThat(handledForBind.getErrors()).containsAll(errors);
         assertThat(handledForBind.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(handledForBind.getArguments()).isEqualTo(args);
 
         // Create and assert for MethodArgumentNotValidException
 
         MethodArgumentNotValidException exception = new MethodArgumentNotValidException(null, result);
         HandledException handled = handler.handle(exception);
 
-        assertThat(handled.getErrorCodes()).containsAll(errorCodes);
+        assertThat(handled.getErrors()).containsAll(errors);
         assertThat(handled.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(handled.getArguments()).isEqualTo(args);
     }
 
     @Test
@@ -91,9 +87,43 @@ public class SpringValidationWebErrorHandlerTest {
         BindException exception = new BindException(bindingResult);
 
         HandledException handledException = handler.handle(exception);
-        assertThat(handledException.getArguments()).isEmpty();
         assertThat(handledException.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(handledException.getErrorCodes()).containsOnly(BINDING_FAILURE);
+        assertThat(handledException.getErrors()).extracting(ErrorWithArguments::getErrorCode,
+                                                            ErrorWithArguments::getArguments)
+                                                .containsOnly(tuple(BINDING_FAILURE,
+                                                              emptyList()));
+    }
+
+    @Test
+    public void testWithMultipleSameErrorCodes() {
+        UserCreationParameters toValidate = new UserCreationParameters();
+        BindingResult result = new BeanPropertyBindingResult(toValidate, "toValidate");
+        validator.validate(toValidate, result);
+
+        BindException bindException = new BindException(result);
+        HandledException handledForBind = handler.handle(bindException);
+
+        assertThat(handledForBind.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(handledForBind.getErrors()).hasSize(4)
+                                              .extracting(ErrorWithArguments::getErrorCode,
+                                                          ErrorWithArguments::getArguments)
+                                              .containsExactlyInAnyOrder(
+                                                  tuple("property.should.not.be.empty",
+                                                        asList(Argument.arg("invalid", null),
+                                                               Argument.arg("property", "firstName"))),
+                                                  tuple("property.should.not.be.empty",
+                                                        asList(Argument.arg("invalid", null),
+                                                               Argument.arg("property", "lastName"))),
+                                                  tuple("property.should.not.be.empty",
+                                                        asList(Argument.arg("invalid", null),
+                                                               Argument.arg("property", "email"))),
+                                                  tuple("property.should.not.be.empty",
+                                                        asList(Argument.arg("invalid", null),
+                                                               Argument.arg("property", "password")))
+
+                                              );
+
     }
 
     private Object[] provideParamsForCanHandle() {
@@ -107,47 +137,54 @@ public class SpringValidationWebErrorHandlerTest {
 
     private Object[] provideParamsForHandle() {
         return p(
-            p(tbv("ali", 0, "coding"), e("age.min"),
-                singletonMap("age.min", asList(
+            p(tbv("ali", 0, "coding"),
+              errors(error("age.min", asList(
                     arg("value", 1L),
                     arg("invalid", 0),
-                    arg("property", "age")))),
-            p(tbv("ali", 29), e("interests.limit"),
-                singletonMap("interests.limit", asList(
+                    arg("property", "age"))))),
+            p(tbv("ali", 29),
+              errors(error("interests.limit", asList(
                     arg("max", 6),
                     arg("min", 1),
                     arg("invalid", emptyList()),
-                    arg("property", "interests")))),
-            p(tbv("", 29, "coding"), e("name.required"),
-                singletonMap("name.required", asList(
+                    arg("property", "interests"))))),
+            p(tbv("", 29, "coding"),
+              errors(error("name.required", asList(
                     arg("invalid", ""),
-                    arg("property", "name")))),
-            p(tbv("", 200), e("name.required", "age.max", "interests.limit"),
-                m(
-                    "age.max", asList(
+                    arg("property", "name"))))),
+            p(tbv("", 200),
+                errors(
+                    error("age.max", asList(
                         arg("value", 100L),
                         arg("invalid", 200),
-                        arg("property", "age")),
-                    "interests.limit", asList(
+                        arg("property", "age"))),
+                          error("interests.limit", asList(
                         arg("max", 6),
                         arg("min", 1),
                         arg("invalid", emptyList()),
-                        arg("property", "interests")),
-                    "name.required", asList(
+                        arg("property", "interests"))),
+                                error("name.required", asList(
                         arg("invalid", ""),
-                        arg("property", "name"))
+                        arg("property", "name")))
                 )
             ),
             p(tbv("ali", 29, singletonList("coding"), asList(tbvChild("given"), tbvChild(""), tbvChild("also given"))),
-                e("stringField.required"),
-                singletonMap("stringField.required", asList(
+                errors(error("stringField.required", asList(
                     arg("invalid", ""),
-                    arg("property", "tbvChildren[1].stringField"))))
+                    arg("property", "tbvChildren[1].stringField")))))
         );
     }
 
     private Set<String> e(String... errorCodes) {
         return new HashSet<>(asList(errorCodes));
+    }
+
+    private List<ErrorWithArguments> errors(ErrorWithArguments... errors) {
+        return Arrays.asList(errors);
+    }
+
+    private ErrorWithArguments error(String errorCode, List<Argument> arguments) {
+        return new ErrorWithArguments(errorCode, arguments);
     }
 
     private Map<String, Object> m(String k1, List<Object> v1, String k2, List<Object> v2, String k3, List<Object> v3) {
@@ -248,6 +285,52 @@ public class SpringValidationWebErrorHandlerTest {
 
         public void setStringField(String stringField) {
             this.stringField = stringField;
+        }
+    }
+
+    static class UserCreationParameters {
+        @NotEmpty(message = "property.should.not.be.empty")
+        private String email;
+
+        @NotEmpty(message = "property.should.not.be.empty")
+        private String firstName;
+
+        @NotEmpty(message = "property.should.not.be.empty")
+        private String lastName;
+
+        @NotEmpty(message = "property.should.not.be.empty")
+        private String password;
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getFirstName() {
+            return firstName;
+        }
+
+        public void setFirstName(String firstName) {
+            this.firstName = firstName;
+        }
+
+        public String getLastName() {
+            return lastName;
+        }
+
+        public void setLastName(String lastName) {
+            this.lastName = lastName;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
         }
     }
 }

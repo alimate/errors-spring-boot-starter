@@ -1,6 +1,6 @@
 package me.alidg.errors.handlers;
 
-import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.http.HttpStatus;
@@ -9,11 +9,9 @@ import org.springframework.lang.NonNull;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.*;
 
 /**
  * A {@link WebErrorHandler} implementation responsible for handling {@link ConstraintViolationException}s
@@ -54,10 +52,8 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
     @Override
     public HandledException handle(Throwable exception) {
         ConstraintViolationException violationException = (ConstraintViolationException) exception;
-        Set<String> errorCodes = extractErrorCodes(violationException);
-        Map<String, List<Argument>> arguments = extractArguments(violationException);
 
-        return new HandledException(errorCodes, HttpStatus.BAD_REQUEST, arguments);
+        return new HandledException(extractErrorWithArguments(violationException), HttpStatus.BAD_REQUEST);
     }
 
     /**
@@ -72,36 +68,12 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
         return violations != null && !violations.isEmpty();
     }
 
-    /**
-     * Extract annotation attributes (except for those three mandatory attributes) and expose them as arguments.
-     *
-     * @param violationException The exception to extract the arguments from.
-     * @return To-be-exposed arguments.
-     */
-    private Map<String, List<Argument>> extractArguments(ConstraintViolationException violationException) {
-        Map<String, List<Argument>> args = violationException
+    private List<ErrorWithArguments> extractErrorWithArguments(ConstraintViolationException exception) {
+        return exception
             .getConstraintViolations()
             .stream()
-            .collect(toMap(ConstraintViolations::getErrorCode, ConstraintViolations::getArguments, (v1, v2) -> v1));
-        args.entrySet().removeIf(e -> e.getValue().isEmpty());
-        return args;
-    }
-
-    /**
-     * Extract message templates and use them as error codes.
-     *
-     * @param violationException The exception to extract the error codes from.
-     * @return A set of error codes.
-     */
-    private Set<String> extractErrorCodes(ConstraintViolationException violationException) {
-        return violationException
-            .getConstraintViolations()
-            .stream()
-            .map(this::errorCode)
-            .collect(toSet());
-    }
-
-    private String errorCode(ConstraintViolation<?> violation) {
-        return violation.getMessageTemplate().replace("{", "").replace("}", "");
+            .map(constraintViolation -> new ErrorWithArguments(ConstraintViolations.getErrorCode(constraintViolation),
+                                                               ConstraintViolations.getArguments(constraintViolation)))
+            .collect(toList());
     }
 }

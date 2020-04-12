@@ -1,6 +1,7 @@
 package me.alidg.errors.handlers;
 
 import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.lang.NonNull;
@@ -8,7 +9,6 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 
 import java.util.List;
-import java.util.Map;
 
 import static java.util.Collections.*;
 import static me.alidg.errors.Argument.arg;
@@ -47,14 +47,14 @@ public class MultipartWebErrorHandler implements WebErrorHandler {
     @Override
     public HandledException handle(Throwable exception) {
         String errorCode = MULTIPART_EXPECTED;
-        Map<String, List<Argument>> arguments = emptyMap();
+        List<Argument> arguments = emptyList();
 
         if (exception instanceof MaxUploadSizeExceededException) {
             long maxSize = ((MaxUploadSizeExceededException) exception).getMaxUploadSize();
             errorCode = MAX_SIZE;
-            arguments = singletonMap(MAX_SIZE, singletonList(arg("max_size", maxSize)));
+            arguments = singletonList(arg("max_size", maxSize));
         }
 
-        return new HandledException(errorCode, BAD_REQUEST, arguments);
+        return new HandledException(new ErrorWithArguments(errorCode, arguments), BAD_REQUEST);
     }
 }

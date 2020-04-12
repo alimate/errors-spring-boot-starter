@@ -1,6 +1,7 @@
 package me.alidg.errors.handlers;
 
 import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.annotation.ExceptionMapping;
@@ -18,7 +19,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static me.alidg.errors.Argument.arg;
 
@@ -72,7 +72,7 @@ public class AnnotatedWebErrorHandler implements WebErrorHandler {
         HttpStatus httpStatus = exceptionMapping.statusCode();
         List<Argument> arguments = getExposedValues(exception);
 
-        return new HandledException(errorCode, httpStatus, singletonMap(errorCode, arguments));
+        return new HandledException(new ErrorWithArguments(errorCode, arguments), httpStatus);
     }
 
     /**

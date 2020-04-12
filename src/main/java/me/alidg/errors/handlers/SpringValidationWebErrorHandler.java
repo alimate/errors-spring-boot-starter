@@ -1,6 +1,7 @@
 package me.alidg.errors.handlers;
 
 import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.beans.TypeMismatchException;
@@ -13,10 +14,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import javax.validation.ConstraintViolation;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toMap;
 
 /**
@@ -58,12 +58,12 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
     @Override
     public HandledException handle(Throwable exception) {
         BindingResult bindingResult = getBindingResult(exception);
-        return bindingResult.getAllErrors()
-            .stream()
-            .collect(collectingAndThen(
-                toMap(this::errorCode, this::arguments, (value1, value2) -> value1),
-                m -> new HandledException(m.keySet(), HttpStatus.BAD_REQUEST, dropEmptyValues(m))
-            ));
+        List<ErrorWithArguments> errorWithArguments = bindingResult.getAllErrors()
+                                                                   .stream()
+                                                                   .map(objectError -> new ErrorWithArguments(errorCode(objectError),
+                                                                                                              arguments(objectError)))
+                                                                   .collect(Collectors.toList());
+        return new HandledException(errorWithArguments, HttpStatus.BAD_REQUEST);
     }
 
     /**
@@ -125,17 +125,5 @@ public class SpringValidationWebErrorHandler implements WebErrorHandler {
         }
 
         return emptyList();
-    }
-
-    /**
-     * Drops the empty collection of arguments!
-     *
-     * @param input The error code to arguments map.
-     * @return The filtered map.
-     */
-    private Map<String, List<Argument>> dropEmptyValues(Map<String, List<Argument>> input) {
-        return input.entrySet().stream()
-            .filter(e -> e.getValue() != null && !e.getValue().isEmpty())
-            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (v1, v2) -> v2));
     }
 }
