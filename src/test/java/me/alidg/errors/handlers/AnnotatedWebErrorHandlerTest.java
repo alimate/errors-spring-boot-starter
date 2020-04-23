@@ -5,6 +5,7 @@ import junitparams.Parameters;
 import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.annotation.ExceptionMapping;
+import me.alidg.errors.annotation.ExposeArg;
 import me.alidg.errors.annotation.ExposeAsArg;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,15 +67,34 @@ public class AnnotatedWebErrorHandlerTest {
 
     private Object[] provideParamsForHandle() {
         return p(
-            p(new Annotated("f", "s"), "annotated", BAD_REQUEST, asList(
-                arg("staticExposure", "42"),
-                arg("some_value", "f"),
-                arg("other", "s"))),
-            p(new Inherited(), "annotated", BAD_REQUEST, asList(
-                arg("staticExposure", "42"),
-                arg("random", "random"),
-                arg("other", "s"))),
-            p(new NoExposedArgs(), "no_exposed", BAD_REQUEST, Collections.emptyList())
+            p(
+                new Annotated("f", "s"),
+                "annotated",
+                BAD_REQUEST,
+                asList(
+                    arg("staticExposure", "42"),
+                    arg("some_value", "f"),
+                    arg("other", "s"),
+                    arg("otherWithNewAnnotation", "s")
+                )
+            ),
+            p(
+                new Inherited(),
+                "annotated",
+                BAD_REQUEST,
+                asList(
+                    arg("staticExposure", "42"),
+                    arg("random", "random"),
+                    arg("other", "s"),
+                    arg("otherWithNewAnnotation", "s")
+                )
+            ),
+            p(
+                new NoExposedArgs(),
+                "no_exposed",
+                BAD_REQUEST,
+                Collections.emptyList()
+            )
         );
     }
 
@@ -115,6 +135,11 @@ public class AnnotatedWebErrorHandlerTest {
 
         @ExposeAsArg(value = 100, name = "other")
         public String getOther() {
+            return other;
+        }
+
+        @ExposeArg
+        public String otherWithNewAnnotation() {
             return other;
         }
     }

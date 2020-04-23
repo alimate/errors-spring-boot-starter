@@ -10,7 +10,7 @@ import java.lang.annotation.*;
  * error code/status code combination.
  *
  * @author Ali Dehghani
- * @see ExposeAsArg
+ * @see ExposeArg
  * @see me.alidg.errors.handlers.AnnotatedWebErrorHandler
  */
 @Inherited

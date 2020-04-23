@@ -97,28 +97,37 @@ For `Unsupported Media Type`s in the Reactive stack, we only expose all supporte
 
 ## Annotated Exceptions
 For exceptions annotated with our `@ExceptionMapping` annotation, we only expose fields or no-arg methods annotated with the
-`@ExposeAsArg` annotation. The positional argument is determined by the `value` attribute of the `ExposeAsArg`. Also, the
-named argument is the field or method name unless we provide a non-blank value using the `name` attribute.
+`@ExposeArg` annotation. The order of positional arguments is determined by:
+ 1. the `order` attribute of the `@ExposeArg`, then
+ 2. the `value` attribute of the `@ExposeArg`, then
+ 3. the name of annotated element.
+Named argument is the field or method name unless we provide a non-blank value using the `name` attribute.
 
 For example, for the following exception:
 ```java
 @ExceptionMapping(errorCode = "code", statusCode = HttpStatus.BAD_REQUEST)
 public class SomeException extends RuntimeException {
     
-    @ExposeAsArg(-1)
+    @ExposeArg(order = -1)
     private final String name;
     
-    @ExposeAsArg(value = 10, name = "num")
+    @ExposeArg(value = "num1", order = 10)
     private final Integer number;
+    
+    @ExposeArg(value = "num2", order = 10)
+    private final Integer anotherNumber;
+    
+    @ExposeArg
+    private final String lastArgument;
     
     // constructor
     
-    @ExposeAsArg(3)
+    @ExposeArg(order = 3)
     public String getSomething() {
         // implementation
     }
     
-    @ExposeAsArg(value = 6, name = "another")
+    @ExposeArg(order = 6, value = "another")
     public long getAnotherThing() {
         // implementation
     }
@@ -130,6 +139,8 @@ We expose:
 | Named Argument | Positional Index |
 |:--------------:|:----------------:|
 | `name`         | 0                |
-| `getSomething` | 1                | 
-| `another`      | 2                | 
-| `num`          | 3                | 
+| `getSomething` | 1                |
+| `another`      | 2                |
+| `num1`         | 3                |
+| `num2`         | 4                |
+| `lastArgument` | 5                |

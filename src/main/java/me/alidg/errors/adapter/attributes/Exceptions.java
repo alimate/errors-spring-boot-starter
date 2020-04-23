@@ -1,7 +1,7 @@
 package me.alidg.errors.adapter.attributes;
 
 import me.alidg.errors.annotation.ExceptionMapping;
-import me.alidg.errors.annotation.ExposeAsArg;
+import me.alidg.errors.annotation.ExposeArg;
 
 import java.util.Map;
 
@@ -70,7 +70,7 @@ class Exceptions {
         /**
          * The to-be-exposed path.
          */
-        @ExposeAsArg(0)
+        @ExposeArg
         @SuppressWarnings("FieldCanBeLocal")
         private final String path;
 
