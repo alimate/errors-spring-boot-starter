@@ -75,9 +75,11 @@ public class HandledException {
 
     /**
      * @return Collection of mapped error codes.
-     * @see #errors
+     * @deprecated This method should no longer be used as it does not allow to support the same error code
+     * multiple times
      */
     @NonNull
+    @Deprecated
     public Set<String> getErrorCodes() {
         return errors.stream()
                      .map(ErrorWithArguments::getErrorCode)
