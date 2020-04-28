@@ -3,6 +3,7 @@ package me.alidg.errors.handlers;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.junit.Test;
@@ -45,8 +46,12 @@ public class TypeMismatchWebErrorHandlerTest {
         HandledException handledException = errorHandler.handle(ex);
 
         String errorCode = String.format("%s.%s", TYPE_MISMATCH, ex.getPropertyName());
-        // TODO check arguments assertThat(handledException.getArguments().get(errorCode)).containsAll(arguments);
-        assertThat(handledException.getErrorCodes()).contains(errorCode);
+        List<ErrorWithArguments> errors = handledException.getErrors();
+        assertThat(errors).extracting(ErrorWithArguments::getErrorCode)
+                          .containsExactly(errorCode);
+        assertThat(errors).extracting(ErrorWithArguments::getArguments)
+                          .containsExactlyInAnyOrder(arguments);
+
         assertThat(handledException.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 

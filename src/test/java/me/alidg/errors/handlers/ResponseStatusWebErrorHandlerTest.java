@@ -3,6 +3,7 @@ package me.alidg.errors.handlers;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,9 +16,7 @@ import org.springframework.web.bind.support.WebExchangeBindException;
 import org.springframework.web.server.*;
 
 import java.lang.annotation.Annotation;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Collections.*;
 import static me.alidg.Params.p;
@@ -55,14 +54,18 @@ public class ResponseStatusWebErrorHandlerTest {
                                                                          List<Argument> expectedArguments) {
         HandledException handledException = handler.handle(e);
 
-        assertThat(handledException.getErrorCodes()).containsExactly(expectedErrorCode);
+        List<ErrorWithArguments> errors = handledException.getErrors();
+        assertThat(errors).extracting(ErrorWithArguments::getErrorCode)
+                          .containsOnly(expectedErrorCode);
+        // We need to sort the list of arguments to be able to compare them
+        Collections.sort(expectedArguments, Comparator.comparing(Argument::getName));
+        assertThat(errors).extracting(errorWithArguments -> {
+            List<Argument> arguments = errorWithArguments.getArguments();
+            Collections.sort(arguments, Comparator.comparing(Argument::getName));
+            return arguments;
+        }).containsExactlyInAnyOrder(expectedArguments);
+
         assertThat(handledException.getStatusCode()).isEqualTo(expectedStatus);
-/* TODO check arguments
-        if (expectedArguments == null || expectedArguments.isEmpty())
-            assertThat(handledException.getArguments()).isEmpty();
-        else
-            assertThat(handledException.getArguments().get(expectedErrorCode)).containsAll(expectedArguments);
-*/
     }
 
     private Object[] paramsForCanHandle() {

@@ -2,6 +2,8 @@ package me.alidg.errors.handlers;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.junit.Test;
@@ -51,12 +53,16 @@ public class MissingRequestParametersWebErrorHandlerTest {
     public void handle_ShouldHandleMissingRequestParamsErrorsProperly(Throwable exception,
                                                                       String expectedCode,
                                                                       HttpStatus expectedStatus,
-                                                                      Map<String, List<?>> expectedArgs) {
+                                                                      Map<String, List<Argument>> expectedArgs) {
         HandledException handledException = handler.handle(exception);
 
-        assertThat(handledException.getErrorCodes()).containsOnly(expectedCode);
+        List<ErrorWithArguments> errors = handledException.getErrors();
+        assertThat(errors).extracting(ErrorWithArguments::getErrorCode)
+                          .containsOnly(expectedCode);
+        assertThat(errors).extracting(ErrorWithArguments::getArguments)
+                          .containsExactlyInAnyOrderElementsOf(expectedArgs.values());
+
         assertThat(handledException.getStatusCode()).isEqualTo(expectedStatus);
-        // TODO check arguments assertThat(handledException.getArguments()).isEqualTo(expectedArgs);
     }
 
     private Object[] provideParamsForCanHandle() {

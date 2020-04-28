@@ -74,6 +74,7 @@ public class ConstraintViolationWebErrorHandler implements WebErrorHandler {
             .stream()
             .map(constraintViolation -> new ErrorWithArguments(ConstraintViolations.getErrorCode(constraintViolation),
                                                                ConstraintViolations.getArguments(constraintViolation)))
+            .filter(errorWithArguments -> !errorWithArguments.getArguments().isEmpty())
             .collect(toList());
     }
 }
