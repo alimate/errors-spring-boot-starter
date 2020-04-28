@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -81,6 +82,20 @@ public class HandledException {
         return errors.stream()
                      .map(ErrorWithArguments::getErrorCode)
                      .collect(Collectors.toSet());
+    }
+
+    /**
+     *
+     * @return Collection of to-be-exposed arguments.
+     * @deprecated This method should no longer be used as it does not allow to support the same error code
+     * multiple times
+     */
+    @NonNull
+    @Deprecated
+    public Map<String, List<Argument>> getArguments() {
+        return errors.stream()
+                     .collect(Collectors.toMap(ErrorWithArguments::getErrorCode,
+                                               ErrorWithArguments::getArguments));
     }
 
     /**
