@@ -2,12 +2,12 @@ package me.alidg.errors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 
@@ -62,6 +62,44 @@ public class HandledException {
     public HandledException(@NonNull ErrorWithArguments error,
                             @NonNull HttpStatus statusCode) {
         this(singletonList(error), statusCode);
+    }
+
+    /**
+     * Initialize a handled exception with a set of error codes, a HTTP status code and an
+     * optional collection of arguments.
+     *
+     * @param errorCodes The corresponding error codes for the handled exception.
+     * @param statusCode The corresponding status code for the handled exception.
+     * @param arguments  Arguments to be exposed from the handled exception to the outside world.
+     * @throws NullPointerException     When one of the required parameters is null.
+     * @throws IllegalArgumentException At least one error code should be provided.
+     * @deprecated This constructor should no longer be used as it does not allow to support the same error code
+     * multiple times
+     */
+    @Deprecated
+    public HandledException(@NonNull Set<String> errorCodes,
+                            @NonNull HttpStatus statusCode,
+                            @Nullable Map<String, List<Argument>> arguments) {
+        this(convertToErrors(errorCodes, arguments), statusCode);
+    }
+
+    /**
+     * Initialize a handled exception with an error code, a HTTP status code and an
+     * optional collection of arguments.
+     *
+     * @param errorCode  The corresponding error code for the handled exception.
+     * @param statusCode The corresponding status code for the handled exception.
+     * @param arguments  Arguments to be exposed from the handled exception to the outside world.
+     * @throws NullPointerException     When one of the required parameters is null.
+     * @throws IllegalArgumentException At least one error code should be provided.
+     * @deprecated This constructor should no longer be used as it does not allow to support the same error code
+     * multiple times
+     */
+    @Deprecated
+    public HandledException(@NonNull String errorCode,
+                            @NonNull HttpStatus statusCode,
+                            @Nullable Map<String, List<Argument>> arguments) {
+        this(singleton(errorCode), statusCode, arguments);
     }
 
     /**
@@ -121,4 +159,15 @@ public class HandledException {
             throw new NullPointerException("The single error code can't be null");
         }
     }
+
+    @NonNull
+    private static List<ErrorWithArguments> convertToErrors(Set<String> errorCodes, Map<String, List<Argument>> arguments) {
+        List<ErrorWithArguments> result = new ArrayList<>();
+        for (String errorCode : errorCodes) {
+            result.add(new ErrorWithArguments(errorCode, arguments.get(errorCode)));
+        }
+
+        return result;
+    }
+
 }
