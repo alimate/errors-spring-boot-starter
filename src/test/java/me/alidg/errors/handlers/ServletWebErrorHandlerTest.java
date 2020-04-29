@@ -2,6 +2,8 @@ package me.alidg.errors.handlers;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,12 +58,22 @@ public class ServletWebErrorHandlerTest {
     public void handle_ShouldHandleSpringMvcErrorsProperly(Throwable exception,
                                                            String expectedCode,
                                                            HttpStatus expectedStatus,
-                                                           Map<String, List<?>> expectedArgs) {
+                                                           Map<String, List<Argument>> expectedArgs) {
         HandledException handledException = handler.handle(exception);
 
-        assertThat(handledException.getErrorCodes()).containsOnly(expectedCode);
+        List<ErrorWithArguments> errors = handledException.getErrors();
+        assertThat(errors).extracting(ErrorWithArguments::getErrorCode)
+                          .containsExactly(expectedCode);
+        if (expectedArgs.isEmpty()) {
+            assertThat(errors).extracting(ErrorWithArguments::getArguments)
+                              .extracting(List::size)
+                              .containsExactly(0);
+        } else {
+            assertThat(errors).extracting(ErrorWithArguments::getArguments)
+                              .containsExactlyInAnyOrderElementsOf(expectedArgs.values());
+        }
+
         assertThat(handledException.getStatusCode()).isEqualTo(expectedStatus);
-        // TODO check arguments assertThat(handledException.getArguments()).isEqualTo(expectedArgs);
     }
 
     private Object[] provideParamsForCanHandle() {
