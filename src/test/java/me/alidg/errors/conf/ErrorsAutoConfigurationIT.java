@@ -2,6 +2,7 @@ package me.alidg.errors.conf;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
@@ -294,7 +295,7 @@ public class ErrorsAutoConfigurationIT {
         @Override
         @NonNull
         public HandledException handle(Throwable exception) {
-            return new HandledException("", HttpStatus.BAD_REQUEST, null);
+            return new HandledException(ErrorWithArguments.noArgumentError(""), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -308,7 +309,7 @@ public class ErrorsAutoConfigurationIT {
         @Override
         @NonNull
         public HandledException handle(Throwable exception) {
-            return new HandledException("", HttpStatus.BAD_REQUEST, null);
+            return new HandledException(ErrorWithArguments.noArgumentError(""), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -322,7 +323,7 @@ public class ErrorsAutoConfigurationIT {
         @Override
         @NonNull
         public HandledException handle(Throwable exception) {
-            return new HandledException("", HttpStatus.BAD_REQUEST, null);
+            return new HandledException(ErrorWithArguments.noArgumentError(""), HttpStatus.BAD_REQUEST);
         }
     }
 }

@@ -4,20 +4,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 
 /**
  * Encapsulates details about a handled exception, including:
  * <ul>
- * <li>The mapped business level error codes</li>
+ * <li>The mapped business level error codes and their arguments that can be used for message translation</li>
  * <li>The corresponding HTTP status code</li>
- * <li>A collection of arguments that can be used for message translation</li>
  * </ul>
  *
  * @author Ali Dehghani
@@ -29,7 +27,7 @@ public class HandledException {
      * Collection of error codes corresponding to the handled exception. Usually this collection
      * contains only one error code but not always, say for validation errors.
      */
-    private final Set<String> errorCodes;
+    private final List<ErrorWithArguments> errors;
 
     /**
      * Corresponding status code for the handled exception.
@@ -37,30 +35,34 @@ public class HandledException {
     private final HttpStatus statusCode;
 
     /**
-     * Collection of to-be-exposed arguments grouped by the error code. This is a mapping
-     * between the error code and all its to-be-exposed arguments. For example, suppose
-     * we have a bean like:
-     * <pre>
-     *     public class User {
+     * Initialize a handled exception with a set of error codes, a HTTP status code and an
+     * optional collection of arguments.
      *
-     *         &#64;Size(min=1, max=7, message="interests.range_limit")
-     *         private List&lt;String&gt; interests;
-     *         // omitted for the sake of brevity
-     *     }
-     * </pre>
-     * If the given interest list wasn't valid, then this map would contain an entry with the
-     * {@code interests.range_limit} as the key and {@code List(Argument(min, 1), Argument(max, 7))}
-     * as the values. Later on we can use those exposed values in our message, for example,
-     * the following error template:
-     * <pre>
-     *     You should define between {0} and {1} interests.
-     * </pre>
-     * Would be translated to:
-     * <pre>
-     *     You should define between 1 and 7 interests.
-     * </pre>
+     * @param errors     The corresponding error codes for the handled exception.
+     * @param statusCode The corresponding status code for the handled exception.
+     * @throws NullPointerException     When one of the required parameters is null.
+     * @throws IllegalArgumentException At least one error code should be provided.
      */
-    private final Map<String, List<Argument>> arguments;
+    public HandledException(@NonNull List<ErrorWithArguments> errors,
+                            @NonNull HttpStatus statusCode) {
+        enforcePreconditions(errors, statusCode);
+        this.errors = errors;
+        this.statusCode = statusCode;
+    }
+
+    /**
+     * Initialize a handled exception with an error code, a HTTP status code and an
+     * optional collection of arguments.
+     *
+     * @param error      The corresponding error code for the handled exception.
+     * @param statusCode The corresponding status code for the handled exception.
+     * @throws NullPointerException     When one of the required parameters is null.
+     * @throws IllegalArgumentException At least one error code should be provided.
+     */
+    public HandledException(@NonNull ErrorWithArguments error,
+                            @NonNull HttpStatus statusCode) {
+        this(singletonList(error), statusCode);
+    }
 
     /**
      * Initialize a handled exception with a set of error codes, a HTTP status code and an
@@ -71,14 +73,14 @@ public class HandledException {
      * @param arguments  Arguments to be exposed from the handled exception to the outside world.
      * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException At least one error code should be provided.
+     * @deprecated This constructor should no longer be used as it does not allow to support the same error code
+     * multiple times
      */
+    @Deprecated
     public HandledException(@NonNull Set<String> errorCodes,
                             @NonNull HttpStatus statusCode,
                             @Nullable Map<String, List<Argument>> arguments) {
-        enforcePreconditions(errorCodes, statusCode);
-        this.errorCodes = errorCodes;
-        this.statusCode = statusCode;
-        this.arguments = arguments == null ? Collections.emptyMap() : arguments;
+        this(convertToErrors(errorCodes, arguments), statusCode);
     }
 
     /**
@@ -90,7 +92,10 @@ public class HandledException {
      * @param arguments  Arguments to be exposed from the handled exception to the outside world.
      * @throws NullPointerException     When one of the required parameters is null.
      * @throws IllegalArgumentException At least one error code should be provided.
+     * @deprecated This constructor should no longer be used as it does not allow to support the same error code
+     * multiple times
      */
+    @Deprecated
     public HandledException(@NonNull String errorCode,
                             @NonNull HttpStatus statusCode,
                             @Nullable Map<String, List<Argument>> arguments) {
@@ -98,12 +103,39 @@ public class HandledException {
     }
 
     /**
-     * @return Collection of mapped error codes.
-     * @see #errorCodes
+     *
+     * @return Collection of errors
      */
     @NonNull
+    public List<ErrorWithArguments> getErrors() {
+        return errors;
+    }
+
+    /**
+     * @return Collection of mapped error codes.
+     * @deprecated This method should no longer be used as it does not allow to support the same error code
+     * multiple times
+     */
+    @NonNull
+    @Deprecated
     public Set<String> getErrorCodes() {
-        return errorCodes;
+        return errors.stream()
+                     .map(ErrorWithArguments::getErrorCode)
+                     .collect(Collectors.toSet());
+    }
+
+    /**
+     *
+     * @return Collection of to-be-exposed arguments.
+     * @deprecated This method should no longer be used as it does not allow to support the same error code
+     * multiple times
+     */
+    @NonNull
+    @Deprecated
+    public Map<String, List<Argument>> getArguments() {
+        return errors.stream()
+                     .collect(Collectors.toMap(ErrorWithArguments::getErrorCode,
+                                               ErrorWithArguments::getArguments));
     }
 
     /**
@@ -115,23 +147,27 @@ public class HandledException {
         return statusCode;
     }
 
-    /**
-     * @return Collection of to-be-exposed arguments.
-     * @see #arguments
-     */
-    @NonNull
-    public Map<String, List<Argument>> getArguments() {
-        return arguments;
-    }
-
-    private void enforcePreconditions(Set<String> errorCodes, HttpStatus statusCode) {
+    private void enforcePreconditions(List<ErrorWithArguments> errorCodes, HttpStatus statusCode) {
         requireNonNull(errorCodes, "Error codes is required");
         requireNonNull(statusCode, "Status code is required");
 
-        if (errorCodes.isEmpty())
+        if (errorCodes.isEmpty()) {
             throw new IllegalArgumentException("At least one error code should be provided");
+        }
 
-        if (errorCodes.size() == 1 && errorCodes.contains(null))
+        if (errorCodes.size() == 1 && errorCodes.contains(null)) {
             throw new NullPointerException("The single error code can't be null");
+        }
     }
+
+    @NonNull
+    private static List<ErrorWithArguments> convertToErrors(Set<String> errorCodes, Map<String, List<Argument>> arguments) {
+        List<ErrorWithArguments> result = new ArrayList<>();
+        for (String errorCode : errorCodes) {
+            result.add(new ErrorWithArguments(errorCode, arguments.get(errorCode)));
+        }
+
+        return result;
+    }
+
 }

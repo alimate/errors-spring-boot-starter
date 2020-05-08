@@ -1,10 +1,9 @@
 package me.alidg.errors.handlers;
 
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.http.HttpStatus;
-
-import java.util.Collections;
 
 /**
  * The default fallback {@link WebErrorHandler} which will be used when all
@@ -46,6 +45,6 @@ public enum LastResortWebErrorHandler implements WebErrorHandler {
      */
     @Override
     public HandledException handle(Throwable exception) {
-        return new HandledException(UNKNOWN_ERROR_CODE, HttpStatus.INTERNAL_SERVER_ERROR, Collections.emptyMap());
+        return new HandledException(ErrorWithArguments.noArgumentError(UNKNOWN_ERROR_CODE), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

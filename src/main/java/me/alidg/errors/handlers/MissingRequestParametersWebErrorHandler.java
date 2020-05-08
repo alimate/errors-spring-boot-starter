@@ -1,6 +1,7 @@
 package me.alidg.errors.handlers;
 
 import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.core.MethodParameter;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Collections.singletonMap;
 import static me.alidg.errors.Argument.arg;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -91,7 +91,7 @@ public class MissingRequestParametersWebErrorHandler implements WebErrorHandler 
             errorCode = MISSING_MATRIX_VARIABLE;
         }
 
-        return new HandledException(errorCode, BAD_REQUEST, singletonMap(errorCode, arguments));
+        return new HandledException(new ErrorWithArguments(errorCode, arguments), BAD_REQUEST);
     }
 
     private String getType(MethodParameter parameter) {

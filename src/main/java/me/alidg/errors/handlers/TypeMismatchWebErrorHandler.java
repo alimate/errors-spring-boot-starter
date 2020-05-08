@@ -1,6 +1,7 @@
 package me.alidg.errors.handlers;
 
 import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.springframework.beans.TypeMismatchException;
@@ -10,7 +11,6 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Collections.singletonMap;
 import static me.alidg.errors.Argument.arg;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -51,7 +51,7 @@ public class TypeMismatchWebErrorHandler implements WebErrorHandler {
         String errorCode = getErrorCode(mismatchException);
         List<Argument> arguments = getArguments(mismatchException);
 
-        return new HandledException(errorCode, BAD_REQUEST, singletonMap(errorCode, arguments));
+        return new HandledException(new ErrorWithArguments(errorCode, arguments), BAD_REQUEST);
     }
 
     static List<Argument> getArguments(TypeMismatchException mismatchException) {

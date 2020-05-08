@@ -3,6 +3,7 @@ package me.alidg.errors.handlers;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
@@ -49,10 +50,14 @@ public class AnnotatedWebErrorHandlerTest {
         HandledException handled = handler.handle(exception);
 
         assertThat(handled).isNotNull();
-        assertThat(handled.getErrorCodes()).hasSize(1);
-        assertThat(handled.getErrorCodes()).containsExactly(code);
+        List<ErrorWithArguments> errors = handled.getErrors();
+        assertThat(errors).hasSize(1)
+                          .extracting(ErrorWithArguments::getErrorCode)
+                          .containsExactly(code);
+        assertThat(errors).hasSize(1)
+                          .extracting(ErrorWithArguments::getArguments)
+                          .containsExactly(args);
         assertThat(handled.getStatusCode()).isEqualTo(status);
-        assertThat((handled.getArguments().get(code))).isEqualTo(args);
     }
 
     private Object[] provideParamsForCanHandle() {

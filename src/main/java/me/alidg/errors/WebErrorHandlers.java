@@ -233,9 +233,9 @@ public class WebErrorHandlers {
 
     private List<CodedMessage> translateErrors(HandledException handled, Locale locale) {
         return handled
-            .getErrorCodes()
+            .getErrors()
             .stream()
-            .map(code -> withMessage(code, getArgumentsFor(handled, code), locale))
+            .map(errorWithArguments -> withMessage(errorWithArguments.getErrorCode(), errorWithArguments.getArguments(), locale))
             .collect(toList());
     }
 
@@ -265,7 +265,9 @@ public class WebErrorHandlers {
         return toInspect.getClass().getName();
     }
 
+/*
     private List<Argument> getArgumentsFor(HandledException handled, String errorCode) {
         return handled.getArguments().getOrDefault(errorCode, emptyList());
     }
+*/
 }
