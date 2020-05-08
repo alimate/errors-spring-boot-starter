@@ -3,6 +3,7 @@ package me.alidg.errors.handlers;
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
 import me.alidg.errors.Argument;
+import me.alidg.errors.ErrorWithArguments;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import org.junit.Test;
@@ -60,8 +61,11 @@ public class ConstraintViolationWebErrorHandlerTest {
         HandledException handledException = handler.handle(exception);
 
         assertThat(handledException.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(handledException.getErrorCodes()).containsAll(errorCodes);
-        // TODO check arguments
+        List<ErrorWithArguments> errors = handledException.getErrors();
+        assertThat(errors).extracting(ErrorWithArguments::getErrorCode)
+                          .containsExactlyInAnyOrderElementsOf(errorCodes);
+        assertThat(errors).extracting(ErrorWithArguments::getArguments)
+                          .containsExactlyInAnyOrderElementsOf(arguments.values());
     }
 
     @SuppressWarnings("unchecked")
@@ -91,11 +95,16 @@ public class ConstraintViolationWebErrorHandlerTest {
             p(
                 v(new Person("", 19)),
                 setOf("username.blank", "username.size"),
-                singletonMap("username.size", asList(
-                    arg("max", 10),
-                    arg("min", 6),
-                    arg("invalid", ""),
-                    arg("property", "username")))
+                new HashMap<String, List<?>>() {{
+                    put("username.size", asList(
+                        arg("max", 10),
+                        arg("min", 6),
+                        arg("invalid", ""),
+                        arg("property", "username")));
+                    put("username.blank", asList(
+                        arg("invalid", ""),
+                        arg("property", "username")));
+                }}
             ),
             p(
                 v(new Person("ali", 12)),
