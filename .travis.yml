@@ -22,3 +22,6 @@ install: true
 script:
   - ./mvnw clean verify sonar:sonar -Dsonar.projectKey=alimate_errors-spring-boot-starter -B
   - bash <(curl -s https://codecov.io/bash)
+cache:
+  directories:
+  - $HOME/.m2
