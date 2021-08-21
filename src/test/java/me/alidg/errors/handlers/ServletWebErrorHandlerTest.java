@@ -1,10 +1,9 @@
 package me.alidg.errors.handlers;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.HandledException;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -36,7 +35,7 @@ import static org.springframework.http.MediaType.*;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ServletWebErrorHandlerTest {
 
     /**
@@ -44,15 +43,15 @@ public class ServletWebErrorHandlerTest {
      */
     private final ServletWebErrorHandler handler = new ServletWebErrorHandler();
 
-    @Test
-    @Parameters(method = "provideParamsForCanHandle")
+    @ParameterizedTest
+    @MethodSource("provideParamsForCanHandle")
     public void canHandle_ShouldReturnTrueForSpringMvcSpecificErrors(Throwable exception, boolean expected) {
         assertThat(handler.canHandle(exception))
             .isEqualTo(expected);
     }
 
-    @Test
-    @Parameters(method = "provideParamsForHandle")
+    @ParameterizedTest
+    @MethodSource("provideParamsForHandle")
     public void handle_ShouldHandleSpringMvcErrorsProperly(Throwable exception,
                                                            String expectedCode,
                                                            HttpStatus expectedStatus,

@@ -1,9 +1,7 @@
 package me.alidg.errors;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.context.MessageSource;
 
 import java.util.List;
@@ -18,12 +16,11 @@ import static org.mockito.Mockito.mock;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
 public class WebErrorHandlersTest {
 
-    @Test
+    @ParameterizedTest
     @SuppressWarnings("deprecation")
-    @Parameters(method = "paramsForConstructor")
+    @MethodSource("paramsForConstructor")
     public void constructor_ShouldEnforceItsPreconditions(MessageSource messageSource,
                                                           List<WebErrorHandler> handlers,
                                                           Class<? extends Throwable> expectedException,
@@ -33,7 +30,7 @@ public class WebErrorHandlersTest {
             .hasMessage(expectedMessage);
     }
 
-    private Object[] paramsForConstructor() {
+    private static Object[] paramsForConstructor() {
         return p(
             p(null, null, NullPointerException.class, "We need a MessageSource implementation to message translation"),
             p(mock(MessageSource.class), null, NullPointerException.class, "Collection of error handlers is required"),

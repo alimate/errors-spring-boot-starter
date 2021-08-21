@@ -1,15 +1,18 @@
 package me.alidg.errors.handlers;
 
 import me.alidg.errors.Argument;
-import org.hibernate.validator.constraints.*;
+import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.Range;
+import org.hibernate.validator.constraints.URL;
+import org.hibernate.validator.constraints.UniqueElements;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.constraints.*;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -78,7 +81,9 @@ final class ConstraintViolations {
             DEFAULT_ERROR_CODES_PREFIX.stream().anyMatch(code::startsWith);
         if (shouldGenerateDefaultErrorCode) {
             String prefix = violation.getPropertyPath().toString();
-            Class<? extends Annotation> annotation = violation.getConstraintDescriptor().getAnnotation().annotationType();
+            Class<? extends Annotation> annotation = violation.getConstraintDescriptor()
+                .getAnnotation()
+                .annotationType();
             String suffix = ERROR_CODE_MAPPING.getOrDefault(annotation, annotation.getSimpleName());
 
             return prefix + "." + suffix;
@@ -117,7 +122,6 @@ final class ConstraintViolations {
         // Hibernate Validator Specific Constraints
         codes.put(URL.class, "invalidUrl");
         codes.put(UniqueElements.class, "shouldBeUnique");
-        codes.put(SafeHtml.class, "unsafeHtml");
         codes.put(Range.class, "outOfRange");
         codes.put(Length.class, "invalidSize");
 

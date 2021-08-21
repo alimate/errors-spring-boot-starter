@@ -1,18 +1,16 @@
 package me.alidg.errors.reactive;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.ExceptionLogger;
 import me.alidg.errors.HttpError.CodedMessage;
 import me.alidg.errors.handlers.ServletWebErrorHandler;
 import me.alidg.errors.reactive.ReactiveController.DefaultDto;
 import me.alidg.errors.reactive.ReactiveController.Wrapper;
 import org.hamcrest.Matchers;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,8 +20,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.rules.SpringClassRule;
-import org.springframework.test.context.junit4.rules.SpringMethodRule;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.util.MultiValueMap;
 
@@ -56,8 +52,8 @@ import static org.springframework.security.test.web.reactive.server.SecurityMock
  *
  * @author Ali Dehghani
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureWebTestClient
-@RunWith(JUnitParamsRunner.class)
 @SpringBootTest(classes = ReactiveApplication.class)
 @TestPropertySource(properties = {
     "errors.add-fingerprint=false",
@@ -66,12 +62,6 @@ import static org.springframework.security.test.web.reactive.server.SecurityMock
     "spring.main.web-application-type=reactive"
 })
 public class ReactiveIT {
-
-    @ClassRule
-    public static final SpringClassRule springClassRule = new SpringClassRule();
-
-    @Rule
-    public final SpringMethodRule springMethodRule = new SpringMethodRule();
 
     @Autowired
     private WebTestClient client;
@@ -106,8 +96,8 @@ public class ReactiveIT {
         verify(logger).log(any(ReactiveController.InvalidParamsException.class));
     }
 
-    @Test
-    @Parameters(method = "provideInvalidBody")
+    @ParameterizedTest
+    @MethodSource("provideInvalidBody")
     public void errorAttributes_ShouldHandleValidationErrorsProperly(Object body,
                                                                      Locale locale,
                                                                      CodedMessage... expectedErrors) throws Exception {
@@ -132,8 +122,8 @@ public class ReactiveIT {
         verify(logger).log(any());
     }
 
-    @Test
-    @Parameters(method = "provideInvalidBodyForDefaultCodes")
+    @ParameterizedTest
+    @MethodSource("provideInvalidBodyForDefaultCodes")
     public void errorAttributes_ShouldHandleValidationErrorsProperlyDefaultCodes(Object body,
                                                                                  CodedMessage... expectedErrors) throws Exception {
 
@@ -206,9 +196,17 @@ public class ReactiveIT {
 
     @Test
     public void errorAttributes_ShouldHandleInvalidContentTypesProperly() {
-        client.mutateWith(csrf()).post().uri("/test").contentType(new MediaType("text", "gibberish")).bodyValue("gibberish").exchange()
-            .expectStatus().isEqualTo(UNSUPPORTED_MEDIA_TYPE)
-            .expectBody().jsonPath("errors[0].code").isEqualTo(NOT_SUPPORTED);
+        client.mutateWith(csrf())
+            .post()
+            .uri("/test")
+            .contentType(new MediaType("text", "gibberish"))
+            .bodyValue("gibberish")
+            .exchange()
+            .expectStatus()
+            .isEqualTo(UNSUPPORTED_MEDIA_TYPE)
+            .expectBody()
+            .jsonPath("errors[0].code")
+            .isEqualTo(NOT_SUPPORTED);
 
         verify(logger).log(any());
     }
@@ -329,16 +327,23 @@ public class ReactiveIT {
 
     @Test
     public void errorAttributes_ShouldHandleBindingExceptionsProperly() {
-        client.get().uri("/test/paged?page=nan&size=na&sort=invalid")
+        client.get()
+            .uri("/test/paged?page=nan&size=na&sort=invalid")
             .exchange()
-            .expectStatus().isBadRequest()
+            .expectStatus()
+            .isBadRequest()
             .expectBody()
-            .jsonPath("errors[*].code").value(containsInAnyOrder(
-            "binding.type_mismatch.page", "binding.type_mismatch.size", "binding.type_mismatch.sort"))
-            .jsonPath("$.fingerprint").doesNotExist()
-            .jsonPath("$.errors[*].arguments.property").value(containsInAnyOrder("page", "size", "sort"))
-            .jsonPath("$.errors[*].arguments.expected").value(containsInAnyOrder("Integer", "Integer", "ReactiveController.Sort"))
-            .jsonPath("$.errors[*].arguments.invalid").value(containsInAnyOrder("nan", "na", "invalid"));
+            .jsonPath("errors[*].code")
+            .value(containsInAnyOrder(
+                "binding.type_mismatch.page", "binding.type_mismatch.size", "binding.type_mismatch.sort"))
+            .jsonPath("$.fingerprint")
+            .doesNotExist()
+            .jsonPath("$.errors[*].arguments.property")
+            .value(containsInAnyOrder("page", "size", "sort"))
+            .jsonPath("$.errors[*].arguments.expected")
+            .value(containsInAnyOrder("Integer", "Integer", "ReactiveController.Sort"))
+            .jsonPath("$.errors[*].arguments.invalid")
+            .value(containsInAnyOrder("nan", "na", "invalid"));
     }
 
     @Test
@@ -362,33 +367,39 @@ public class ReactiveIT {
 
     private Object[] provideInvalidBody() {
         return p(
-            p(Collections.emptyMap(), null, cm("text.required", "The text is required")),
-            p(dto(null, 10, "code"), null, cm("text.required", "The text is required")),
-            p(dto("", 10, "code"), null, cm("text.required", "The text is required")),
-            p(dto("text", -1, "code"), null, cm("number.min", "The min is 0")),
-            p(dto("text", 0), null, cm("range.limit", "Between 1 and 2")),
+            p(Collections.emptyMap(), null, arr(cm("text.required", "The text is required"))),
+            p(dto(null, 10, "code"), null, arr(cm("text.required", "The text is required"))),
+            p(dto("", 10, "code"), null, arr(cm("text.required", "The text is required"))),
+            p(dto("text", -1, "code"), null, arr(cm("number.min", "The min is 0"))),
+            p(dto("text", 0), null, arr(cm("range.limit", "Between 1 and 2"))),
             p(
                 dto("", -1),
                 null,
-                cm("range.limit", "Between 1 and 2"),
-                cm("number.min", "The min is 0"),
-                cm("text.required", "The text is required")
+                arr(
+                    cm("range.limit", "Between 1 and 2"),
+                    cm("number.min", "The min is 0"),
+                    cm("text.required", "The text is required")
+                )
             )
         );
     }
 
     private Object[] provideInvalidBodyForDefaultCodes() {
         return p(
-            p(new DefaultDto().setActive(false), cm("isActive.shouldBeTrue", null)),
-            p(new DefaultDto().setFailed(true), cm("isFailed.shouldBeFalse", null)),
-            p(new DefaultDto().setDecimalMax(BigDecimal.valueOf(14)), cm("decimalMax.exceedsMax", null)),
-            p(new DefaultDto().setDecimalMin(BigDecimal.ONE), cm("decimalMin.lessThanMin", null)),
-            p(new DefaultDto().setUserEmail("email"), cm("userEmail.invalidEmail", null)),
-            p(new DefaultDto().setWrapper(new Wrapper().setName("")), cm("wrapper.name.shouldNotBeBlank", null))
+            p(new DefaultDto().setActive(false), arr(cm("isActive.shouldBeTrue", null))),
+            p(new DefaultDto().setFailed(true), arr(cm("isFailed.shouldBeFalse", null))),
+            p(new DefaultDto().setDecimalMax(BigDecimal.valueOf(14)), arr(cm("decimalMax.exceedsMax", null))),
+            p(new DefaultDto().setDecimalMin(BigDecimal.ONE), arr(cm("decimalMin.lessThanMin", null))),
+            p(new DefaultDto().setUserEmail("email"), arr(cm("userEmail.invalidEmail", null))),
+            p(new DefaultDto().setWrapper(new Wrapper().setName("")), arr(cm("wrapper.name.shouldNotBeBlank", null)))
         );
     }
 
     private CodedMessage cm(String code, String message) {
         return new CodedMessage(code, message, emptyList());
+    }
+
+    private CodedMessage[] arr(CodedMessage... objs) {
+        return objs;
     }
 }

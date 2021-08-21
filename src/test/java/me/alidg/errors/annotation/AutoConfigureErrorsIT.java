@@ -2,7 +2,7 @@ package me.alidg.errors.annotation;
 
 import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.conf.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.ErrorWebFluxAutoConfiguration;

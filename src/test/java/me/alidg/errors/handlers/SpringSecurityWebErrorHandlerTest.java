@@ -1,10 +1,9 @@
 package me.alidg.errors.handlers;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.HandledException;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.*;
@@ -21,7 +20,7 @@ import static org.springframework.http.HttpStatus.*;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SpringSecurityWebErrorHandlerTest {
 
     /**
@@ -29,15 +28,15 @@ public class SpringSecurityWebErrorHandlerTest {
      */
     private final SpringSecurityWebErrorHandler handler = new SpringSecurityWebErrorHandler();
 
-    @Test
-    @Parameters(method = "provideParamsForCanHandle")
+    @ParameterizedTest
+    @MethodSource("provideParamsForCanHandle")
     public void canHandle_CanOnlyHandleSpringSecurityRelatedExceptions(Throwable exception, boolean expected) {
         assertThat(handler.canHandle(exception))
             .isEqualTo(expected);
     }
 
-    @Test
-    @Parameters(method = "provideParamsForHandle")
+    @ParameterizedTest
+    @MethodSource("provideParamsForHandle")
     public void handle_ShouldHandleSecurityRelatedExceptionsProperly(Throwable exception,
                                                                      String expectedErrorCode,
                                                                      HttpStatus expectedStatusCode) {

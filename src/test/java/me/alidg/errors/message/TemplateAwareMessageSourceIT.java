@@ -1,10 +1,9 @@
 package me.alidg.errors.message;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.Argument;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -25,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author zarebski-m
  */
-@RunWith(JUnitParamsRunner.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TemplateAwareMessageSourceIT {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
@@ -35,8 +34,8 @@ public class TemplateAwareMessageSourceIT {
         return p(template, arguments, expectedMessage);
     }
 
-    @Test
-    @Parameters(method = "provideParamsForNamedArguments")
+    @ParameterizedTest
+    @MethodSource("provideParamsForNamedArguments")
     public void messageInterpolation_WithNamedArguments(String code,
                                                         List<Argument> arguments,
                                                         String expectedMessage) {

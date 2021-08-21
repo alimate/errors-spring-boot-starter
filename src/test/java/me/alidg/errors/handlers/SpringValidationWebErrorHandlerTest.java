@@ -1,11 +1,11 @@
 package me.alidg.errors.handlers;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.*;
 import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SpringValidationWebErrorHandlerTest {
 
     /**
@@ -50,15 +50,15 @@ public class SpringValidationWebErrorHandlerTest {
         Validation.buildDefaultValidatorFactory().getValidator()
     );
 
-    @Test
-    @Parameters(method = "provideParamsForCanHandle")
+    @ParameterizedTest
+    @MethodSource("provideParamsForCanHandle")
     public void canHandle_ShouldOnlyReturnTrueForSpringSpecificValidationErrors(Throwable exception, boolean expected) {
         assertThat(handler.canHandle(exception))
             .isEqualTo(expected);
     }
 
-    @Test
-    @Parameters(method = "provideParamsForHandle")
+    @ParameterizedTest
+    @MethodSource("provideParamsForHandle")
     public void handle_ShouldHandleTheValidationErrorsProperly(Object toValidate,
                                                                Set<String> errorCodes,
                                                                Map<String, List<Argument>> args) {

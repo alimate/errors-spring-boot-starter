@@ -1,11 +1,9 @@
 package me.alidg.errors.handlers;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
 
 import static java.util.Collections.singleton;
@@ -19,7 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
 public class LastResortWebErrorHandlerTest {
 
     /**
@@ -27,15 +24,15 @@ public class LastResortWebErrorHandlerTest {
      */
     private final WebErrorHandler handler = INSTANCE;
 
-    @Test
-    @Parameters(method = "provideParams")
+    @ParameterizedTest
+    @MethodSource("provideParams")
     public void canHandle_AlwaysReturnsFalse(Throwable exception) {
         assertThat(handler.canHandle(exception))
             .isFalse();
     }
 
-    @Test
-    @Parameters(method = "provideParams")
+    @ParameterizedTest
+    @MethodSource("provideParams")
     public void handle_AlwaysReturn500InternalErrorWithStaticErrorCode(Throwable exception) {
         HandledException handled = handler.handle(exception);
 
@@ -44,7 +41,7 @@ public class LastResortWebErrorHandlerTest {
         assertThat(handled.getArguments()).isEmpty();
     }
 
-    private Object[] provideParams() {
+    private static Object[] provideParams() {
         return p(null, new RuntimeException(), new OutOfMemoryError());
     }
 }
