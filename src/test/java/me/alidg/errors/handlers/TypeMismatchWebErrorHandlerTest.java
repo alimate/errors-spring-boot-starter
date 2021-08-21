@@ -1,12 +1,11 @@
 package me.alidg.errors.handlers;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 
@@ -24,7 +23,7 @@ import static org.mockito.Mockito.*;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TypeMismatchWebErrorHandlerTest {
 
     /**
@@ -32,15 +31,15 @@ public class TypeMismatchWebErrorHandlerTest {
      */
     private final WebErrorHandler errorHandler = new TypeMismatchWebErrorHandler();
 
-    @Test
-    @Parameters(method = "paramsForCanHandle")
+    @ParameterizedTest
+    @MethodSource("paramsForCanHandle")
     public void canHandle_OnlyReturnsTrueForTypeMismatches(Exception ex, boolean expected) {
         assertThat(errorHandler.canHandle(ex))
             .isEqualTo(expected);
     }
 
-    @Test
-    @Parameters(method = "paramsForHandle")
+    @ParameterizedTest
+    @MethodSource("paramsForHandle")
     public void handle_ShouldHandleTypeMismatchExceptionsAppropriately(TypeMismatchException ex, List<Argument> arguments) {
         HandledException handledException = errorHandler.handle(ex);
 

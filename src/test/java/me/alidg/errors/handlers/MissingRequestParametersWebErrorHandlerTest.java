@@ -1,11 +1,10 @@
 package me.alidg.errors.handlers;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MissingMatrixVariableException;
@@ -31,7 +30,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MissingRequestParametersWebErrorHandlerTest {
 
     /**
@@ -39,15 +38,15 @@ public class MissingRequestParametersWebErrorHandlerTest {
      */
     private final WebErrorHandler handler = new MissingRequestParametersWebErrorHandler();
 
-    @Test
-    @Parameters(method = "provideParamsForCanHandle")
+    @ParameterizedTest
+    @MethodSource("provideParamsForCanHandle")
     public void canHandle_ShouldReturnTrueForMissingRequestParamsErrors(Throwable exception, boolean expected) {
         assertThat(handler.canHandle(exception))
             .isEqualTo(expected);
     }
 
-    @Test
-    @Parameters(method = "provideParamsForHandle")
+    @ParameterizedTest
+    @MethodSource("provideParamsForHandle")
     public void handle_ShouldHandleMissingRequestParamsErrorsProperly(Throwable exception,
                                                                       String expectedCode,
                                                                       HttpStatus expectedStatus,

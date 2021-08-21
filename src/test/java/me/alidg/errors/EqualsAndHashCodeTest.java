@@ -1,9 +1,7 @@
 package me.alidg.errors;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -14,11 +12,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Generic unit test that checks equals and hashCode contract.
  */
-@RunWith(JUnitParamsRunner.class)
 public class EqualsAndHashCodeTest {
 
-    @Test
-    @Parameters(method = "provideParams")
+    @ParameterizedTest
+    @MethodSource("provideParams")
     public void testEqualsAndHashCode(Object obj, Object equalObj, Object notEqualObj) {
         assertThat(obj).isNotEqualTo(null);
         assertThat(obj).isEqualTo(obj);
@@ -28,7 +25,7 @@ public class EqualsAndHashCodeTest {
         assertThat(obj.hashCode()).isEqualTo(equalObj.hashCode());
     }
 
-    private Object[] provideParams() {
+    private static Object[] provideParams() {
         return p(
             p(arg("name", "value"), arg("name", "value"), arg("differentName", "differentValue")),
             p(

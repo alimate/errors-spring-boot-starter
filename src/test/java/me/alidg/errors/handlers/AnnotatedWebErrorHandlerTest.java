@@ -1,13 +1,11 @@
 package me.alidg.errors.handlers;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeAsArg;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
 
 import java.util.Collections;
@@ -24,7 +22,6 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
 public class AnnotatedWebErrorHandlerTest {
 
     /**
@@ -32,16 +29,16 @@ public class AnnotatedWebErrorHandlerTest {
      */
     private final AnnotatedWebErrorHandler handler = new AnnotatedWebErrorHandler();
 
-    @Test
-    @Parameters(method = "provideParamsForCanHandle")
+    @ParameterizedTest
+    @MethodSource("provideParamsForCanHandle")
     public void canHandle_ShouldOnlyReturnTrueForExceptionsAnnotatedWithExceptionMapping(Exception exception,
                                                                                          boolean expected) {
         assertThat(handler.canHandle(exception))
             .isEqualTo(expected);
     }
 
-    @Test
-    @Parameters(method = "provideParamsForHandle")
+    @ParameterizedTest
+    @MethodSource("provideParamsForHandle")
     public void handle_ShouldProperlyHandleTheGivenException(Exception exception,
                                                              String code,
                                                              HttpStatus status,
@@ -55,7 +52,7 @@ public class AnnotatedWebErrorHandlerTest {
         assertThat((handled.getArguments().get(code))).isEqualTo(args);
     }
 
-    private Object[] provideParamsForCanHandle() {
+    private static Object[] provideParamsForCanHandle() {
         return p(
             p(null, false),
             p(new NotAnnotated(), false),
@@ -64,7 +61,7 @@ public class AnnotatedWebErrorHandlerTest {
         );
     }
 
-    private Object[] provideParamsForHandle() {
+    private static Object[] provideParamsForHandle() {
         return p(
             p(new Annotated("f", "s"), "annotated", BAD_REQUEST, asList(
                 arg("staticExposure", "42"),
@@ -80,15 +77,15 @@ public class AnnotatedWebErrorHandlerTest {
 
     // Auxiliary exception definitions!
 
-    private class NotAnnotated extends RuntimeException {
+    private static class NotAnnotated extends RuntimeException {
     }
 
     @ExceptionMapping(statusCode = BAD_REQUEST, errorCode = "no_exposed")
-    private class NoExposedArgs extends RuntimeException {
+    private static class NoExposedArgs extends RuntimeException {
     }
 
     @ExceptionMapping(statusCode = BAD_REQUEST, errorCode = "annotated")
-    private class Annotated extends RuntimeException {
+    private static class Annotated extends RuntimeException {
 
         @ExposeAsArg(value = -1, name = "some_value")
         private final String someValue;
@@ -119,7 +116,7 @@ public class AnnotatedWebErrorHandlerTest {
         }
     }
 
-    private class Inherited extends Annotated {
+    private static class Inherited extends Annotated {
         private Inherited() {
             super("f", "s");
         }

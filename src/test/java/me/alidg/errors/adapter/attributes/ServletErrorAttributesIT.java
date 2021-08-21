@@ -1,19 +1,14 @@
 package me.alidg.errors.adapter.attributes;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.Argument;
 import me.alidg.errors.servlet.ServletApplication;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.test.context.junit4.rules.SpringClassRule;
-import org.springframework.test.context.junit4.rules.SpringMethodRule;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -33,24 +28,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Ali Dehghani
  */
 @AutoConfigureMockMvc
-@RunWith(JUnitParamsRunner.class)
 @SpringBootTest(classes = ServletApplication.class, webEnvironment = RANDOM_PORT)
 public class ServletErrorAttributesIT {
-
-    @ClassRule
-    public static final SpringClassRule springClassRule = new SpringClassRule();
-
-    @Rule
-    public final SpringMethodRule springMethodRule = new SpringMethodRule();
-
     /**
      * To perform web requests.
      */
     @Autowired
     private MockMvc mvc;
 
-    @Test
-    @Parameters(method = "dataForDifferentErrorScenarios")
+    @ParameterizedTest
+    @MethodSource("dataForDifferentErrorScenarios")
     public void getErrorAttributes_ShouldExtractAndHandlesErrorsProperly(Throwable exception,
                                                                          int statusCode,
                                                                          int expectedStatusCode,
@@ -83,7 +70,7 @@ public class ServletErrorAttributesIT {
             .andExpect(jsonPath("$.errors[0].arguments.path").value("unknown"));
     }
 
-    private Object[] dataForDifferentErrorScenarios() {
+    private static Object[] dataForDifferentErrorScenarios() {
         return p(
             p(new AccessDeniedException(""), 0, 403, ACCESS_DENIED, null),
             p(new AccessDeniedException(""), 403, 403, ACCESS_DENIED, null),

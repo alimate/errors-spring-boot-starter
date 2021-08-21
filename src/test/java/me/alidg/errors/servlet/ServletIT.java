@@ -2,18 +2,16 @@ package me.alidg.errors.servlet;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.HttpError;
 import me.alidg.errors.WebErrorHandlerPostProcessor;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
 import me.alidg.errors.handlers.MultipartWebErrorHandler;
 import me.alidg.errors.servlet.ServletController.DefaultDto;
 import me.alidg.errors.servlet.ServletController.Wrapper;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -24,8 +22,6 @@ import org.springframework.http.*;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.test.context.junit4.rules.SpringClassRule;
-import org.springframework.test.context.junit4.rules.SpringMethodRule;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -54,16 +50,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @AutoConfigureMockMvc
-@RunWith(JUnitParamsRunner.class)
 @SpringBootTest(classes = ServletApplication.class, webEnvironment = RANDOM_PORT)
 public class ServletIT {
-
-    @ClassRule
-    public static final SpringClassRule springClassRule = new SpringClassRule();
-
-    @Rule
-    public final SpringMethodRule springMethodRule = new SpringMethodRule();
 
     @Autowired
     private MockMvc mvc;
@@ -95,8 +85,8 @@ public class ServletIT {
             .andExpect(jsonPath("$.errors[0].arguments.f").value("10"));
     }
 
-    @Test
-    @Parameters(method = "provideInvalidBody")
+    @ParameterizedTest
+    @MethodSource("provideInvalidBody")
     public void controllerAdvice_ShouldHandleValidationErrorsProperly(
         Object body,
         Locale locale,
@@ -115,8 +105,8 @@ public class ServletIT {
             .andExpect(jsonPath("$.errors[0].arguments").exists());
     }
 
-    @Test
-    @Parameters(method = "provideDefaultInvalidBody")
+    @ParameterizedTest
+    @MethodSource("provideDefaultInvalidBody")
     public void controllerAdvice_ShouldHandleDefaultValidationErrorsProperly(
         Object body,
         HttpError.CodedMessage... expectedErrors) throws Exception {
@@ -358,35 +348,41 @@ public class ServletIT {
 
     private Object[] provideInvalidBody() {
         return p(
-            p(Collections.emptyMap(), null, cm("text.required", "The text is required")),
-            p(dto(null, 10, "code"), null, cm("text.required", "The text is required")),
-            p(dto("", 10, "code"), null, cm("text.required", "The text is required")),
-            p(dto("", 10, "code"), new Locale("fa", "IR"), cm("text.required", "متن اجباری است")),
-            p(dto("text", -1, "code"), null, cm("number.min", "The min is 0")),
-            p(dto("text", 0), null, cm("range.limit", "Between 1 and 2")),
+            p(Collections.emptyMap(), null, arr(cm("text.required", "The text is required"))),
+            p(dto(null, 10, "code"), null, arr(cm("text.required", "The text is required"))),
+            p(dto("", 10, "code"), null, arr(cm("text.required", "The text is required"))),
+            p(dto("", 10, "code"), new Locale("fa", "IR"), arr(cm("text.required", "متن اجباری است"))),
+            p(dto("text", -1, "code"), null, arr(cm("number.min", "The min is 0"))),
+            p(dto("text", 0), null, arr(cm("range.limit", "Between 1 and 2"))),
             p(
                 dto("", -1),
                 null,
-                cm("range.limit", "Between 1 and 2"),
-                cm("number.min", "The min is 0"),
-                cm("text.required", "The text is required")
+                arr(
+                    cm("range.limit", "Between 1 and 2"),
+                    cm("number.min", "The min is 0"),
+                    cm("text.required", "The text is required")
+                )
             )
         );
     }
 
     private Object[] provideDefaultInvalidBody() {
         return p(
-            p(new DefaultDto().setActive(false), cm("isActive.shouldBeTrue", null)),
-            p(new DefaultDto().setFailed(true), cm("isFailed.shouldBeFalse", null)),
-            p(new DefaultDto().setDecimalMax(BigDecimal.valueOf(14)), cm("decimalMax.exceedsMax", null)),
-            p(new DefaultDto().setDecimalMin(BigDecimal.ONE), cm("decimalMin.lessThanMin", null)),
-            p(new DefaultDto().setUserEmail("email"), cm("userEmail.invalidEmail", null)),
-            p(new DefaultDto().setWrapper(new Wrapper().setName("")), cm("wrapper.name.shouldNotBeBlank", null))
+            p(new DefaultDto().setActive(false), arr(cm("isActive.shouldBeTrue", null))),
+            p(new DefaultDto().setFailed(true), arr(cm("isFailed.shouldBeFalse", null))),
+            p(new DefaultDto().setDecimalMax(BigDecimal.valueOf(14)), arr(cm("decimalMax.exceedsMax", null))),
+            p(new DefaultDto().setDecimalMin(BigDecimal.ONE), arr(cm("decimalMin.lessThanMin", null))),
+            p(new DefaultDto().setUserEmail("email"), arr(cm("userEmail.invalidEmail", null))),
+            p(new DefaultDto().setWrapper(new Wrapper().setName("")), arr(cm("wrapper.name.shouldNotBeBlank", null)))
         );
     }
 
     private HttpError.CodedMessage cm(String code, String message) {
         return new HttpError.CodedMessage(code, message, emptyList());
+    }
+
+    private HttpError.CodedMessage[] arr(HttpError.CodedMessage... objs) {
+        return objs;
     }
 
     @JsonAutoDetect(fieldVisibility = ANY)
