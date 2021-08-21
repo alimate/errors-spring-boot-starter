@@ -1,11 +1,10 @@
 package me.alidg.errors.mvc;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static me.alidg.Params.p;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -16,11 +15,11 @@ import static org.mockito.Mockito.mock;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ErrorsControllerAdviceTest {
 
-    @Test
-    @Parameters(method = "provideParamsForConstructor")
+    @ParameterizedTest
+    @MethodSource("provideParamsForConstructor")
     public void constructor_ShouldEnforceItsPreconditions(WebErrorHandlers handlers,
                                                           HttpErrorAttributesAdapter adapter,
                                                           String message) {

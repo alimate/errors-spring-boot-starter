@@ -107,7 +107,7 @@ public class ServletErrorsAutoConfiguration {
         /**
          * Since our custom {@link ErrorAttributes} implementation is storing the HTTP status code inside
          * the HTTP request, we should call the {@link #getStatus(HttpServletRequest)} method after the
-         * call to {@link #getErrorAttributes(HttpServletRequest, boolean)}.
+         * call to {@link #getErrorAttributeOptions(HttpServletRequest, org.springframework.http.MediaType)}.
          *
          * @param request The current HTTP request.
          * @return Returns the HTTP response.
@@ -115,7 +115,7 @@ public class ServletErrorsAutoConfiguration {
         @Override
         @RequestMapping
         public ResponseEntity<Map<String, Object>> error(HttpServletRequest request) {
-            Map<String, Object> body = getErrorAttributes(request, isIncludeStackTrace(request, ALL));
+            Map<String, Object> body = getErrorAttributes(request, getErrorAttributeOptions(request, ALL));
             HttpStatus status = getStatus(request);
             return new ResponseEntity<>(body, status);
         }

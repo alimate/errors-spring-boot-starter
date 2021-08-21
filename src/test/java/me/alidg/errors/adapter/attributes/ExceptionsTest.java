@@ -1,9 +1,7 @@
 package me.alidg.errors.adapter.attributes;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,11 +14,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
 public class ExceptionsTest {
 
-    @Test
-    @Parameters(method = "provideParams")
+    @ParameterizedTest
+    @MethodSource("provideParams")
     public void refineUnknownException_ShouldMapTheStatusCodeToExceptionAsExpected(Object code, String expected) {
         Map<String, Object> attributes = null;
         if (code != null) {
@@ -28,12 +25,11 @@ public class ExceptionsTest {
             attributes.put("status", code);
         }
 
-
         assertThat(Exceptions.refineUnknownException(attributes).getClass().getSimpleName())
             .isEqualTo(expected);
     }
 
-    private Object[] provideParams() {
+    private static Object[] provideParams() {
         return p(
             p("dqd", "IllegalStateException"),
             p(null, "IllegalStateException"),

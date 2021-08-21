@@ -3,6 +3,7 @@ package me.alidg.errors.adapter.attributes;
 import me.alidg.errors.HttpError;
 import me.alidg.errors.WebErrorHandlers;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
+import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.reactive.error.DefaultErrorAttributes;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
@@ -42,7 +43,6 @@ public class ReactiveErrorAttributes extends DefaultErrorAttributes {
      */
     public ReactiveErrorAttributes(WebErrorHandlers webErrorHandlers,
                                    HttpErrorAttributesAdapter httpErrorAttributesAdapter) {
-        super(true);
         this.webErrorHandlers = requireNonNull(webErrorHandlers, "Web error handlers is required");
         this.httpErrorAttributesAdapter = requireNonNull(httpErrorAttributesAdapter, "Adapter is required");
     }
@@ -50,14 +50,10 @@ public class ReactiveErrorAttributes extends DefaultErrorAttributes {
     /**
      * Handles the exception by delegating it to the {@link #webErrorHandlers} and then adapting
      * the representation.
-     *
-     * @param request           The source request.
-     * @param includeStackTrace whether to include the error stacktrace information.
-     * @return A map of error attributes
      */
     @Override
-    public Map<String, Object> getErrorAttributes(ServerRequest request, boolean includeStackTrace) {
-        Map<String, Object> attributes = super.getErrorAttributes(request, includeStackTrace);
+    public Map<String, Object> getErrorAttributes(ServerRequest request, ErrorAttributeOptions options) {
+        Map<String, Object> attributes = super.getErrorAttributes(request, options);
         Throwable exception = getError(request);
         if (exception == null || isNotFoundException(exception))
             exception = Exceptions.refineUnknownException(attributes);

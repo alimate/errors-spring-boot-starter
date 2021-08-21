@@ -1,15 +1,14 @@
 package me.alidg.errors;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.HttpError.CodedMessage;
 import me.alidg.errors.annotation.ExceptionMapping;
 import me.alidg.errors.annotation.ExposeArg;
 import me.alidg.errors.annotation.ExposeAsArg;
 import me.alidg.errors.conf.ErrorsAutoConfiguration;
 import me.alidg.errors.handlers.LastResortWebErrorHandler;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.context.MessageSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
@@ -49,7 +48,6 @@ import static org.mockito.Mockito.verify;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
 public class WebErrorHandlersIT {
 
     private static final Locale IRAN_LOCALE = new Locale("fa", "IR");
@@ -62,8 +60,8 @@ public class WebErrorHandlersIT {
 
         ));
 
-    @Test
-    @Parameters(method = "provideValidationParams")
+    @ParameterizedTest
+    @MethodSource("provideValidationParams")
     public void validationException_ShouldBeHandledProperly(Object pojo, Locale locale, CodedMessage... codedMessages) {
         contextRunner.run(ctx -> {
             WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
@@ -155,8 +153,8 @@ public class WebErrorHandlersIT {
         });
     }
 
-    @Test
-    @Parameters(method = "provideParamsForUnknownErrors")
+    @ParameterizedTest
+    @MethodSource("provideParamsForUnknownErrors")
     public void unknownErrors_ShouldBeHandledProperly(Throwable exception) {
         contextRunner.run(ctx -> {
             WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
@@ -169,8 +167,8 @@ public class WebErrorHandlersIT {
         });
     }
 
-    @Test
-    @Parameters(method = "provideParamsForRefined")
+    @ParameterizedTest
+    @MethodSource("provideParamsForRefined")
     public void refiner_ShouldRefineExceptionsBeforeHandlingThem(Throwable exception,
                                                                  HttpStatus expectedStatus,
                                                                  CodedMessage... codedMessages) {
@@ -186,8 +184,8 @@ public class WebErrorHandlersIT {
         });
     }
 
-    @Test
-    @Parameters(method = "provideEmptyViolations")
+    @ParameterizedTest
+    @MethodSource("provideEmptyViolations")
     public void constraintViolation_WithNoViolation_ShouldBeHandledByTheDefaultHandler(Exception exception) {
         contextRunner.run(ctx -> {
             WebErrorHandlers errorHandlers = ctx.getBean(WebErrorHandlers.class);
@@ -201,8 +199,8 @@ public class WebErrorHandlersIT {
         });
     }
 
-    @Test
-    @Parameters(method = "provideValidationParams")
+    @ParameterizedTest
+    @MethodSource("provideValidationParams")
     public void constraintViolationException_ShouldBeHandledProperly(Object pojo, Locale locale, CodedMessage... codedMessages) {
         contextRunner.run(ctx -> {
             HttpError error;
@@ -265,118 +263,148 @@ public class WebErrorHandlersIT {
         ctx.getBeansOfType(WebErrorHandlerPostProcessor.class).values().forEach(p -> verify(p).process(any()));
     }
 
-    private Object[] provideParamsForUnknownErrors() {
+    private static Object[] provideParamsForUnknownErrors() {
         return p(null, new IllegalArgumentException(), new OutOfMemoryError());
     }
 
-    private Object[] provideValidationParams() {
+    private static Object[] provideValidationParams() {
         return p(
             // Invalid text
             p(
                 pojo("", 10, "a"), null,
-                cm("text.required", "The text is required",
-                    arg("invalid", ""), arg("property", "text"))
+                arr(
+                    cm("text.required", "The text is required",
+                        arg("invalid", ""), arg("property", "text"))
+                )
             ),
             p(
                 pojo("", 10, "a"), Locale.CANADA,
-                cm("text.required", "The text is required",
-                    arg("invalid", ""), arg("property", "text"))
+                arr(
+                    cm("text.required", "The text is required",
+                        arg("invalid", ""), arg("property", "text"))
+                )
             ),
             p(
                 pojo("", 10, "a"), IRAN_LOCALE,
-                cm("text.required", "متن اجباری است",
-                    arg("invalid", ""), arg("property", "text"))
+                arr(
+                    cm("text.required", "متن اجباری است",
+                        arg("invalid", ""), arg("property", "text"))
+                )
             ),
 
             // Invalid number: min
             p(
                 pojo("t", -1, "a"), null,
-                cm("number.min", "The min is 0",
-                    arg("value", 0L), arg("invalid", -1), arg("property", "number"))
+                arr(
+                    cm("number.min", "The min is 0",
+                        arg("value", 0L), arg("invalid", -1), arg("property", "number"))
+                )
             ),
             p(
                 pojo("t", -1, "a"), Locale.GERMANY,
-                cm("number.min", "The min is 0",
-                    arg("value", 0L), arg("invalid", -1), arg("property", "number"))
+                arr(
+                    cm("number.min", "The min is 0",
+                        arg("value", 0L), arg("invalid", -1), arg("property", "number"))
+                )
             ),
 
             // Invalid number: max
             p(
                 pojo("t", 11, "a"), null,
-                cm("number.max", null,
-                    arg("value", 10L), arg("invalid", 11), arg("property", "number"))
+                arr(
+                    cm("number.max", null,
+                        arg("value", 10L), arg("invalid", 11), arg("property", "number"))
+                )
             ),
             p(
                 pojo("t", 11, "a"), Locale.GERMANY,
-                cm("number.max", null,
-                    arg("value", 10L), arg("invalid", 11), arg("property", "number"))
+                arr(
+                    cm("number.max", null,
+                        arg("value", 10L), arg("invalid", 11), arg("property", "number"))
+                )
             ),
             p(
                 pojo("t", 11, "a"), IRAN_LOCALE,
-                cm("number.max", null,
-                    arg("value", 10L), arg("invalid", 11), arg("property", "number"))
+                arr(
+                    cm("number.max", null,
+                        arg("value", 10L), arg("invalid", 11), arg("property", "number"))
+                )
             ),
 
             // Invalid range
             p(
                 pojo("t", 0), null,
-                cm("range.limit", "Between 1 and 3",
-                    arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range"))
+                arr(
+                    cm("range.limit", "Between 1 and 3",
+                        arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range"))
+                )
             ),
             p(
                 pojo("t", 0), Locale.GERMANY,
-                cm("range.limit", "Between 1 and 3",
-                    arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range"))
+                arr(
+                    cm("range.limit", "Between 1 and 3",
+                        arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range"))
+                )
             ),
 
             // Mixed
             p(
                 pojo("", 11), null,
-                cm("range.limit", "Between 1 and 3",
-                    arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range")),
-                cm("number.max", null,
-                    arg("value", 10L), arg("invalid", 11), arg("property", "number")),
-                cm("text.required", "The text is required",
-                    arg("invalid", ""), arg("property", "text"))
+                arr(
+                    cm("range.limit", "Between 1 and 3",
+                        arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range")),
+                    cm("number.max", null,
+                        arg("value", 10L), arg("invalid", 11), arg("property", "number")),
+                    cm("text.required", "The text is required",
+                        arg("invalid", ""), arg("property", "text"))
+                )
             ),
             p(
                 pojo("", 11), Locale.CANADA,
-                cm("range.limit", "Between 1 and 3",
-                    arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range")),
-                cm("number.max", null,
-                    arg("value", 10L), arg("invalid", 11), arg("property", "number")),
-                cm("text.required", "The text is required",
-                    arg("invalid", ""), arg("property", "text"))
+                arr(
+                    cm("range.limit", "Between 1 and 3",
+                        arg("max", 3), arg("min", 1), arg("invalid", emptyList()), arg("property", "range")),
+                    cm("number.max", null,
+                        arg("value", 10L), arg("invalid", 11), arg("property", "number")),
+                    cm("text.required", "The text is required",
+                        arg("invalid", ""), arg("property", "text"))
+                )
             )
         );
     }
 
-    private Object[] provideParamsForRefined() {
+    private static Object[] provideParamsForRefined() {
         return p(
             p(
                 new SymptomException(new SomeException(10, 11)),
                 HttpStatus.UNPROCESSABLE_ENTITY,
-                cm("invalid_params", "Params are: 10, 11 and 42",
-                    arg("min", 10), arg("max", 11), arg("namedAnswer", "42"), arg("notUsed", "123"))
+                arr(
+                    cm("invalid_params", "Params are: 10, 11 and 42",
+                        arg("min", 10), arg("max", 11), arg("namedAnswer", "42"), arg("notUsed", "123"))
+                )
             ),
             p(
-                new SymptomException(null), HttpStatus.INTERNAL_SERVER_ERROR, cm("unknown_error", null)
+                new SymptomException(null), HttpStatus.INTERNAL_SERVER_ERROR, arr(cm("unknown_error", null))
             ),
             p(
-                new IllegalArgumentException(), HttpStatus.INTERNAL_SERVER_ERROR, cm("unknown_error", null)
+                new IllegalArgumentException(), HttpStatus.INTERNAL_SERVER_ERROR, arr(cm("unknown_error", null))
             )
         );
     }
 
-    private Object[] provideEmptyViolations() {
+    private static Object[] provideEmptyViolations() {
         return p(
             new ConstraintViolationException(null),
             new ConstraintViolationException(Collections.emptySet())
         );
     }
 
-    private CodedMessage cm(String code, String message, Argument... arguments) {
+    private static CodedMessage cm(String code, String message, Argument... arguments) {
         return new CodedMessage(code, message, Arrays.asList(arguments));
+    }
+
+    private static CodedMessage[] arr(CodedMessage... objs) {
+        return objs;
     }
 
     static class Pojo {

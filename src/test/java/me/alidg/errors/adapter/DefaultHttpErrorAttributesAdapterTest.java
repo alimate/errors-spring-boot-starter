@@ -1,13 +1,12 @@
 package me.alidg.errors.adapter;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.Argument;
 import me.alidg.errors.HttpError;
 import me.alidg.errors.conf.ErrorsProperties;
 import me.alidg.errors.conf.ErrorsProperties.ArgumentExposure;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -25,7 +24,6 @@ import static org.assertj.core.api.Assertions.entry;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
 public class DefaultHttpErrorAttributesAdapterTest {
 
     @Test
@@ -61,8 +59,8 @@ public class DefaultHttpErrorAttributesAdapterTest {
         assertThat(adapted).contains(entry("fingerprint", "fingerprint"));
     }
 
-    @Test
-    @Parameters(method = "provideExposureParams")
+    @ParameterizedTest
+    @MethodSource("provideExposureParams")
     @SuppressWarnings("unchecked")
     public void adapt_ShouldAdaptTheHttpErrorWithArgumentsToAMapProperly(
         ArgumentExposure exposure,
@@ -83,7 +81,7 @@ public class DefaultHttpErrorAttributesAdapterTest {
         assertThat(errors.get(0).containsKey("arguments")).isEqualTo(parametersFieldPresent);
     }
 
-    private Object[] provideExposureParams() {
+    private static Object[] provideExposureParams() {
         return p(
             p(ArgumentExposure.NEVER, emptyList(), false),
             p(ArgumentExposure.NEVER, singletonList(arg("name", "value")), false),

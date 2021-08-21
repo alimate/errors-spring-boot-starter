@@ -1,11 +1,10 @@
 package me.alidg.errors.handlers;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpMethod;
@@ -32,7 +31,7 @@ import static org.springframework.http.MediaType.*;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ResponseStatusWebErrorHandlerTest {
 
     /**
@@ -40,15 +39,15 @@ public class ResponseStatusWebErrorHandlerTest {
      */
     private final ResponseStatusWebErrorHandler handler = new ResponseStatusWebErrorHandler();
 
-    @Test
-    @Parameters(method = "paramsForCanHandle")
+    @ParameterizedTest
+    @MethodSource("paramsForCanHandle")
     public void canHandle_ShouldReturnTrueForResponseStatusExceptions(Exception e, boolean expected) {
         assertThat(handler.canHandle(e))
             .isEqualTo(expected);
     }
 
-    @Test
-    @Parameters(method = "paramsForHandle")
+    @ParameterizedTest
+    @MethodSource("paramsForHandle")
     public void handle_ShouldHandleResponseStatusExceptionsAppropriately(Exception e,
                                                                          String expectedErrorCode,
                                                                          HttpStatus expectedStatus,

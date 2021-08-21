@@ -1,9 +1,7 @@
 package me.alidg.errors;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
 
 import java.util.HashSet;
@@ -23,11 +21,10 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
 public class HandledExceptionTest {
 
-    @Test
-    @Parameters(method = "provideParamsForPrimary")
+    @ParameterizedTest
+    @MethodSource("provideParamsForPrimary")
     public void primaryConstructor_ShouldEnforceItsPreconditions(Set<String> errorCodes,
                                                                  HttpStatus status,
                                                                  Class<? extends Throwable> expected,
@@ -37,8 +34,8 @@ public class HandledExceptionTest {
             .hasMessage(message);
     }
 
-    @Test
-    @Parameters(method = "provideParamsForSecondary")
+    @ParameterizedTest
+    @MethodSource( "provideParamsForSecondary")
     public void secondConstructor_ShouldEnforceItsPreconditions(String errorCode,
                                                                 HttpStatus status,
                                                                 Class<? extends Throwable> expected,
@@ -48,8 +45,8 @@ public class HandledExceptionTest {
             .hasMessage(message);
     }
 
-    @Test
-    @Parameters(method = "provideMaps")
+    @ParameterizedTest
+    @MethodSource( "provideMaps")
     public void constructors_ShouldSetNullArgumentsAsEmptyMaps(Map<String, List<Argument>> provided,
                                                                Map<?, ?> expected) {
         assertThat(new HandledException(singleton("error"), BAD_REQUEST, provided).getArguments())
@@ -59,7 +56,7 @@ public class HandledExceptionTest {
             .isEqualTo(expected);
     }
 
-    private Object[] provideParamsForPrimary() {
+    private static Object[] provideParamsForPrimary() {
         return p(
             p(null, null, NullPointerException.class, "Error codes is required"),
             p(new HashSet<>(asList("", "", null)), null, NullPointerException.class, "Status code is required"),
@@ -68,7 +65,7 @@ public class HandledExceptionTest {
         );
     }
 
-    private Object[] provideParamsForSecondary() {
+    private static Object[] provideParamsForSecondary() {
         return p(
             p(null, null, NullPointerException.class, "Status code is required"),
             p("error", null, NullPointerException.class, "Status code is required"),
@@ -76,7 +73,7 @@ public class HandledExceptionTest {
         );
     }
 
-    private Object[] provideMaps() {
+    private static Object[] provideMaps() {
         return p(
             p(null, emptyMap()),
             p(singletonMap("key", emptyList()), singletonMap("key", emptyList()))

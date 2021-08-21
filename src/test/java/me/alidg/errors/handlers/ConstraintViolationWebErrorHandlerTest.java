@@ -1,12 +1,11 @@
 package me.alidg.errors.handlers;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.Argument;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.HttpStatus;
 
 import javax.validation.ConstraintViolation;
@@ -33,7 +32,7 @@ import static org.mockito.Mockito.mock;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ConstraintViolationWebErrorHandlerTest {
 
     /**
@@ -46,15 +45,15 @@ public class ConstraintViolationWebErrorHandlerTest {
      */
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
-    @Test
-    @Parameters(method = "provideParamsForCanHandle")
+    @ParameterizedTest
+    @MethodSource("provideParamsForCanHandle")
     public void canHandle_ShouldOnlyReturnTrueForViolationExceptionsWithAtLeastOneViolation(Exception exception,
                                                                                             boolean expected) {
         assertThat(handler.canHandle(exception)).isEqualTo(expected);
     }
 
-    @Test
-    @Parameters(method = "provideParamsForHandle")
+    @ParameterizedTest
+    @MethodSource("provideParamsForHandle")
     public void handle_ShouldHandleViolationExceptionsProperly(ConstraintViolationException exception,
                                                                Set<String> errorCodes,
                                                                Map<String, List<Argument>> arguments) {

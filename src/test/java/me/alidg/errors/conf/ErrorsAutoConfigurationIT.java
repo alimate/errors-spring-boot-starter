@@ -1,7 +1,5 @@
 package me.alidg.errors.conf;
 
-import junitparams.JUnitParamsRunner;
-import junitparams.Parameters;
 import me.alidg.errors.HandledException;
 import me.alidg.errors.WebErrorHandler;
 import me.alidg.errors.WebErrorHandlers;
@@ -9,8 +7,9 @@ import me.alidg.errors.adapter.DefaultHttpErrorAttributesAdapter;
 import me.alidg.errors.adapter.HttpErrorAttributesAdapter;
 import me.alidg.errors.conf.ErrorsProperties.ArgumentExposure;
 import me.alidg.errors.handlers.*;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -34,7 +33,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Ali Dehghani
  */
-@RunWith(JUnitParamsRunner.class)
 public class ErrorsAutoConfigurationIT {
 
     private final WebApplicationContextRunner contextRunner = new WebApplicationContextRunner()
@@ -178,8 +176,8 @@ public class ErrorsAutoConfigurationIT {
         });
     }
 
-    @Test
-    @Parameters(method = "provideExposures")
+    @ParameterizedTest
+    @MethodSource("provideExposures")
     public void withProperties_ErrorsPropertiesBeanIsConfigurable(String value, ArgumentExposure expected) {
         contextRunner.withPropertyValues("errors.expose-arguments=" + value).run(ctx -> {
             ErrorsProperties properties = ctx.getBean(ErrorsProperties.class);
@@ -189,7 +187,7 @@ public class ErrorsAutoConfigurationIT {
         });
     }
 
-    private Object[] provideExposures() {
+    private static Object[] provideExposures() {
         return p(
             p("ALWAYS¨", ArgumentExposure.ALWAYS),
             p("always¨", ArgumentExposure.ALWAYS),
@@ -207,9 +205,9 @@ public class ErrorsAutoConfigurationIT {
     }
 
     @SafeVarargs
-    private final void assertImplementations(List<WebErrorHandler> actualHandlers,
-                                             int expectedSize,
-                                             Class<? extends WebErrorHandler>... expectedTypes) {
+    private void assertImplementations(List<WebErrorHandler> actualHandlers,
+                                       int expectedSize,
+                                       Class<? extends WebErrorHandler>... expectedTypes) {
         assertThat(actualHandlers).hasSize(expectedSize);
         for (int i = 0; i < expectedTypes.length; i++) {
             assertThat(actualHandlers.get(i)).isInstanceOf(expectedTypes[i]);
